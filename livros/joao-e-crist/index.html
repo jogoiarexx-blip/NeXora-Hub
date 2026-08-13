@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>As Aventuras de João e Crist — Flipbook</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{font-family:Georgia,"Times New Roman",serif;color:#fff;background:radial-gradient(circle,#40342b 0,#1e1915 55%,#0b0908 100%)}
+.reader{height:100vh;display:flex;flex-direction:column}
+.top{height:56px;flex:0 0 56px;display:flex;justify-content:center;align-items:center;gap:18px;background:#090807bb;border-bottom:1px solid #fff2;backdrop-filter:blur(8px);z-index:10}
+.title{font-size:16px}.counter{font:13px Arial,sans-serif;opacity:.65}
+.stage{position:relative;flex:1;display:flex;justify-content:center;align-items:center;padding:20px 78px 70px;perspective:2400px}
+.book{height:min(80vh,820px);max-width:min(92vw,1180px);display:flex;align-items:stretch;justify-content:center;filter:drop-shadow(0 25px 32px #0009);transform-style:preserve-3d}
+.page{height:100%;aspect-ratio:419.25/595.5;background:#f7f0e3;overflow:hidden;position:relative}
+.page img{width:100%;height:100%;object-fit:cover;display:block;user-select:none;-webkit-user-drag:none}
+.left{border-radius:5px 0 0 5px;box-shadow:inset -14px 0 22px #00000014}
+.right{border-radius:0 5px 5px 0;box-shadow:inset 14px 0 22px #00000014}
+.single{border-radius:5px;box-shadow:0 0 0 1px #0002,inset 0 0 28px #00000013}
+.gutter{width:13px;flex:0 0 13px;background:linear-gradient(90deg,#0003,#fff3,#0003);z-index:2}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:55px;height:55px;border-radius:50%;border:1px solid #fff3;background:#0b0908bb;color:#fff;font-size:35px;cursor:pointer;z-index:20;transition:.15s;box-shadow:0 8px 22px #0005}
+.nav:hover{transform:translateY(-50%) scale(1.07);background:#352c25}
+.nav:disabled{opacity:.2;cursor:default}.prev{left:13px}.next{right:13px}
+.hint{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font:12px Arial,sans-serif;background:#080706aa;border:1px solid #fff2;border-radius:999px;padding:8px 13px;opacity:.8;z-index:20}
+.flip{animation:flip .44s ease}
+@keyframes flip{0%{transform:rotateY(0)}45%{transform:rotateY(-10deg) scaleX(.985)}100%{transform:rotateY(0)}}
+@media(max-width:760px){.top{height:50px;flex-basis:50px}.title{font-size:13px}.stage{padding:10px 50px 55px}.book{height:min(77vh,700px)}.gutter{width:8px;flex-basis:8px}.nav{width:44px;height:44px;font-size:27px}.prev{left:5px}.next{right:5px}.hint{font-size:10px}}
+</style>
+</head>
+<body>
+<div class="reader">
+<div class="top"><div class="title">As Aventuras de João e Crist</div><div id="counter" class="counter"></div></div>
+<div class="stage">
+<button id="prev" class="nav prev" aria-label="Página anterior">‹</button>
+<div id="book" class="book"></div>
+<button id="next" class="nav next" aria-label="Próxima página">›</button>
+<div class="hint">← → virar página • clique nas setas • arraste para virar</div>
+</div>
+</div>
+<script>
+const spreads=[{"left": null, "right": 1}, {"left": 2, "right": 3}, {"left": 4, "right": 5}, {"left": 6, "right": 7}, {"left": 8, "right": 9}, {"left": 10, "right": 11}, {"left": 12, "right": 13}, {"left": 14, "right": 15}, {"left": 16, "right": 17}, {"left": 18, "right": null}];
+let current=0;
+const book=document.getElementById("book"), counter=document.getElementById("counter");
+const prev=document.getElementById("prev"), next=document.getElementById("next");
+
+function page(n,side){
+ const el=document.createElement("div"); el.className="page "+side;
+ if(!n){el.style.visibility="hidden";return el}
+ if(current===0) el.classList.add("single");
+ const img=document.createElement("img");
+ img.src="pages/pagina-"+String(n).padStart(2,"0")+".jpg";
+ img.alt="Página "+n;
+ el.appendChild(img); return el;
+}
+function render(anim=true){
+ const s=spreads[current]; book.innerHTML="";
+ if(s.left===null){book.appendChild(page(s.right,"single"))}
+ else{
+   book.appendChild(page(s.left,"left"));
+   const g=document.createElement("div"); g.className="gutter"; book.appendChild(g);
+   if(s.right) book.appendChild(page(s.right,"right"));
+ }
+ if(anim){book.classList.remove("flip");void book.offsetWidth;book.classList.add("flip")}
+ const a=s.left===null?s.right:s.left, b=s.right||s.left;
+ counter.textContent=(a===b?"página "+a:"páginas "+a+"–"+b)+" / 18";
+ prev.disabled=current===0; next.disabled=current===spreads.length-1;
+}
+function go(d){const n=current+d;if(n<0||n>=spreads.length)return;current=n;render(true)}
+prev.onclick=()=>go(-1); next.onclick=()=>go(1);
+document.addEventListener("keydown",e=>{
+ if(e.key==="ArrowRight"||e.key==="PageDown"){e.preventDefault();go(1)}
+ if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();go(-1)}
+ if(e.key==="Home"){e.preventDefault();current=0;render(true)}
+ if(e.key==="End"){e.preventDefault();current=spreads.length-1;render(true)}
+});
+let sx=null;
+book.addEventListener("pointerdown",e=>sx=e.clientX);
+book.addEventListener("pointerup",e=>{if(sx===null)return;let dx=e.clientX-sx;sx=null;if(Math.abs(dx)>45)go(dx<0?1:-1)});
+render(false);
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+AS AVENTURAS DE JOÃO E CRIST — FLIPBOOK
+
+Abra o arquivo index.html no navegador.
+
+Controles:
+- Seta direita: próxima abertura
+- Seta esquerda: abertura anterior
+- Botões ‹ › na tela
+- Arrastar com o mouse/toque para virar
+- Home: capa
+- End: última abertura
+
+O livro usa o PDF original como base e apresenta as páginas em formato de livro aberto,
+com a capa sozinha e as demais páginas em pares.

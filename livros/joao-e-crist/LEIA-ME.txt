@@ -1,0 +1,6 @@
+Abra index.html no navegador.
+
+Seta direita/Esquerda: vira a abertura.
+Botões laterais: próxima/anterior.
+Arraste com mouse ou toque para virar.
+Home: capa | End: última página.

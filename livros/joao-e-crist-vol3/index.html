@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>As Aventuras de João e Crist — Volume 3</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{
+  background:radial-gradient(circle at center,#3c3c3c 0%,#191919 48%,#080808 100%);
+  font-family:Arial,sans-serif;color:#fff;
+  display:flex;flex-direction:column;
+}
+#reader{
+  flex:1;position:relative;display:flex;align-items:center;justify-content:center;
+  padding:34px 62px 58px;min-height:0;
+}
+#book{
+  position:relative;display:flex;align-items:stretch;justify-content:center;
+  max-width:94vw;max-height:88vh;
+  filter:drop-shadow(0 18px 24px rgba(0,0,0,.65));
+  perspective:1800px;
+}
+.page{
+  display:block;background:#fff;object-fit:contain;
+  width:auto;height:auto;max-width:47vw;max-height:82vh;
+  user-select:none;-webkit-user-drag:none;
+  box-shadow:0 2px 12px rgba(0,0,0,.4);
+}
+.left{border-radius:4px 0 0 4px}
+.right{border-radius:0 4px 4px 0}
+.single{border-radius:4px}
+#gutter{
+  width:9px;background:linear-gradient(90deg,rgba(0,0,0,.34),rgba(255,255,255,.16),rgba(0,0,0,.34));
+  box-shadow:inset 0 0 5px rgba(0,0,0,.55);
+}
+button{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:46px;height:72px;border:0;border-radius:10px;
+  background:rgba(0,0,0,.38);color:#fff;font-size:34px;
+  cursor:pointer;z-index:5;backdrop-filter:blur(3px);
+}
+button:hover{background:rgba(0,0,0,.62)}
+#prev{left:10px} #next{right:10px}
+#controls{
+  position:absolute;left:50%;bottom:13px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:12px;
+  background:rgba(0,0,0,.48);padding:8px 14px;border-radius:18px;
+  font-size:13px;white-space:nowrap;backdrop-filter:blur(4px)
+}
+#progress{opacity:.88}
+#hint{opacity:.62}
+@media(max-width:700px){
+  #reader{padding:20px 42px 52px}
+  .page{max-width:44vw;max-height:78vh}
+  #gutter{width:5px}
+  button{width:38px;height:58px;font-size:27px}
+  #prev{left:4px}#next{right:4px}
+  #hint{display:none}
+}
+</style>
+</head>
+<body>
+<div id="reader">
+  <button id="prev" aria-label="Página anterior">‹</button>
+  <div id="book"></div>
+  <button id="next" aria-label="Próxima página">›</button>
+  <div id="controls"><span id="progress"></span><span id="hint">← → • arraste • toque nas setas</span></div>
+</div>
+
+<script>
+const TOTAL = 15;
+let current = 1;
+const book = document.getElementById('book');
+const progress = document.getElementById('progress');
+
+function pageSrc(n){ return `pages/page-${String(n).padStart(2,'0')}.jpg`; }
+
+function makeImg(n, cls){
+  const img=document.createElement('img');
+  img.className='page '+cls;
+  img.src=pageSrc(n);
+  img.alt=`Página ${n}`;
+  img.draggable=false;
+  return img;
+}
+
+function render(){
+  book.innerHTML='';
+  if(current===1 || current===TOTAL){
+    book.appendChild(makeImg(current,'single'));
+  }else{
+    book.appendChild(makeImg(current,'left'));
+    const gutter=document.createElement('div');
+    gutter.id='gutter';
+    book.appendChild(gutter);
+    book.appendChild(makeImg(current+1,'right'));
+  }
+  const shown=(current===1||current===TOTAL)?`${current} / ${TOTAL}`:`${current}–${current+1} / ${TOTAL}`;
+  progress.textContent=shown;
+}
+
+function next(){
+  if(current===1) current=2;
+  else if(current<TOTAL-1) current+=2;
+  else if(current===TOTAL-1) current=TOTAL;
+  render();
+}
+function prev(){
+  if(current===TOTAL) current=TOTAL-1;
+  else if(current>2) current-=2;
+  else current=1;
+  render();
+}
+document.getElementById('next').onclick=next;
+document.getElementById('prev').onclick=prev;
+
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();next();}
+  if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  if(e.key==='Home'){current=1;render();}
+  if(e.key==='End'){current=TOTAL;render();}
+});
+
+let startX=0;
+let down=false;
+book.addEventListener('pointerdown',e=>{startX=e.clientX;down=true;book.setPointerCapture?.(e.pointerId)});
+book.addEventListener('pointerup',e=>{
+  if(!down)return; down=false;
+  const dx=e.clientX-startX;
+  if(Math.abs(dx)>45) dx<0?next():prev();
+});
+
+render();
+</script>
+</body>
+</html>
