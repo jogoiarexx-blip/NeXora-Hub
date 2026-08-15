@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Zeco e a Ilha das Gemas</title>
+<meta name="theme-color" content="#3a1e5c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="800" height="450"></canvas>
+    <div id="hud">
+      <div id="hudLeft">
+        <span id="scoreDisplay">💎 0</span>
+        <span id="livesDisplay">❤️ 3</span>
+        <span id="gemProgressDisplay">💗 0/100</span>
+        <span id="objectiveDisplay">🥈 0/2</span>
+        <span id="levelDisplay">Fase 1</span>
+      </div>
+      <div id="hudRight">
+        <span id="powerupStatus"></span>
+        <span id="muteBtn">🔊</span>
+      </div>
+    </div>
+    <div id="touchControls">
+      <div class="dpad">
+        <div class="touchBtn" id="leftBtn" role="button" tabindex="0" aria-label="Mover para esquerda">◀</div>
+        <div class="touchBtn" id="rightBtn" role="button" tabindex="0" aria-label="Mover para direita">▶</div>
+      </div>
+      <div class="touchBtn" id="jumpBtn" role="button" tabindex="0" aria-label="Pular">⤒</div>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <div id="screenMenu" class="screen">
+      <h2 class="menuTitle">🌴 ZECO 🌴</h2>
+      <h3 class="menuSubtitle">Lendas da Ilha</h3>
+      <p id="bestScoreDisplay" class="bestScoreDisplay hidden"></p>
+      <p>
+        Ajude o Zeco a atravessar a ilha, pular nos capangas do Barão Sombra
+        e coletar todas as gemas antes de chegar ao portal! Quebre as caixas
+        de madeira para achar moedas e poderes escondidos.
+      </p>
+      <div class="menuButtons">
+        <button id="playBtn">▶ Jogar</button>
+        <button id="levelSelectBtn" class="secondaryBtn">🗺️ Selecionar Fase</button>
+        <button id="howToBtn" class="secondaryBtn">❓ Como Jogar</button>
+        <!-- Espaço reservado para novos botões do menu (ex: Configurações, Ranking, Créditos) -->
+      </div>
+    </div>
+
+    <div id="screenHowTo" class="screen hidden">
+      <h2>❓ Como Jogar</h2>
+      <ul class="howToList">
+        <li>⬅️ ➡️ ou A/D — mover</li>
+        <li>ESPAÇO ou ⬆️/W — pular</li>
+        <li>👟 Pise nos inimigos para derrotá-los</li>
+        <li>📦 Pule em cima ou bata por baixo das caixas para quebrá-las e achar moedas e poderes</li>
+        <li>⭐ Estrela = invencível e veloz</li>
+        <li>🪽 Asas = pulo duplo</li>
+        <li>🛡️ Escudo = absorve 1 hit</li>
+        <li>💗 A cada 100 gemas rosas coletadas você ganha uma vida extra</li>
+        <li>🥈 A gema prateada grande de cada fase marca um objetivo concluído</li>
+        <li>🔷 O cristal de cada fase é conquistado ao terminar a fase (chegar no portal)</li>
+        <li>🚩 Toque nas bandeiras de checkpoint para salvar seu progresso na fase</li>
+        <li>⏸️ ESC ou P — pausar o jogo</li>
+      </ul>
+      <button id="howToBackBtn">◀ Voltar</button>
+    </div>
+
+    <div id="screenLevelSelect" class="screen hidden">
+      <h2 class="levelSelectTitle">🗺️ Selecionar Fase</h2>
+      <p id="levelSelectBanner" class="levelSelectBanner hidden"></p>
+      <p class="levelSelectHint">🔷 Cristal = fase concluída &nbsp;•&nbsp; 🥈 Gema = objetivo secreto encontrado</p>
+      <div class="levelProgressWrap">
+        <div class="levelProgressLabel">
+          <span>Progresso da ilha</span>
+          <span><b id="levelProgressCount">0</b>/<span id="levelProgressTotal">0</span> fases</span>
+        </div>
+        <div class="levelProgressBar"><div id="levelProgressFill" class="levelProgressFill" style="width:0%"></div></div>
+      </div>
+      <div id="levelGrid"></div>
+      <button id="levelSelectBackBtn" class="secondaryBtn">◀ Voltar</button>
+    </div>
+
+    <div id="screenEnd" class="screen hidden">
+      <h2 id="overlayTitle">Zeco e a Ilha das Gemas</h2>
+      <p id="overlayText"></p>
+      <div class="menuButtons">
+        <button id="startBtn">Jogar Novamente</button>
+        <button id="menuBtn" class="secondaryBtn">🏠 Menu Principal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ordem importa: fases -> jogo (motor) -> áudio -> menu -> seletor de fases -->
+  <script src="js/fases.js"></script>
+  <script src="js/jogo.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/seletor-fases.js"></script>
+  <script>
+    // Inicialização: carrega progresso salvo, a primeira fase e liga o loop principal do jogo
+    loadProgress();
+    loadLevel(0);
+    draw();
+    loop();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
