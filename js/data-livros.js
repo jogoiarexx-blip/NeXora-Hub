@@ -6,6 +6,33 @@
 
 const LIVROS = [
   {
+    id: 'promessa-ao-amanhecer', type: 'livro', title: 'Promessa ao Amanhecer',
+    genre: 'romance e fé', accent: 'var(--amber)',
+    thumb: 'assets/thumbs/promessa-ao-amanhecer.jpg',
+    desc: 'Um romance sobre duas tradições de fé, diálogo, casamento e a escolha diária de caminhar juntos.',
+    path: 'livros/promessa-ao-amanhecer/index.html'
+  },
+  {
+    id: 'o-vagante-das-sombras',
+    type: 'livro',
+    title: 'O Vagante das Sombras',
+    genre: 'terror',
+    accent: 'var(--amber)',
+    thumb: 'assets/thumbs/o-vagante-das-sombras.jpg',
+    desc: 'Uma jornada claustrofóbica pelos túneis do metrô, onde Marcos descobre que alguns passageiros jamais descem do trem.',
+    path: 'livros/o-vagante-das-sombras/index.html'
+  },
+  {
+    id: 'contos-terror-joao-crist',
+    type: 'livro',
+    title: 'Contos de Terror com João e Crist',
+    genre: 'terror e comédia',
+    accent: 'var(--amber)',
+    thumb: 'assets/thumbs/contos-terror-joao-crist.jpg',
+    desc: 'Uma noite de Halloween, histórias assustadoras, mentiras absurdas e uma última assombração que talvez seja verdadeira.',
+    path: 'livros/contos-terror-joao-crist/index.html'
+  },
+  {
     id: 'joao-e-crist-sea-of-liars',
     type: 'livro',
     title: 'As Aventuras de João e Crist — Sea of Liars',
