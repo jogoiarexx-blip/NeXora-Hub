@@ -64,8 +64,9 @@ function cardHTML(item){
         <h2>${escapeHTML(item.title)}</h2>
         <p>${escapeHTML(item.desc)}</p>
         ${progressHTML}
-        <div class="card-actions"><span class="play">▶ ${progress ? 'continuar' : meta.action}</span><button class="download-btn${localStorage.getItem(OFFLINE_KEY+item.id)==='1'?' downloaded':''}" type="button" data-download="${escapeHTML(item.id)}">${localStorage.getItem(OFFLINE_KEY+item.id)==='1'?'✓ offline':'⬇ baixar'}</button></div>
+        <span class="play">▶ ${progress ? 'continuar' : meta.action}</span>
       </a>
+      ${OFFLINE_ASSETS[item.id] ? `<button class="download-btn${localStorage.getItem(OFFLINE_KEY+item.id)==='1'?' downloaded':''}" type="button" data-download="${escapeHTML(item.id)}">${localStorage.getItem(OFFLINE_KEY+item.id)==='1'?'✓ offline':'⬇ baixar'}</button>` : ''}
     </article>`;
 }
 function renderItems(list){
@@ -142,18 +143,41 @@ function toggleFavorite(id, button){
 }
 
 function downloadOffline(id, btn){
-  if(!('serviceWorker' in navigator) || !OFFLINE_ASSETS[id]) return alert('Abra o NeXora pelo site para usar downloads offline.');
-  const downloaded=localStorage.getItem(OFFLINE_KEY+id)==='1';
-  navigator.serviceWorker.ready.then(reg=>{
-    const sw=reg.active || navigator.serviceWorker.controller;
+  if(!('serviceWorker' in navigator) || !OFFLINE_ASSETS[id]){
+    alert('O download offline precisa ser usado pelo site publicado em HTTPS.');
+    return;
+  }
+  const downloaded = localStorage.getItem(OFFLINE_KEY + id) === '1';
+  navigator.serviceWorker.ready.then(reg => {
+    const sw = reg.active || navigator.serviceWorker.controller;
     if(!sw) return;
-    btn.disabled=true; btn.textContent=downloaded?'removendo...':'baixando...';
-    sw.postMessage({type:downloaded?'REMOVE':'DOWNLOAD',id,urls:OFFLINE_ASSETS[id]});
+    btn.disabled = true;
+    btn.textContent = downloaded ? 'removendo...' : 'baixando...';
+    sw.postMessage({type: downloaded ? 'REMOVE' : 'DOWNLOAD', id, urls: OFFLINE_ASSETS[id]});
   });
 }
-if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js')); }
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('installApp');if(b)b.hidden=false;});
-window.addEventListener('appinstalled',()=>{const b=document.getElementById('installApp');if(b)b.hidden=true;deferredInstallPrompt=null;});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', async () => {
+    try {
+      // limpa caches da versão que causou o problema no GitHub Pages
+      const names = await caches.keys();
+      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-shell-v3' && n !== 'nexora-content-v3').map(n => caches.delete(n)));
+      await navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'});
+    } catch(err){ console.warn('PWA:', err); }
+  });
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const b = document.getElementById('installApp');
+  if(b) b.hidden = false;
+});
+window.addEventListener('appinstalled', () => {
+  const b = document.getElementById('installApp');
+  if(b) b.hidden = true;
+  deferredInstallPrompt = null;
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   renderFeatured();
@@ -161,9 +185,31 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTypeTabs();
   renderGenreFilters();
   renderItems(sortByTypeOrder(ITEMS));
-  const installBtn=document.getElementById('installApp');
-  installBtn?.addEventListener('click',async()=>{if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;installBtn.hidden=true;});
-  navigator.serviceWorker?.addEventListener('message',e=>{const d=e.data||{};const btn=document.querySelector(`[data-download="${d.id}"]`);if(d.type==='PROGRESS'&&btn)btn.textContent=`${Math.round(d.done/d.total*100)}%`;if(d.type==='DOWNLOADED'){localStorage.setItem(OFFLINE_KEY+d.id,'1');if(btn){btn.disabled=false;btn.classList.add('downloaded');btn.textContent='✓ offline';}}if(d.type==='REMOVED'){localStorage.removeItem(OFFLINE_KEY+d.id);if(btn){btn.disabled=false;btn.classList.remove('downloaded');btn.textContent='⬇ baixar';}}if(d.type==='DOWNLOAD_ERROR'){if(btn){btn.disabled=false;btn.textContent='tentar de novo';}alert('Não foi possível concluir o download. Verifique sua internet e tente novamente.');}});
+  const installBtn = document.getElementById('installApp');
+  installBtn?.addEventListener('click', async () => {
+    if(!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    installBtn.hidden = true;
+  });
+  navigator.serviceWorker?.addEventListener('message', e => {
+    const d = e.data || {};
+    const btn = document.querySelector(`[data-download="${d.id}"]`);
+    if(d.type === 'PROGRESS' && btn) btn.textContent = `${Math.round(d.done/d.total*100)}%`;
+    if(d.type === 'DOWNLOADED'){
+      localStorage.setItem(OFFLINE_KEY+d.id,'1');
+      if(btn){ btn.disabled=false; btn.classList.add('downloaded'); btn.textContent='✓ offline'; }
+    }
+    if(d.type === 'REMOVED'){
+      localStorage.removeItem(OFFLINE_KEY+d.id);
+      if(btn){ btn.disabled=false; btn.classList.remove('downloaded'); btn.textContent='⬇ baixar'; }
+    }
+    if(d.type === 'DOWNLOAD_ERROR'){
+      if(btn){ btn.disabled=false; btn.textContent='tentar de novo'; }
+      alert('Não foi possível concluir o download. Verifique a internet e tente novamente.');
+    }
+  });
   document.getElementById('search').addEventListener('input', applyFilters);
   document.getElementById('typeTabs').addEventListener('click', e => {
     const btn=e.target.closest('.type-btn'); if(!btn) return;
@@ -176,7 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); applyFilters();
   });
   document.getElementById('games').addEventListener('click', e => {
-    const dl=e.target.closest('[data-download]'); if(dl){e.preventDefault();e.stopPropagation();downloadOffline(dl.dataset.download,dl);return;}
+    const dl = e.target.closest('[data-download]');
+    if(dl){ e.preventDefault(); e.stopPropagation(); downloadOffline(dl.dataset.download, dl); return; }
     const btn=e.target.closest('[data-favorite]'); if(!btn) return;
     e.preventDefault(); e.stopPropagation(); toggleFavorite(btn.dataset.favorite, btn);
   });

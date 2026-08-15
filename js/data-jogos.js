@@ -45,6 +45,34 @@ const JOGOS = [
     path: 'jogos/navinha-arcade/index.html'
   },
   {
+    id: 'modern-breakout',
+    type: 'jogo',
+    title: 'Modern Breakout v4.0',
+    genre: 'arcade',
+    accent: 'var(--amber)',
+    desc: 'Breakout Premium Edition com fases, power-ups, skins, conquistas, economia e placar.',
+    path: 'jogos/breakout/index.html'
+  },
+  {
+    id: 'zeco-ilha',
+    type: 'jogo',
+    title: 'Zeco e a Ilha das Gemas',
+    genre: 'aventura',
+    accent: 'var(--fire)',
+    thumb: 'assets/thumbs/zeco-ilha.webp',
+    desc: 'Aventura pela ilha em busca de gemas, com fases, áudio, seleção de fases e suporte a celular.',
+    path: 'jogos/zeco-lendas-da-ilha/index.html'
+  },
+  {
+    id: 'last-campfire',
+    type: 'jogo',
+    title: 'Last Campfire',
+    genre: 'sobrevivência',
+    accent: 'var(--red)',
+    desc: 'Jogo de sobrevivência com controles, áudio, sistema de salvamento e interface própria.',
+    path: 'jogos/last-campfire/index.html'
+  },
+  {
     id: 'exemplo',
     type: 'jogo',
     title: 'Jogo Exemplo',
