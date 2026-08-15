@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#061827">
+  <title>Hungry Like Shark</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="joystick"><div id="joystick-handle"></div></div>
+  <div id="ui-buttons">
+    <div class="ui-btn" id="btn-shop">🏪</div>
+    <div class="ui-btn" id="btn-missions">📋</div>
+    <div class="ui-btn" id="btn-upgrade">UP</div>
+    <div class="ui-btn action-btn" id="btn-dash">⚡<span>DASH</span></div>
+    <div class="ui-btn action-btn" id="btn-pause">Ⅱ<span>PAUSA</span></div>
+  </div>
+
+  <!-- Scripts na ordem correta de dependência -->
+  <script src="config.js"></script>
+  <script src="save-system.js"></script>
+  <script src="achievements.js"></script>
+  <script src="object-pool.js"></script>
+  <script src="camera-system.js"></script>
+  <script src="map-system.js"></script>
+  <script src="collision-system.js"></script>
+  <script src="utils.js"></script>
+  <script src="audio.js"></script>
+  <script src="player.js"></script>
+  <!-- Sistema de peixes expandido -->
+  <script src="fish-types.js"></script>
+  <script src="fish-types-expanded.js"></script>
+  <script src="fish-ability-system.js"></script>
+  <script src="progression-system.js"></script>
+  <script src="fish-renderer.js"></script>
+  <script src="fish.js"></script>
+  <!-- Sistema de inimigos avançado (3 arquivos) -->
+  <!-- ✅ CORREÇÃO BUG #1: Removido enemy.js para evitar conflito -->
+  <!-- ANTIGO: <script src="enemy.js"></script> -->
+  <script src="enemy-types.js"></script>
+  <script src="enemy-renderer.js"></script>
+  <script src="enemy-new.js"></script>
+  <script src="ui.js"></script>
+  <script src="menu.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
