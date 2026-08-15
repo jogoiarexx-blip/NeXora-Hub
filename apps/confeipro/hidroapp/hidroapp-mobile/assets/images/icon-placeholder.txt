@@ -1,1 +1,0 @@
-Icon will be loaded from S3 URL configured in app.config.ts
