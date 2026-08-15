@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Termo Premium V5</title>
+<meta name="theme-color" content="#111827">
+<style>
+:root{
+  --bg:#0b1020; --bg2:#121936; --panel:#161d38; --panel2:#212b52; --text:#f5f7ff; --muted:#a8b1d9;
+  --green:#35c46b; --yellow:#f2c94c; --gray:#475073; --danger:#ef4444; --accent:#7c9cff; --accent2:#9b7cff;
+  --key:#2a3154; --keyText:#fff; --shadow:0 12px 30px rgba(0,0,0,.28);
+}
+body.light{
+  --bg:#f4f7ff; --bg2:#edf2ff; --panel:#ffffff; --panel2:#eef3ff; --text:#12172b; --muted:#5d678f;
+  --green:#22a559; --yellow:#e3b62f; --gray:#9aa3c0; --danger:#d63a3a; --accent:#5b7cff; --accent2:#7c6cff;
+  --key:#dbe3ff; --keyText:#1b2140; --shadow:0 10px 30px rgba(25,35,80,.12);
+}
+body.neon{
+  --bg:#070b13; --bg2:#0c1224; --panel:#0d1528; --panel2:#111c34; --text:#ecf7ff; --muted:#89a3c8;
+  --green:#00ff8c; --yellow:#ffd54d; --gray:#4a5977; --danger:#ff4f6d; --accent:#00d4ff; --accent2:#9b5cff;
+  --key:#10203f; --keyText:#e9f8ff; --shadow:0 0 0 rgba(0,0,0,0), 0 0 24px rgba(0,212,255,.12);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(circle at top right, rgba(124,156,255,.18), transparent 28%),
+    radial-gradient(circle at top left, rgba(155,124,255,.12), transparent 24%),
+    linear-gradient(180deg,var(--bg),var(--bg2));
+  color:var(--text); display:flex; justify-content:center;
+}
+.app{width:min(100%,860px); padding:12px 12px 30px}
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:10px}
+.logo{
+  width:46px;height:46px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;font-weight:900;box-shadow:var(--shadow); font-size:1.2rem
+}
+h1{font-size:1.2rem;margin:0}
+.sub{font-size:.85rem;color:var(--muted)}
+.actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+.actions select{max-width:150px}
+.btn, select{
+  background:var(--panel); color:var(--text); border:1px solid rgba(255,255,255,.08);
+  padding:10px 12px; border-radius:14px; cursor:pointer; box-shadow:var(--shadow); font-weight:700;
+}
+select{appearance:none}
+.btn.small{padding:8px 10px; font-size:.9rem}
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid rgba(255,255,255,.08); border-radius:22px; padding:14px; box-shadow:var(--shadow);
+}
+.row{display:flex; gap:10px; flex-wrap:wrap}
+.stats{
+  display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-top:10px;
+}
+.stat{padding:12px; border-radius:16px; background:rgba(255,255,255,.04); text-align:center}
+.stat b{display:block;font-size:1.15rem}
+.gameArea{margin-top:12px}
+.infoLine{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;
+  font-size:.95rem; color:var(--muted); flex-wrap:wrap
+}
+.grid{display:grid; gap:6px; justify-content:center; margin:8px 0 14px}
+.rowg{display:grid; gap:6px}
+.cell{
+  width:min(13vw,60px); height:min(13vw,60px); border-radius:14px;
+  border:2px solid rgba(255,255,255,.12); display:grid; place-items:center;
+  font-weight:900; font-size:1.45rem; text-transform:uppercase; background:rgba(255,255,255,.03);
+  transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .2s ease;
+}
+body.neon .cell{box-shadow: inset 0 0 0 1px rgba(0,212,255,.08)}
+.cell.filled{border-color:var(--accent)}
+.cell.pop{transform:scale(1.05)}
+.cell.flip{animation:flip .5s ease}
+.cell.reveal{animation:reveal .55s ease}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+@keyframes reveal{0%{transform:scale(.9)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+.cell.correct{background:var(--green); border-color:var(--green); color:#fff}
+.cell.present{background:var(--yellow); border-color:var(--yellow); color:#222}
+.cell.absent{background:var(--gray); border-color:var(--gray); color:#fff}
+.shake{animation:shake .35s linear}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.keyboard{display:flex; flex-direction:column; gap:8px; align-items:center}
+.krow{display:flex; gap:6px; justify-content:center; width:100%}
+.key{
+  flex:1 1 0; min-width:0; height:48px; padding:0 6px; border:none; border-radius:12px; background:var(--key);
+  color:var(--keyText); font-weight:800; box-shadow:var(--shadow); cursor:pointer;
+}
+.key.wide{flex:1.6 1 0;min-width:0}
+.key.correct{background:var(--green)!important;color:#fff}
+.key.present{background:var(--yellow)!important;color:#222}
+.key.absent{background:var(--gray)!important;color:#fff}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border-radius:999px;
+  background:rgba(124,156,255,.12);color:var(--text);font-weight:700;font-size:.9rem
+}
+.toast{
+  position:fixed; left:50%; top:16px; transform:translateX(-50%) translateY(-20px);
+  background:var(--panel); color:var(--text); padding:12px 16px; border-radius:14px;
+  box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.25s; z-index:1000
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+.modalWrap{
+  position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:100;
+}
+.modal{
+  width:min(100%,680px); max-height:90vh; overflow:auto;
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border-radius:24px; padding:18px; box-shadow:var(--shadow); border:1px solid rgba(255,255,255,.08)
+}
+.modal h2{margin-top:0}
+.modal .close{float:right}
+.list{display:grid; gap:8px}
+.footerNote{margin-top:14px; color:var(--muted); font-size:.85rem; text-align:center}
+.hidden{display:none!important}
+.confetti{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:90}
+.piece{position:absolute; width:10px; height:16px; top:-20px; animation:fall 2.4s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.unlock{
+  position:fixed; left:50%; top:20%; transform:translateX(-50%) scale(.9);
+  background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; padding:16px 20px;
+  border-radius:18px; box-shadow:var(--shadow); z-index:120; opacity:0; pointer-events:none; transition:.3s;
+  text-align:center; font-weight:800;
+}
+.unlock.show{opacity:1; transform:translateX(-50%) scale(1)}
+.progress{height:10px; background:rgba(255,255,255,.08); border-radius:999px; overflow:hidden}
+.progress > div{height:100%; width:0; background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.achievements{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px}
+.ach{padding:12px; border-radius:16px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06)}
+.ach.locked{opacity:.55}
+.shopGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.shopItem{padding:12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.shopItem.active{outline:2px solid var(--accent)}
+.mini{font-size:.86rem;color:var(--muted)}
+.distGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.distBox{padding:10px;border-radius:14px;background:rgba(255,255,255,.04);text-align:center}
+@media (max-width:700px){ .stats{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:560px){
+  .app{padding:8px 8px 24px}
+  .topbar{align-items:flex-start}
+  .brand{width:100%}
+  .actions{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}
+  .actions .btn,.actions select{width:100%;max-width:none;padding:9px 8px;font-size:.82rem}
+  .infoLine>div:last-child{display:grid;grid-template-columns:repeat(3,1fr);width:100%}
+  .infoLine .btn{width:100%;padding:9px 6px;font-size:.82rem}
+  .cell{width:min(14vw,56px);height:min(14vw,56px);font-size:1.1rem;border-radius:12px}
+  .krow{gap:4px}
+  .key{height:44px;padding:0 3px;font-size:.82rem;border-radius:10px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .distGrid{grid-template-columns:repeat(3,1fr)}
+}
+@media (min-width:900px){
+  .app{width:min(100%,1040px)}
+  .gameArea{padding:20px}
+  .cell{width:62px;height:62px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">T5</div>
+      <div>
+        <h1>Termo Premium V5</h1>
+        <div class="sub">Categorias • Conquistas • Moedas • Temas • Offline-ready</div>
+      </div>
+    </div>
+    <div class="actions">
+      <select id="modeSelect" title="Modo">
+        <option value="daily">Diário</option>
+        <option value="infinite">Infinito</option>
+        <option value="time">Contra o tempo</option>
+      </select>
+      <select id="lenSelect" title="Tamanho">
+        <option value="4">4 letras</option>
+        <option value="5" selected>5 letras</option>
+        <option value="6">6 letras</option>
+      </select>
+      <select id="categorySelect" title="Categoria">
+        <option value="geral">Geral</option>
+        <option value="animais">Animais</option>
+        <option value="cidades">Cidades</option>
+        <option value="biblia">Bíblia</option>
+      </select>
+      <button class="btn small" id="themeBtn">🎨 Tema</button>
+      <button class="btn small" id="soundBtn">🔊 Som</button>
+      <button class="btn small" id="notifyBtn">🔕 Avisos</button>
+      <button class="btn small" id="helpBtn">❔</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div class="badge" id="modeBadge">Modo: Diário</div>
+      <div class="badge" id="streakBadge">🔥 Streak: 0</div>
+      <div class="badge" id="lettersBadge">5 letras</div>
+      <div class="badge" id="coinBadge">🪙 0</div>
+      <div class="badge" id="levelBadge">⭐ Nível 1</div>
+      <div class="badge" id="timerBadge">⏱️ --</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Partidas</span><b id="playedStat">0</b></div>
+      <div class="stat"><span>Vitórias</span><b id="winsStat">0</b></div>
+      <div class="stat"><span>% Acerto</span><b id="rateStat">0%</b></div>
+      <div class="stat"><span>Melhor Streak</span><b id="bestStat">0</b></div>
+      <div class="stat"><span>XP</span><b id="xpStat">0</b></div>
+      <div class="stat"><span>Conquistas</span><b id="achStat">0</b></div>
+    </div>
+    <div style="margin-top:10px">
+      <div class="mini">Progresso de nível</div>
+      <div class="progress"><div id="xpBar"></div></div>
+    </div>
+  </div>
+
+  <div class="gameArea card">
+    <div class="infoLine">
+      <div id="statusText">Descubra a palavra.</div>
+      <div>
+        <button class="btn small" id="hintBtn">💡 Dica</button>
+        <button class="btn small" id="newBtn">🔄 Nova</button>
+        <button class="btn small" id="shareBtn">📤 Compartilhar</button>
+        <button class="btn small" id="shopBtn">🛍️ Temas</button>
+        <button class="btn small" id="achBtn">🏆 Conquistas</button>
+      </div>
+    </div>
+    <div id="grid" class="grid"></div>
+    <div id="keyboard" class="keyboard"></div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-top:0">Distribuição de vitórias</h3>
+    <div id="distGrid" class="distGrid"></div>
+  </div>
+
+  <div class="footerNote">V5 • salvamento local completo • modo offline • interface responsiva.</div>
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="confetti" class="confetti"></div>
+<div id="unlock" class="unlock"></div>
+
+<div id="helpModal" class="modalWrap">
+  <div class="modal">
+    <button class="btn small close" onclick="toggleModal('helpModal', false)">Fechar</button>
+    <h2>Como jogar</h2>
+    <div class="list">
+      <div>• Descubra a palavra em até <b>6 tentativas</b>.</div>
+      <div>• 🟩 verde = letra certa no lugar certo.</div>
+      <div>• 🟨 amarelo = letra existe, mas em outra posição.</div>
+      <div>• ⬛ cinza = letra não existe na palavra.</div>
+      <div>• <b>Diário</b>: uma palavra por dia por tamanho e categoria.</div>
+      <div>• <b>Infinito</b>: sempre gera outra palavra.</div>
+      <div>• <b>Contra o tempo</b>: você tem 90 segundos para acertar o máximo que conseguir.</div>
+      <div>• Ganhe <b>moedas e XP</b>, desbloqueie <b>temas</b> e complete <b>conquistas</b>.</div>
+      <div>• A dica custa <b>5 moedas</b> e só pode ser usada uma vez por palavra.</div>
+    </div>
+  </div>
+</div>
+
+<div id="shopModal" class="modalWrap">
+  <div class="modal">
+    <button class="btn small close" onclick="toggleModal('shopModal', false)">Fechar</button>
+    <h2>Loja de Temas</h2>
+    <p class="mini">Compre temas com suas moedas. O tema atual fica marcado.</p>
+    <div id="shopGrid" class="shopGrid"></div>
+  </div>
+</div>
+
+<div id="achModal" class="modalWrap">
+  <div class="modal">
+    <button class="btn small close" onclick="toggleModal('achModal', false)">Fechar</button>
+    <h2>Conquistas</h2>
+    <div id="achievements" class="achievements"></div>
+  </div>
+</div>
+
+<script>
+
+const ANSWERS = {
+  geral: {
+    4:["AMOR","ANEL","ARCO","ARTE","ASAS","AZUL","BALA","BOLA","BOLO","CASA","CEGO","CENA","CIMA","CUBO","DADO","DOCE","DOIS","ELOA","FARO","FATO","FITA","FOGO","FOTO","GALO","GATA","GELO","GIRO","HINO","ILHA","JOGO","LAGO","LATA","LEME","LERO","LIMA","LONA","LUVA","MALA","MATO","MEDO","MESA","MOLA","MURO","NAVE","NINHO","NOITE".slice(0,4),"NOME","ONDA","OURO","PANO","PATO","PENA","PESO","PIPA","PISO","POCO","PONE","REDE","REIS".slice(0,4),"RISO","ROSA","ROTA","SACO","SAGA","SINO","SONO","SUCO","TELA","TETO","TIPO","TREM","TRIO","TUDO","URSO","VALE","VELA","VIDA","VILA","VOAR"],
+    5:["ABRIR","AMIGO","AMORA","ANJOS","AREIA","ARMAR","AROMA","ASTRO","ATIVO","BAILE","BANHO","BARCO","BEIJO","BICHO","BRAVO","BRISA","BROTO","CABER","CAIXA","CALMA","CAMPO","CANOA","CANTO","CAPIM","CARRO","CARTA","CASAL","CERTO","CHAVE","CHEIO","CHUVA","CLARO","COBRA","CORPO","DANCA","DENTE","DOCES","DONDO".slice(0,5),"FALSO","FAROL","FATOS","FELIZ","FESTA","FILME","FIRME","FLUIR","FORTE","FONTE","FRUTA","GENTE","GIRAR","GOSTO","GRITO","GRUTA","HOTEL","IDEIA","IGREJA".slice(0,5),"IMPAR","JOGAR","JOVEM","LIMPO","LIVRO","LUGAR","MAGIA","MARCA","MASSA","MENTE","MESMO","METAL","MEXER","MORRO","MOTEL","MOVER","MUNDO","NARIZ","NATAL","NINHO","NOITE","NOBRE","NORTE","NUVEM","PEDRA","PEIXE","PERTO","PISTA","PLANO","PODER","PONTO","PRAIA","PRATO","PRIMO","QUASE","QUEDA","RAPAZ","REINO","RISCO","RITMO","ROSTO","ROUPA","SABER","SABOR","SALTO","SANTO","SEGUE","SINAL","SITIO","SONHO","SORTE","TEMPO","TENDA","TERNO","TEXTO","TIROS".slice(0,5),"TOCAR","TRAMA","TREVO","TRONO","TURMA","UNIAO","VALOR","VERBO","VENTO","VIOLA","VIRAR","VIVER","VOLTA"],
+    6:["ABELHA","ABISMO","ABRIGO","ACORDE","AGULHA","AMIGOS","AMOROS".slice(0,6),"ANIMAL","APERTO","ASSADO","BANANA","BATALHA".slice(0,6),"BEXIGA","BILHETE".slice(0,6),"BRILHO","CABELO","CACAUS".slice(0,6),"CADEIA","CADEIRA".slice(0,6),"CAMISA","CANETA","CANTAR","CARROS","CASTOR","CEREJA","CHUVAS","CIDADE","CLARAO","COELHO","COLINA","COMIDA","CORACAO".slice(0,6),"CORUJA","COSTAS","CUIDAR","DENTES","DESCER","DESVIO","DIRETO","ESTADO","ESTILO","ESTRELA".slice(0,6),"FLORES","FOGUETE".slice(0,6),"FORMAS","FUTURO","GALERA","GARFOS","GENTIL","JANELA","JARDIM","JOGADA","LENDAS","LETRAS","LIVROS","MACACO","MADEIR","MANEJO","MELHOR","MOLDAR","MONTAR","MOTIVO","MUSICA","NATURE","NEVOAS","NINHOS","OCULOS","ORELHA","PASSAR","PASTEL","PEDRAS","PILOTO","PLANOS","PRAIAS","PRATOS","PULSAR","QUARTO","QUERER","QUIETO","RITMOS","ROTEIRO".slice(0,6),"SABADO","SINAIS","SORRIR","TALHER","TEMPOS","TESOURO".slice(0,6),"TOMATE","TRILHA","TROCAR","TUCANO","VALENTE".slice(0,6),"VIAGEM","VITRAL"]
+  },
+  animais: {
+    4:["GATO","PATO","LOBO","RATO","URSO","SAPO","MULA","LEAO".slice(0,4)],
+    5:["TIGRE","ZEBRA","COBRA","PANDA","GARCA","POMBO","BURRO","HIENA","LEMUR","PEIXE"],
+    6:["COELHO","ABELHA","MACACO","CAMELO","JACARE","TUCANO","CAVALO","CORUJA","LONTRA"]
+  },
+  cidades: {
+    4:["OSLO","ROMA","LIMA","JAUS".slice(0,4),"PARA".slice(0,4)],
+    5:["PARIS","NATAL","BAURU","OSAKA","CAIRO","TOKIO","MOCAS"],
+    6:["MADRID","LISBOA","BERLIM","CUIABA","MANAUS","SANTOS","RECIFE","GOIANI".slice(0,6)]
+  },
+  biblia: {
+    4:["RUTE","SAUL","JOAO","DAVI","ELIA","LEIA","ATOS"],
+    5:["JESUS","MOISE","MARIA","PAULO","PEDRO","ESTER","JACOB","NOEMI","ISAQUE".slice(0,5)],
+    6:["SALMOS","ISAIAS","SAMUEL","JERICO","GENESE","HEBREU","ROMANO","GALATA"]
+  }
+};
+
+const EXTRA_GUESSES = {
+  4:["ABRA","ACAI","ACOR","AFIM","AGUA","ALMA","ALTO","ANDA","ANJO","ARPA","AULA","AVES","BAIX","BENS","BOTE","BRIO","CAIS","CALA","CALO","CAMA","CAPA","CERA","COPO","CORA".slice(0,4),"DAMA","DIVA","DOAR","DOMA","ERVA","FACA","FALA","FARO","FAVA","FERA","FIOS","GEMA","GIRA","GOMA","HORA","LADO","LERO","LISO","LOTE","LUAU","MAGO","MEIO","MIMO","MIRA","MODA","NATA","NEXO","ODIO","OLHO".slice(0,4),"PAGO","PAZE".slice(0,4),"PELE","PINO","POVO","PURO","RAMA","RICO","RIMA","RITO","RUGA","SEDE","SETA","SOMA","TAPA","TEMA","TINA","TIRA","TOCA","TORO","TRAZ".slice(0,4),"UNHA","USAR","VASO","VOTO"],
+  5:["ACASO","ADEUS","ADORO","AFETO","AGORA","AJUDA","ALBUM","ALMAS","ALTAR","ALVOS","ANDAR","ANTES","APOIO","ARCAR","AREAL","ASSIM","ATUAR","AVISO","BALDE","BANCO","BARRO","BATER","BERCO","BRAVA","BRAVO","BRUXA","CACAO","CALOR","CANAL","CARNE","CARTA","CASCO","CERCA","CERNE","CHAMA","CHAVE","CICLO","CINTO","CIRCO","CLIMA","CORAL","CORDA","CORTE","CULTO","CURSO","DANOS","DEPOIS".slice(0,5),"DIZER","DOBRA","DORMA","DUVID","ENFIM","ETAPA","EXATO","FARPA","FEIRA","FERRO","FIBRA","FOLGA","FORNO","FRASE","FREIO","FRUTA","FUNDO","GANHO","GARRA","GOLPE","GRAOS","GRITO","HEROI","IDEAL","JUNTO","LARVA","LEGAL","LIDAR","LINDA","LOUCO","MACIO","MAIOR","MARTE","MEDIR","MENOR","MEXER","MOLHO","MORAR","MORNO","MOTOR","MURAL","NAVIO","NEGAR","NOBRE","NOIVA","NUVEM","OPCAO","ORDEM","PAPEL","PARTE","PASSO","PAUSA","PEITO","PEIXE","PERDA","PESAR","PILHA","PINTA","PLACA","POEMA","POMAR","PORTA","POSSE","PRATA","PRESA","PULSO","QUASE","QUILO","RAIVA","REZAR","RISCO","RIVAL","ROLHA","RONCO","SAUDE","SEIVA","SERIE","SINAL","SONDA","SURTO","TARDE","TELHA","TENRO","TERMO","TINTA","TOCHA","TORRE","TRIGO","TROCO","TROPA","TURNO","UNICO","VAZIO","VELHO","VERDE","VISAO","VITOR"],
+  6:["ABACAX","ABAFAR","ABISMO","ABRACO","ABRIGO","ACASAL".slice(0,6),"ACERTO","ACORDO","ADEGAS".slice(0,6),"ADORAR","AFETOS","AGITAR","ALFACE","ALEGRA".slice(0,6),"ALIADO","ALTURA","AMANHA","AMARGO","AMIZAD".slice(0,6),"AMOLAR","ANDORA".slice(0,6),"ANJINH".slice(0,6),"ANSEIO","APAGAR","APERTO","APOIAR","ARANHA","ARCADE".slice(0,6),"AREIAS","AROMAS","ARRUDA","ASSADO","ATALHO","ATENCA".slice(0,6),"ATUADO","AUMENT","AVIAO","AZEITE","BACANA","BALADA","BANANA","BARATA","BARCOS","BASTAO","BATATA","BATIDA","BEIJAR","BEIRAR","BEXIGA","BIBLIA".slice(0,6),"BONECA","BRASIL","BRINCO","CABANA","CABELO","CADEIA","CAIXAS","CALADA","CALCAR","CALORA".slice(0,6),"CAMADA","CAMISA","CANETA","CANSAR","CAPELA","CARAME".slice(0,6),"CARROS","CHAMAR","CHEGAR","CHUVAS","CIDADE","CINEMA","COLHER","COMIDA","CORUJA","COZIDO","CRISTA","CUIDAR","DANCAR","DENTRO","DESCER","DESVIO","DIARIO".slice(0,6),"DIVISA".slice(0,6),"DOURAR","EFEITO","ELEGER","EMBORA","ENVIAR","ESCADA","ESCOLA","ESPACO","ESPUMA","ESTILO","ESTRADA".slice(0,6),"EXATOS","FALHAR","FAMOSO","FEIJAO".slice(0,6),"FERIAS","FILHOS","FILTRO","FOGUAO","FORMAS","FRANGO".slice(0,6),"FRESTA","FRUTAS","FUTURO","GALERA","GARRAF".slice(0,6),"GENTIL","GLORIA","GRANDE","GRITAR","HERDAR","HONRAR","HORTAS".slice(0,6),"IGREJA","IMPACT","JANELA","JARDIM","JOELHO".slice(0,6),"JOGADA","JORNAL","JOVENS","LANCAR","LAREIR".slice(0,6),"LENDAS","LETRAS","LIMPAR","LIVROS","LOUCAS","MACACO","MADEIR","MANEJO","MASSAS","MELHOR","MERGUL".slice(0,6),"MOLDAR","MONTAR","MOTIVO","MUSICA","NATURE","NOITES".slice(0,6),"NUVENS","OCULOS","OFERTA","ORELHA","PALMAS","PAREDE","PASSAR","PASTEL","PEDRAS","PEIXES".slice(0,6),"PENSAR","PERDAO","PINTOR","PLANOS","PRAIAS","PRATOS","PRONTO","PULSAR","QUARTO","QUERER","QUIETO","RAIZES".slice(0,6),"REMEDI".slice(0,6),"RITMOS","ROUPAS","SABADO","SENHOR","SINAIS","SONHAR","SORRIR","SUAVES","TALHER","TEATRO".slice(0,6),"TEMPOS","TERNOS","TOMATE","TRILHA","TROCAR","TUCANO","UNIDOS","VALORA".slice(0,6),"VIAGEM","VIOLAO".slice(0,6),"VITRAL"]
+};
+
+const THEMES = {
+
+  dark: {name:"Escuro", cost:0, bodyClass:""},
+  light: {name:"Claro", cost:40, bodyClass:"light"},
+  neon: {name:"Neon", cost:90, bodyClass:"neon"}
+};
+
+const ACHIEVEMENTS = [
+  {id:"first_win", name:"Primeira Vitória", desc:"Ganhe 1 partida.", check:s=>s.stats.wins>=1},
+  {id:"streak3", name:"Embalou", desc:"Chegue a 3 vitórias seguidas.", check:s=>s.stats.best>=3},
+  {id:"streak5", name:"Imparável", desc:"Chegue a 5 vitórias seguidas.", check:s=>s.stats.best>=5},
+  {id:"win1try", name:"Cravou de Primeira", desc:"Acerte uma palavra na 1ª tentativa.", check:s=>s.stats.oneTryWins>=1},
+  {id:"win10", name:"Veterano", desc:"Ganhe 10 partidas.", check:s=>s.stats.wins>=10},
+  {id:"coins200", name:"Bolso cheio", desc:"Junte 200 moedas.", check:s=>s.coins>=200},
+  {id:"allThemes", name:"Colecionador", desc:"Desbloqueie todos os temas.", check:s=>Object.keys(THEMES).every(k=>s.unlockedThemes.includes(k))}
+];
+
+const ATTEMPTS = 6;
+const KEY_ROWS = ["QWERTYUIOP","ASDFGHJKL","ENTERZXCVBNM⌫"];
+const STORE_KEY = "termoPremiumSave_v5";
+let timerInt = null;
+let inputLocked = false;
+let roundToken = 0;
+
+let state = {
+  mode:"daily",
+  length:5,
+  category:"geral",
+  answer:"",
+  board:[],
+  row:0,col:0,
+  done:false,
+  hinted:false,
+  theme:"dark",
+  sound:true,
+  notifications:false,
+  coins:0,
+  xp:0,
+  unlockedThemes:["dark"],
+  achievements:[],
+  timeLeft:90,
+  timedScore:0,
+  stats:{
+    played:0,wins:0,streak:0,best:0,oneTryWins:0,
+    dist:[0,0,0,0,0,0]
+  },
+  history:{},
+  recentAnswers:[],
+  currentGames:{}
+};
+
+const gridEl = document.getElementById("grid");
+const keyboardEl = document.getElementById("keyboard");
+const toastEl = document.getElementById("toast");
+const confettiEl = document.getElementById("confetti");
+const unlockEl = document.getElementById("unlock");
+
+function normalizeWord(str){
+  return String(str).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/Ç/g,"C").replace(/[^A-Za-z]/g,"").toUpperCase();
+}
+
+function sanitizeList(words, len){
+  const seen = new Set();
+  const out = [];
+  for(const raw of words){
+    const w = normalizeWord(raw);
+    if(w.length !== Number(len) || !/^[A-Z]+$/.test(w)) continue;
+    if(seen.has(w)) continue;
+    seen.add(w);
+    out.push(w);
+  }
+  return out;
+}
+
+for(const cat of Object.keys(ANSWERS)){
+  for(const len of Object.keys(ANSWERS[cat])){
+    ANSWERS[cat][len] = sanitizeList(ANSWERS[cat][len], len);
+  }
+}
+for(const len of Object.keys(EXTRA_GUESSES)){
+  EXTRA_GUESSES[len] = sanitizeList(EXTRA_GUESSES[len], len);
+}
+
+const VALID_WORDS = {};
+for(const len of [4,5,6]){
+  const set = new Set(EXTRA_GUESSES[len] || []);
+  for(const cat of Object.keys(ANSWERS)){
+    for(const word of (ANSWERS[cat][len] || [])) set.add(word);
+  }
+  VALID_WORDS[len] = set;
+}
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function load(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if(raw){
+      state = {...state, ...raw, stats:{...state.stats,...raw.stats}, history: raw.history || {}};
+      if(!state.unlockedThemes) state.unlockedThemes=["dark"];
+      if(!state.achievements) state.achievements=[];
+      if(!state.recentAnswers) state.recentAnswers=[];
+      if(!state.currentGames) state.currentGames={};
+    }
+  }catch(e){}
+}
+function todayKey(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function gameKey(){ return `${state.mode}_${state.length}_${state.category}_${state.mode==="daily"?todayKey():"current"}`; }
+function seededIndex(seed, max){
+  let h = 2166136261;
+  for(let i=0;i<seed.length;i++){ h ^= seed.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
+  return Math.abs(h >>> 0) % max;
+}
+function getList(){ return ANSWERS[state.category]?.[state.length] || ANSWERS.geral[state.length] || []; }
+function pickAnswer(){
+  const list = getList();
+  if(!list.length) return "TERMO".slice(0,state.length);
+  if(state.mode === "daily"){
+    const idx = seededIndex(gameKey(), list.length);
+    return list[idx];
+  }
+  const recent = (state.recentAnswers || []).slice(-8);
+  const pool = list.filter(w=>!recent.includes(w));
+  const source = pool.length ? pool : list;
+  const chosen = source[Math.floor(Math.random()*source.length)];
+  state.recentAnswers = [...recent, chosen];
+  return chosen;
+}
+function freshBoard(){
+  roundToken++;
+  inputLocked = false;
+  state.board = Array.from({length:ATTEMPTS},()=>Array(state.length).fill(""));
+  state.row = 0; state.col = 0; state.done = false; state.hinted = false;
+}
+function startGame(forceNew=false){
+  stopTimer();
+  inputLocked = false;
+  if(!forceNew){
+    const saved = state.currentGames?.[gameKey()] || (state.mode === "daily" ? state.history[gameKey()] : null);
+    if(saved){
+      Object.assign(state, {
+        answer:saved.answer, board:saved.board, row:saved.row, col:saved.col, done:saved.done,
+        hinted:saved.hinted||false, timeLeft:saved.timeLeft ?? 90, timedScore:saved.timedScore ?? 0
+      });
+      renderAll();
+      if(state.mode==="time" && state.timeLeft>0) startTimer();
+      return;
+    }
+  }
+  state.answer = pickAnswer();
+  freshBoard();
+  state.timeLeft = 90;
+  state.timedScore = 0;
+  persistCurrent();
+  renderAll();
+  if(state.mode==="time") startTimer();
+}
+function persistCurrent(){
+  const snapshot = {
+    answer:state.answer, board:state.board, row:state.row, col:state.col,
+    done:state.done, hinted:state.hinted, timeLeft:state.timeLeft, timedScore:state.timedScore
+  };
+  if(!state.currentGames) state.currentGames={};
+  state.currentGames[gameKey()] = snapshot;
+  if(state.mode === "daily") state.history[gameKey()] = snapshot;
+  save();
+}
+function setStatus(msg){ document.getElementById("statusText").textContent = msg; }
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(showToast.t);
+  showToast.t = setTimeout(()=>toastEl.classList.remove("show"), 1800);
+}
+function showUnlock(msg){
+  unlockEl.innerHTML = msg;
+  unlockEl.classList.add("show");
+  clearTimeout(showUnlock.t);
+  showUnlock.t = setTimeout(()=>unlockEl.classList.remove("show"), 2200);
+}
+function beep(type="tap"){
+  if(!state.sound) return;
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  const map = {tap:[660,.03], good:[880,.08], bad:[220,.12], win:[740,.08], lose:[180,.15], coin:[990,.07]};
+  const [freq,dur] = map[type] || map.tap;
+  o.frequency.value = freq;
+  g.gain.value = .02;
+  o.start();
+  o.stop(ctx.currentTime + dur);
+}
+function levelInfo(){
+  const level = Math.floor(state.xp/100)+1;
+  const current = state.xp % 100;
+  return {level, current};
+}
+function renderStats(){
+  document.getElementById("playedStat").textContent = state.stats.played;
+  document.getElementById("winsStat").textContent = state.stats.wins;
+  document.getElementById("bestStat").textContent = state.stats.best;
+  document.getElementById("xpStat").textContent = state.xp;
+  document.getElementById("achStat").textContent = state.achievements.length;
+  const rate = state.stats.played ? Math.round((state.stats.wins/state.stats.played)*100) : 0;
+  document.getElementById("rateStat").textContent = rate + "%";
+  document.getElementById("streakBadge").textContent = "🔥 Streak: " + state.stats.streak;
+  document.getElementById("modeBadge").textContent = "Modo: " + ({daily:"Diário",infinite:"Infinito",time:"Contra o tempo"}[state.mode]);
+  document.getElementById("lettersBadge").textContent = state.length + " letras";
+  document.getElementById("coinBadge").textContent = "🪙 " + state.coins;
+  const lv = levelInfo();
+  document.getElementById("levelBadge").textContent = "⭐ Nível " + lv.level;
+  document.getElementById("xpBar").style.width = lv.current + "%";
+  document.getElementById("timerBadge").textContent = state.mode==="time" ? `⏱️ ${state.timeLeft}s • ${state.timedScore||0}` : "⏱️ --";
+  renderDist();
+}
+function renderDist(){
+  const el = document.getElementById("distGrid");
+  el.innerHTML = "";
+  state.stats.dist.forEach((n,i)=>{
+    const d = document.createElement("div");
+    d.className = "distBox";
+    d.innerHTML = `<b>${i+1}</b><div>${n}</div>`;
+    el.appendChild(d);
+  });
+}
+function renderGrid(){
+  gridEl.innerHTML = "";
+  for(let r=0;r<ATTEMPTS;r++){
+    const row = document.createElement("div");
+    row.className = "rowg";
+    row.style.gridTemplateColumns = `repeat(${state.length}, minmax(0,1fr))`;
+    for(let c=0;c<state.length;c++){
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      const ch = state.board[r][c] || "";
+      cell.textContent = ch;
+      if(ch) cell.classList.add("filled");
+      row.appendChild(cell);
+    }
+    gridEl.appendChild(row);
+  }
+  for(let r=0;r<state.row;r++) colorizeRow(r, false);
+}
+function renderKeyboard(){
+  keyboardEl.innerHTML = "";
+  const bestMap = {};
+  for(let r=0;r<state.row;r++){
+    const guess = state.board[r].join("");
+    const result = evaluateGuess(guess, state.answer);
+    for(let i=0;i<guess.length;i++){
+      const ch = guess[i], val = result[i];
+      const rank = val==="correct" ? 3 : val==="present" ? 2 : 1;
+      bestMap[ch] = Math.max(bestMap[ch]||0, rank);
+    }
+  }
+  KEY_ROWS.forEach((line, idx)=>{
+    const row = document.createElement("div");
+    row.className = "krow";
+    let chars = idx===2 ? ["ENTER","Z","X","C","V","B","N","M","⌫"] : line.split("");
+    chars.forEach(ch=>{
+      const b = document.createElement("button");
+      b.className = "key";
+      b.textContent = ch;
+      if(ch==="ENTER" || ch==="⌫") b.classList.add("wide");
+      const rank = bestMap[ch];
+      if(rank===3) b.classList.add("correct");
+      else if(rank===2) b.classList.add("present");
+      else if(rank===1) b.classList.add("absent");
+      b.onclick = ()=>handleKey(ch);
+      row.appendChild(b);
+    });
+    keyboardEl.appendChild(row);
+  });
+}
+function applyTheme(){
+  document.body.classList.remove("light","neon");
+  if(THEMES[state.theme].bodyClass) document.body.classList.add(THEMES[state.theme].bodyClass);
+}
+function renderAll(){
+  document.getElementById("modeSelect").value = state.mode;
+  document.getElementById("lenSelect").value = String(state.length);
+  document.getElementById("categorySelect").value = state.category;
+  applyTheme();
+  document.getElementById("soundBtn").textContent = state.sound ? "🔊 Som" : "🔇 Som";
+  const notifyBtn = document.getElementById("notifyBtn");
+  if(notifyBtn) notifyBtn.textContent = state.notifications ? "🔔 Avisos" : "🔕 Avisos";
+  document.getElementById("themeBtn").textContent = "🎨 " + THEMES[state.theme].name;
+  renderStats();
+  renderGrid();
+  renderKeyboard();
+  setStatus(state.done ? "Partida encerrada." : "Descubra a palavra.");
+}
+function updateCellVisual(r,c){
+  const row = gridEl.children[r];
+  const cell = row.children[c];
+  const ch = state.board[r][c];
+  cell.textContent = ch || "";
+  cell.classList.toggle("filled", !!ch);
+  if(ch){ cell.classList.remove("pop"); void cell.offsetWidth; cell.classList.add("pop"); }
+}
+function handleKey(key){
+  if(state.done || inputLocked) return;
+  if(key === "ENTER") return submitGuess();
+  if(key === "⌫" || key === "BACKSPACE"){
+    if(state.col>0){
+      state.col--; state.board[state.row][state.col] = "";
+      updateCellVisual(state.row, state.col); beep("tap"); persistCurrent();
+    }
+    return;
+  }
+  if(/^[A-Z]$/.test(key)){
+    if(state.col < state.length){
+      state.board[state.row][state.col] = key;
+      updateCellVisual(state.row, state.col);
+      state.col++; beep("tap"); persistCurrent();
+    }
+  }
+}
+function evaluateGuess(guess, answer){
+  const res = Array(guess.length).fill("absent");
+  const counts = {};
+  for(let i=0;i<answer.length;i++) counts[answer[i]] = (counts[answer[i]]||0)+1;
+  for(let i=0;i<guess.length;i++){
+    if(guess[i] === answer[i]){ res[i] = "correct"; counts[guess[i]]--; }
+  }
+  for(let i=0;i<guess.length;i++){
+    if(res[i] === "correct") continue;
+    if(counts[guess[i]] > 0){ res[i] = "present"; counts[guess[i]]--; }
+  }
+  return res;
+}
+function colorizeRow(r, animate=true){
+  const guess = state.board[r].join("");
+  const result = evaluateGuess(guess, state.answer);
+  const row = gridEl.children[r];
+  [...row.children].forEach((cell,i)=>{
+    if(animate){
+      setTimeout(()=>{
+        cell.classList.add("flip");
+        setTimeout(()=>{
+          cell.classList.remove("filled");
+          cell.classList.add(result[i],"reveal");
+          renderKeyboard();
+        }, 140);
+      }, i*170);
+    } else {
+      cell.classList.add(result[i]);
+    }
+  });
+  return result;
+}
+function isValidWord(word){ return !!VALID_WORDS[state.length]?.has(word); }
+function award(coins, xp){
+  state.coins += coins; state.xp += xp; beep("coin");
+}
+function endGame(win){
+  state.done = true;
+  state.stats.played++;
+  if(win){
+    state.stats.wins++;
+    state.stats.streak++;
+    state.stats.best = Math.max(state.stats.best, state.stats.streak);
+    state.stats.dist[Math.min(state.row,5)]++;
+    if(state.row===0) state.stats.oneTryWins++;
+    const rewardCoins = state.mode==="time" ? 12 : 18 - state.row*2;
+    const rewardXp = state.mode==="time" ? 18 : 25 - state.row*2;
+    award(Math.max(rewardCoins,6), Math.max(rewardXp,10));
+    showToast(`Você acertou! +${Math.max(rewardCoins,6)} moedas`);
+    setStatus("Boa! A palavra era " + state.answer + ".");
+    beep("win");
+    confetti();
+  } else {
+    state.stats.streak = 0;
+    showToast("Fim de jogo 😅");
+    setStatus("A palavra era " + state.answer + ".");
+    beep("lose");
+  }
+  checkAchievements();
+  persistCurrent();
+  save();
+  renderStats();
+}
+function submitGuess(){
+  if(inputLocked || state.done) return;
+  if(state.col < state.length){ shakeGrid(); showToast("Complete a palavra"); beep("bad"); return; }
+  const guess = state.board[state.row].join("");
+  if(!isValidWord(guess)){ shakeGrid(); showToast("Palavra inválida"); beep("bad"); return; }
+  inputLocked = true;
+  const token = roundToken;
+  beep("good");
+  colorizeRow(state.row, true);
+  const won = guess === state.answer;
+  const currentRow = state.row;
+  setTimeout(()=>{
+    if(token !== roundToken) return;
+    if(state.mode === "time" && state.timeLeft<=0){ inputLocked=false; return; }
+    if(won){
+      if(state.mode==="time"){
+        state.timedScore = (state.timedScore||0) + 1;
+        award(12,18);
+        showToast(`Acertou! Pontos: ${state.timedScore}`);
+        beep("win"); confetti();
+        persistCurrent(); renderStats();
+        setTimeout(()=>nextTimedRound(), 650);
+      }else{
+        endGame(true);
+      }
+    } else if(currentRow === ATTEMPTS-1){
+      if(state.mode==="time"){
+        showToast(`Era ${state.answer}. Próxima!`);
+        state.timeLeft = Math.max(0, state.timeLeft-5);
+        persistCurrent();
+        setTimeout(()=>nextTimedRound(), 650);
+      }else{
+        endGame(false);
+      }
+    } else {
+      state.row++; state.col = 0; inputLocked = false; persistCurrent(); renderKeyboard();
+    }
+  }, state.length * 170 + 220);
+}
+function nextTimedRound(){
+  if(state.timeLeft<=0) return finishTimedMode();
+  state.answer = pickAnswer();
+  freshBoard();
+  state.done = false;
+  persistCurrent();
+  renderAll();
+  setStatus(`Rápido! ${state.timedScore||0} ponto(s).`);
+}
+function shakeGrid(){ gridEl.classList.remove("shake"); void gridEl.offsetWidth; gridEl.classList.add("shake"); }
+function confetti(){
+  confettiEl.innerHTML = "";
+  for(let i=0;i<80;i++){
+    const p = document.createElement("div");
+    p.className = "piece";
+    p.style.left = Math.random()*100 + "vw";
+    p.style.background = ["#38c172","#f2c94c","#7c9cff","#ff6b6b","#ffffff"][Math.floor(Math.random()*5)];
+    p.style.opacity = .85;
+    p.style.transform = `translateY(0) rotate(${Math.random()*180}deg)`;
+    p.style.animationDelay = (Math.random()*0.5) + "s";
+    p.style.animationDuration = (1.8 + Math.random()*1.4) + "s";
+    confettiEl.appendChild(p);
+  }
+  setTimeout(()=>confettiEl.innerHTML="", 3500);
+}
+function giveHint(){
+  if(state.done) return showToast("A partida já acabou");
+  if(state.hinted) return showToast("Você já usou a dica nessa partida");
+  if(state.coins < 5) return showToast("Você precisa de 5 moedas para usar a dica");
+  const unknown = [];
+  for(let i=0;i<state.length;i++){
+    let known = false;
+    for(let r=0;r<state.row;r++){
+      const guess = state.board[r].join("");
+      const res = evaluateGuess(guess, state.answer);
+      if(res[i] === "correct") known = true;
+    }
+    if(!known) unknown.push(i);
+  }
+  if(!unknown.length) return showToast("Nada para revelar 😄");
+  const idx = unknown[Math.floor(Math.random()*unknown.length)];
+  showToast(`Dica: a letra ${idx+1} é "${state.answer[idx]}"`);
+  state.hinted = true;
+  state.coins -= 5;
+  persistCurrent(); renderStats();
+}
+function shareResult(){
+  const lines = [];
+  const title = `TERMO V5 ${state.mode.toUpperCase()} ${state.length}L • ${state.category.toUpperCase()}`;
+  lines.push(title);
+  for(let r=0;r<state.row + (state.done ? 1 : 0); r++){
+    const guess = state.board[r]?.join("") || "";
+    if(guess.length !== state.length) continue;
+    const res = evaluateGuess(guess, state.answer);
+    lines.push(res.map(x => x==="correct"?"🟩":x==="present"?"🟨":"⬛").join(""));
+  }
+  lines.push(`🪙 ${state.coins} | ⭐ ${levelInfo().level}`);
+  const text = lines.join("\n");
+  if(navigator.share){
+    navigator.share({text}).catch(()=>{});
+  }else{
+    navigator.clipboard.writeText(text);
+    showToast("Resultado copiado!");
+  }
+}
+function finishTimedMode(){
+  stopTimer();
+  roundToken++;
+  inputLocked = true;
+  state.done = true;
+  state.stats.played++;
+  if((state.timedScore||0)>0) state.stats.wins++;
+  showToast(`Tempo esgotado! ${state.timedScore||0} acerto(s)`);
+  setStatus(`Fim: ${state.timedScore||0} palavra(s) acertada(s).`);
+  persistCurrent(); save(); renderStats();
+}
+
+function startTimer(){
+  stopTimer();
+  if(state.mode!=="time") return;
+  setStatus("Contra o tempo: acerte o máximo que conseguir!");
+  timerInt = setInterval(()=>{
+    if(state.done && state.timeLeft>0){
+      // continua contando no intervalo entre rodadas
+    }
+    state.timeLeft--;
+    document.getElementById("timerBadge").textContent = `⏱️ ${state.timeLeft}s • ${state.timedScore||0}`;
+    persistCurrent();
+    if(state.timeLeft<=0){
+      state.timeLeft = 0;
+      finishTimedMode();
+    }
+  },1000);
+}
+function stopTimer(){ if(timerInt){ clearInterval(timerInt); timerInt = null; } }
+function checkAchievements(){
+  let newCount = 0;
+  ACHIEVEMENTS.forEach(a=>{
+    if(!state.achievements.includes(a.id) && a.check(state)){
+      state.achievements.push(a.id);
+      award(20, 20);
+      newCount++;
+      showUnlock(`🏆 Conquista desbloqueada<br><small>${a.name}</small>`);
+    }
+  });
+  if(newCount) save();
+}
+function renderAchievements(){
+  const wrap = document.getElementById("achievements");
+  wrap.innerHTML = "";
+  ACHIEVEMENTS.forEach(a=>{
+    const unlocked = state.achievements.includes(a.id);
+    const div = document.createElement("div");
+    div.className = "ach" + (unlocked ? "" : " locked");
+    div.innerHTML = `<b>${unlocked ? "🏆" : "🔒"} ${a.name}</b><div class="mini">${a.desc}</div>`;
+    wrap.appendChild(div);
+  });
+}
+function renderShop(){
+  const wrap = document.getElementById("shopGrid");
+  wrap.innerHTML = "";
+  Object.entries(THEMES).forEach(([id,t])=>{
+    const unlocked = state.unlockedThemes.includes(id);
+    const div = document.createElement("div");
+    div.className = "shopItem" + (state.theme===id ? " active" : "");
+    div.innerHTML = `<b>${t.name}</b><div class="mini">Custo: ${t.cost} moedas</div>
+      <div style="margin-top:10px">
+        <button class="btn small">${unlocked ? (state.theme===id ? "Usando" : "Usar") : "Comprar"}</button>
+      </div>`;
+    div.querySelector("button").onclick = ()=>{
+      if(unlocked){
+        state.theme = id; applyTheme(); renderAll(); renderShop(); save();
+      }else{
+        if(state.coins < t.cost) return showToast("Moedas insuficientes");
+        state.coins -= t.cost;
+        state.unlockedThemes.push(id);
+        state.theme = id;
+        checkAchievements();
+        renderAll(); renderShop(); save();
+        showToast(`Tema ${t.name} desbloqueado!`);
+      }
+    };
+    wrap.appendChild(div);
+  });
+}
+function toggleModal(id, show=true){
+  document.getElementById(id).style.display = show ? "flex" : "none";
+}
+async function toggleNotifications(){
+  if(!("Notification" in window)) return showToast("Notificações não são suportadas neste navegador");
+  if(state.notifications){
+    state.notifications=false; save(); renderAll(); showToast("Avisos desativados"); return;
+  }
+  const permission = await Notification.requestPermission();
+  state.notifications = permission === "granted";
+  save(); renderAll();
+  showToast(state.notifications ? "Avisos ativados" : "Permissão de notificação não concedida");
+}
+function maybeDailyNotification(){
+  if(!state.notifications || !("Notification" in window) || Notification.permission!=="granted") return;
+  const k=`notify_${todayKey()}`;
+  if(localStorage.getItem(k)) return;
+  const dailyKey=`daily_${state.length}_${state.category}_${todayKey()}`;
+  const daily=state.currentGames?.[dailyKey] || state.history?.[dailyKey];
+  if(!daily?.done){
+    try{ new Notification("Termo Premium V5",{body:"Seu desafio diário está esperando por você!"}); }catch(e){}
+    localStorage.setItem(k,"1");
+  }
+}
+
+document.getElementById("helpBtn").onclick = ()=>toggleModal("helpModal", true);
+document.getElementById("hintBtn").onclick = giveHint;
+document.getElementById("shareBtn").onclick = shareResult;
+document.getElementById("shopBtn").onclick = ()=>{ renderShop(); toggleModal("shopModal", true); };
+document.getElementById("achBtn").onclick = ()=>{ renderAchievements(); toggleModal("achModal", true); };
+document.getElementById("newBtn").onclick = ()=>{
+  if(state.mode === "daily"){
+    showToast("No Diário a palavra é fixa por dia. Troque para Infinito ou Contra o tempo.");
+    return;
+  }
+  startGame(true);
+};
+document.getElementById("modeSelect").onchange = (e)=>{ state.mode = e.target.value; startGame(); save(); };
+document.getElementById("lenSelect").onchange = (e)=>{ state.length = Number(e.target.value); startGame(); save(); };
+document.getElementById("categorySelect").onchange = (e)=>{ state.category = e.target.value; startGame(); save(); };
+document.getElementById("themeBtn").onclick = ()=>{ renderShop(); toggleModal("shopModal", true); };
+document.getElementById("soundBtn").onclick = ()=>{ state.sound = !state.sound; renderAll(); save(); };
+const notifyBtnEl = document.getElementById("notifyBtn");
+if(notifyBtnEl) notifyBtnEl.onclick = toggleNotifications;
+
+document.querySelectorAll(".modalWrap").forEach(m=>m.addEventListener("click",e=>{ if(e.target===m) m.style.display="none"; }));
+
+window.addEventListener("keydown", (e)=>{
+  if(e.key === "Escape"){ document.querySelectorAll(".modalWrap").forEach(m=>m.style.display="none"); return; }
+  const key = e.key.toUpperCase();
+  if(key === "ENTER") handleKey("ENTER");
+  else if(key === "BACKSPACE") handleKey("⌫");
+  else if(/^[A-Z]$/.test(key)) handleKey(key);
+});
+
+// Manifest básico para instalação quando hospedado via HTTPS
+(function registerPWA(){
+  try{
+    const manifest = {
+      name:"Termo Premium V5",
+      short_name:"TermoV5",
+      start_url:".",
+      display:"standalone",
+      background_color:"#111827",
+      theme_color:"#111827",
+      icons:[]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifest)], {type:"application/json"});
+    const manifestURL = URL.createObjectURL(manifestBlob);
+    const link = document.createElement("link");
+    link.rel = "manifest"; link.href = manifestURL; document.head.appendChild(link);
+  }catch(e){}
+})();
+
+load();
+startGame();
+renderAll();
+checkAchievements();
+setTimeout(maybeDailyNotification, 800);
+</script>
+</body>
+</html>

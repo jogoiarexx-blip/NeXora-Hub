@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#080a0f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>NutriCalc Pro v3 ⚡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── RESET & BASE ────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{height:100%;scroll-behavior:smooth;}
+body{min-height:100%;background:#080a0f;font-family:'DM Sans',sans-serif;color:#e8eaf0;-webkit-font-smoothing:antialiased;overscroll-behavior:none;}
+input[type=number]{-moz-appearance:textfield;}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+::-webkit-scrollbar{display:none;}
+button{cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:transform .12s ease,opacity .15s ease;}
+button:active{transform:scale(.95)!important;}
+
+/* ── CSS VARS ────────────────────────────────────────────────────── */
+:root{
+  --bg:#080a0f;
+  --bg2:#0d0f17;
+  --bg3:#12151f;
+  --card:#13161f;
+  --card2:#181b26;
+  --border:#1e2235;
+  --border2:#252840;
+  --c1:#00d4ff;
+  --c2:#7b2ff7;
+  --c3:#ff6b35;
+  --c4:#51cf66;
+  --c5:#ff6b6b;
+  --c6:#00bcd4;
+  --c7:#ffd43b;
+  --txt:#e8eaf0;
+  --txt2:#8b8fa8;
+  --txt3:#4a4e65;
+  --grd:linear-gradient(135deg,var(--c1),var(--c2));
+  --r:18px;
+  --r2:14px;
+  --r3:10px;
+  --shadow:0 8px 32px rgba(0,0,0,.4);
+  --shadow2:0 4px 16px rgba(0,0,0,.3);
+  --glow1:0 0 20px rgba(0,212,255,.15);
+  --glow2:0 0 20px rgba(123,47,247,.15);
+}
+
+/* ── LAYOUT ──────────────────────────────────────────────────────── */
+#app{min-height:100vh;display:flex;flex-direction:column;align-items:center;position:relative;}
+.page{width:100%;max-width:430px;padding:0 15px 110px;will-change:opacity,transform;}
+.page-enter{animation:pageIn .28s cubic-bezier(.4,0,.2,1) forwards;}
+.page-exit{animation:pageOut .22s cubic-bezier(.4,0,.2,1) forwards;}
+@keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pageOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-8px)}}
+
+/* ── CARDS ───────────────────────────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;margin-bottom:12px;position:relative;overflow:hidden;}
+.card-glow{background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(123,47,247,.04));}
+.card-blue{border-color:rgba(0,212,255,.2);}
+.card-green{border-color:rgba(81,207,102,.2);}
+.card-water{border-color:rgba(0,188,212,.2);}
+.card-orange{border-color:rgba(255,107,53,.15);}
+.card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,rgba(0,212,255,.03),transparent 60%);pointer-events:none;}
+
+/* glass effect */
+.glass{background:rgba(19,22,31,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+
+/* ── TYPOGRAPHY ──────────────────────────────────────────────────── */
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;background:var(--grd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;}
+.logo-sm{font-size:18px;}
+.chip{font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(0,212,255,.5);margin-bottom:10px;display:block;}
+.lbl{display:block;color:var(--txt3);font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px;}
+.muted{color:var(--txt2);}
+.sub{color:var(--txt3);font-size:11px;letter-spacing:1px;text-transform:uppercase;}
+
+/* ── INPUTS ──────────────────────────────────────────────────────── */
+.inp{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:12px 14px;color:var(--txt);font-size:15px;transition:border-color .2s,box-shadow .2s;font-family:'DM Sans',sans-serif;}
+.inp:focus{border-color:rgba(0,212,255,.5);box-shadow:0 0 0 3px rgba(0,212,255,.08);outline:none;}
+.inp::placeholder{color:var(--txt3);}
+.inp.error{border-color:rgba(255,107,107,.5);}
+.inp-sm{padding:9px 12px;font-size:14px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.mb14{margin-bottom:14px;}
+.mb10{margin-bottom:10px;}
+.mb8{margin-bottom:8px;}
+
+/* ── SEGMENTS ────────────────────────────────────────────────────── */
+.seg{display:flex;background:var(--bg2);border-radius:var(--r3);padding:3px;gap:2px;}
+.seg-btn{flex:1;padding:9px 6px;border-radius:8px;font-size:12px;font-weight:500;background:transparent;color:var(--txt3);transition:all .2s;}
+.seg-btn.on{font-weight:700;background:var(--bg3);color:var(--c1);box-shadow:var(--shadow2);}
+
+/* pills */
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.pill{padding:8px 14px;border-radius:99px;font-size:12px;font-weight:500;background:transparent;color:var(--txt3);border:1px solid var(--border);transition:all .2s;}
+.pill.on{font-weight:700;background:rgba(0,212,255,.1);color:var(--c1);border-color:rgba(0,212,255,.35);}
+.pill:hover{border-color:var(--border2);}
+
+/* goal cards */
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.goal-card{padding:14px 8px;border-radius:var(--r2);border:1px solid var(--border);font-size:12px;font-weight:600;text-align:center;background:var(--bg2);color:var(--txt3);transition:all .2s;}
+.goal-card .gi{font-size:22px;margin-bottom:6px;display:block;}
+.goal-card.on{background:rgba(0,212,255,.07);color:var(--c1);border-color:rgba(0,212,255,.35);box-shadow:0 0 16px rgba(0,212,255,.08);}
+
+/* ── BUTTONS ─────────────────────────────────────────────────────── */
+.btn-primary{width:100%;padding:16px;border-radius:var(--r2);background:var(--grd);color:#fff;font-size:15px;font-weight:700;letter-spacing:.2px;box-shadow:0 8px 28px rgba(0,212,255,.2),0 4px 12px rgba(123,47,247,.15);transition:opacity .15s,transform .12s,box-shadow .2s;}
+.btn-primary:hover{box-shadow:0 12px 36px rgba(0,212,255,.28);}
+.btn-primary:disabled{opacity:.35;box-shadow:none;}
+.btn-ghost{width:100%;padding:14px;border-radius:var(--r2);border:1px solid var(--border);background:transparent;color:var(--txt2);font-size:14px;margin-top:8px;transition:border-color .2s,color .2s;}
+.btn-ghost:hover{border-color:var(--border2);color:var(--txt);}
+.btn-icon{padding:10px 16px;border-radius:var(--r3);border:1px solid var(--border);background:var(--bg2);color:var(--txt2);font-size:13px;font-weight:600;transition:all .2s;}
+.btn-icon:hover{border-color:var(--border2);}
+
+/* ── HEADER ──────────────────────────────────────────────────────── */
+.hdr{text-align:center;padding:28px 0 20px;}
+.hdr .sub{margin-top:4px;}
+
+/* ── MODE STRIP ──────────────────────────────────────────────────── */
+.mode-strip{display:flex;gap:6px;margin-bottom:14px;}
+.mode-btn{flex:1;padding:9px 4px;border-radius:var(--r3);font-size:11px;font-weight:700;background:var(--card);color:var(--txt3);border:1px solid var(--border);transition:all .2s;}
+.mode-btn.on{background:rgba(0,212,255,.08);color:var(--c1);border-color:rgba(0,212,255,.3);}
+
+/* ── HERO CARD ───────────────────────────────────────────────────── */
+.hero-card{background:linear-gradient(150deg,#0e1421,#111020);border:1px solid rgba(0,212,255,.18);border-radius:var(--r);padding:24px 18px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden;}
+.hero-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:280px;height:280px;background:radial-gradient(circle,rgba(0,212,255,.1) 0%,transparent 70%);pointer-events:none;}
+.big-num{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;line-height:1;background:var(--grd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-row{display:flex;justify-content:center;gap:24px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.05);}
+.hs{text-align:center;}
+.hs-l{color:var(--txt3);font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+.hs-v{font-size:13px;font-weight:700;margin-top:2px;}
+
+/* ── MACRO RING CARDS ────────────────────────────────────────────── */
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.macro-card{background:var(--card);border-radius:var(--r2);padding:14px 8px;text-align:center;border:1px solid rgba(255,255,255,.04);transition:transform .2s;}
+.macro-card:active{transform:scale(.96);}
+
+/* ring */
+.ring-wrap{position:relative;margin:0 auto 6px;}
+.ring-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
+.ring-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+
+/* ── BARS ────────────────────────────────────────────────────────── */
+.bar-row{margin-bottom:13px;}
+.bar-head{display:flex;justify-content:space-between;margin-bottom:6px;}
+.bar-head .bl{color:var(--txt2);font-size:12px;}
+.bar-head .bv{color:var(--txt);font-size:12px;font-weight:600;}
+.bar-track{background:rgba(255,255,255,.06);border-radius:99px;height:6px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:99px;width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+
+/* ── STAT CARDS ──────────────────────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 8px;text-align:center;}
+.stat-val{font-size:15px;font-weight:800;}
+.stat-lbl{font-size:10px;color:var(--txt3);margin-top:3px;letter-spacing:.5px;}
+
+/* ── ALERT ───────────────────────────────────────────────────────── */
+.alert{border-radius:var(--r3);padding:11px 14px;font-size:12px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;line-height:1.5;}
+.alert-warn{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);color:#ff8080;}
+.alert-info{background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);color:var(--c1);}
+.alert-success{background:rgba(81,207,102,.08);border:1px solid rgba(81,207,102,.25);color:var(--c4);}
+
+/* ── BOTTOM NAV ──────────────────────────────────────────────────── */
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(8,10,15,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:200;padding-bottom:env(safe-area-inset-bottom);}
+.nav-btn{flex:1;padding:10px 4px 12px;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--txt3);font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:color .2s;}
+.nav-btn .ni{font-size:20px;transition:transform .2s;}
+.nav-btn.on{color:var(--c1);}
+.nav-btn.on .ni{transform:translateY(-1px);}
+.nav-dot{width:4px;height:4px;border-radius:99px;background:var(--c1);margin-top:1px;opacity:0;transition:opacity .2s;}
+.nav-btn.on .nav-dot{opacity:1;}
+
+/* ── ONBOARDING ──────────────────────────────────────────────────── */
+#splash{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;transition:opacity .5s ease;}
+#splash.hidden{opacity:0;pointer-events:none;}
+.splash-logo{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;background:var(--grd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;}
+.splash-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);width:400px;height:400px;background:radial-gradient(circle,rgba(0,212,255,.08) 0%,rgba(123,47,247,.06) 40%,transparent 70%);pointer-events:none;}
+.feature-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;display:flex;gap:14px;align-items:center;animation:slideUp .5s ease forwards;opacity:0;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.feature-card:nth-child(1){animation-delay:.1s;}
+.feature-card:nth-child(2){animation-delay:.2s;}
+.feature-card:nth-child(3){animation-delay:.3s;}
+.feature-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+
+/* ── WATER PAGE ──────────────────────────────────────────────────── */
+.bottle-hero{background:linear-gradient(150deg,#091520,#0b0f1a);border:1px solid rgba(0,188,212,.2);border-radius:var(--r);padding:28px 18px;margin-bottom:12px;text-align:center;position:relative;overflow:hidden;}
+.water-bar-track{background:rgba(0,188,212,.08);border-radius:99px;height:8px;overflow:hidden;margin-top:16px;}
+.water-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#00bcd4,#00e5ff);width:0%;transition:width 1s cubic-bezier(.4,0,.2,1);box-shadow:0 0 14px rgba(0,188,212,.4);}
+.bar-labels{display:flex;justify-content:space-between;margin-top:6px;}
+.bar-labels span{color:var(--txt3);font-size:10px;}
+
+.cups-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+.cup-btn{aspect-ratio:1;border-radius:12px;border:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .2s;}
+.cup-btn.done{background:rgba(0,188,212,.12);border-color:rgba(0,188,212,.35);box-shadow:0 0 12px rgba(0,188,212,.15);}
+
+.streak-badge{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:99px;background:rgba(255,212,59,.08);border:1px solid rgba(255,212,59,.25);color:var(--c7);font-size:12px;font-weight:700;}
+
+.tip-row{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start;}
+.tip-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.tip-title{color:var(--txt);font-size:12px;font-weight:600;}
+.tip-desc{color:var(--txt3);font-size:11px;margin-top:2px;line-height:1.5;}
+
+/* ── HISTORY PAGE ────────────────────────────────────────────────── */
+.hist-entry{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+.hist-entry:last-child{border-bottom:none;}
+.hist-date{color:var(--txt2);font-size:12px;}
+.hist-val{font-weight:700;font-size:14px;}
+
+/* ── ACHIEVEMENTS ────────────────────────────────────────────────── */
+.badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.badge-item{background:var(--card2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 8px;text-align:center;transition:all .2s;}
+.badge-item.earned{border-color:rgba(255,212,59,.3);background:rgba(255,212,59,.05);}
+.badge-icon{font-size:28px;margin-bottom:6px;display:block;filter:grayscale(1);opacity:.3;}
+.badge-item.earned .badge-icon{filter:none;opacity:1;}
+.badge-name{font-size:10px;font-weight:600;color:var(--txt3);}
+.badge-item.earned .badge-name{color:var(--c7);}
+
+/* ── PROGRESS ────────────────────────────────────────────────────── */
+.progress-ring-wrap{position:relative;display:inline-flex;}
+.prog-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+/* ── CHART CONTAINERS ────────────────────────────────────────────── */
+.chart-wrap{position:relative;height:160px;margin-bottom:4px;}
+.chart-wrap-sm{position:relative;height:120px;}
+
+/* ── MOTIVATIONAL ────────────────────────────────────────────────── */
+.quote-card{background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(123,47,247,.06));border:1px solid rgba(123,47,247,.15);border-radius:var(--r);padding:16px;margin-bottom:12px;text-align:center;}
+.quote-text{font-size:13px;font-weight:500;color:var(--txt);line-height:1.6;font-style:italic;}
+.quote-src{font-size:11px;color:var(--txt3);margin-top:6px;}
+
+/* ── PREVIEW WATER WIDGET ────────────────────────────────────────── */
+.water-preview{display:flex;align-items:center;gap:14px;cursor:pointer;}
+
+/* ── DISCLAIMER ──────────────────────────────────────────────────── */
+.disclaimer{color:var(--txt3);font-size:11px;text-align:center;line-height:1.6;margin:6px 0 10px;padding:0 8px;}
+
+/* ── VALIDATION ──────────────────────────────────────────────────── */
+.field-error{color:#ff6b6b;font-size:11px;margin-top:4px;display:none;}
+.field-error.show{display:block;}
+
+/* ── TRANSITIONS ─────────────────────────────────────────────────── */
+.fade-in{animation:fadeIn .3s ease forwards;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.pulse{animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ── GOAL PROGRESS ───────────────────────────────────────────────── */
+.goal-progress-wrap{background:var(--card);border:1px solid var(--card-green,rgba(81,207,102,.2));border-radius:var(--r);padding:20px;margin-bottom:12px;text-align:center;}
+
+/* ── EMPTY STATE ─────────────────────────────────────────────────── */
+.empty{text-align:center;padding:40px 20px;}
+.empty-icon{font-size:48px;margin-bottom:14px;}
+.empty-title{color:var(--txt2);font-size:15px;font-weight:600;margin-bottom:6px;}
+.empty-sub{color:var(--txt3);font-size:13px;line-height:1.5;}
+
+/* ── pct row ─────────────────────────────────────────────────────── */
+.pct-row{display:flex;gap:6px;margin-top:14px;}
+.pct-item{flex:1;text-align:center;background:var(--bg2);border-radius:10px;padding:8px 4px;}
+
+/* ── prev grid ───────────────────────────────────────────────────── */
+.prev-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.prev-item{background:var(--bg2);border-radius:12px;padding:14px;text-align:center;}
+.prev-lbl{color:var(--txt3);font-size:10px;text-transform:uppercase;letter-spacing:1px;}
+.prev-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-top:4px;}
+
+/* ── smart recs ──────────────────────────────────────────────────── */
+.rec-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.rec-item:last-child{border:none;}
+.rec-dot{width:8px;height:8px;border-radius:99px;flex-shrink:0;margin-top:4px;}
+
+/* ── V3 RESPONSIVE / DESKTOP ─────────────────────────────────────── */
+@media (min-width: 760px){
+  #app{align-items:center;}
+  .page{max-width:920px;padding-left:24px;padding-right:24px;}
+  #nav{max-width:920px;border:1px solid var(--border);border-bottom:none;border-radius:18px 18px 0 0;}
+  .row2{grid-template-columns:repeat(4,1fr);}
+  .goal-grid{grid-template-columns:repeat(4,1fr);}
+  .macro-grid{gap:12px;}
+  .stats-row{gap:12px;}
+  .hdr{padding-top:32px;}
+}
+@media (min-width: 1100px){
+  .page{max-width:1120px;padding-bottom:105px;}
+  #nav{max-width:1120px;}
+  .page > .card, .page > .hero-card, .page > .bottle-hero, .page > .quote-card{box-shadow:var(--shadow2);}
+}
+@media (max-width: 380px){
+  .page{padding-left:10px;padding-right:10px;}
+  .row2{gap:7px;}
+  .macro-grid,.stats-row{gap:6px;}
+  .big-num{font-size:46px;}
+}
+.reminder-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.reminder-row:last-child{border-bottom:none;}
+.switch{position:relative;width:46px;height:26px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;background:var(--bg2);border:1px solid var(--border2);border-radius:99px;transition:.2s;}
+.slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--txt3);border-radius:50%;transition:.2s;}
+.switch input:checked + .slider{background:rgba(0,212,255,.16);border-color:rgba(0,212,255,.45);}
+.switch input:checked + .slider:before{transform:translateX(20px);background:var(--c1);}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(16px);z-index:1000;background:#171b26;border:1px solid var(--border2);color:var(--txt);padding:11px 15px;border-radius:12px;font-size:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.22s;max-width:min(90vw,420px);text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-glow"></div>
+  <div style="text-align:center;margin-bottom:36px;">
+    <div class="splash-logo">⚡ NutriCalc Pro</div>
+    <div style="color:var(--txt3);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;">Sistema Nutricional Inteligente</div>
+  </div>
+  <div style="width:100%;max-width:380px;margin-bottom:32px;">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(0,212,255,.1);">⚡</div>
+      <div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:2px;">Cálculo Científico</div>
+        <div style="color:var(--txt3);font-size:12px;">Fórmula Mifflin-St Jeor com ajustes por % de gordura corporal</div>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(123,47,247,.1);">📊</div>
+      <div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:2px;">Gráficos & Histórico</div>
+        <div style="color:var(--txt3);font-size:12px;">Acompanhe evolução de peso, calorias e hidratação</div>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(0,188,212,.1);">💧</div>
+      <div>
+        <div style="font-weight:700;font-size:14px;margin-bottom:2px;">Hidratação Inteligente</div>
+        <div style="color:var(--txt3);font-size:12px;">Streak diário, metas personalizadas e lembretes</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn-primary" style="max-width:320px;" onclick="startApp()">Começar Agora →</button>
+  <div style="color:var(--txt3);font-size:11px;margin-top:14px;">⚕️ Consulte um nutricionista para plano individualizado</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;"></div>
+<nav id="nav" style="display:none;">
+  <button class="nav-btn on" data-page="calc" onclick="nav('calc')">
+    <span class="ni">⚡</span><span>Calcular</span><span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" data-page="plan" onclick="nav('plan')">
+    <span class="ni">📊</span><span>Plano</span><span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" data-page="water" onclick="nav('water')">
+    <span class="ni">💧</span><span>Água</span><span class="nav-dot"></span>
+  </button>
+  <button class="nav-btn" data-page="history" onclick="nav('history')">
+    <span class="ni">📈</span><span>Evolução</span><span class="nav-dot"></span>
+  </button>
+</nav>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════════════════ */
+const CUP_ML = 250;
+const ACT = {sedentario:1.2,leve:1.375,moderado:1.55,intenso:1.725,atleta:1.9};
+const ACT_LBL = {sedentario:'Sedentário',leve:'Leve',moderado:'Moderado',intenso:'Intenso',atleta:'Atleta'};
+const GOAL_LBL = {emagrecimento:'Emagrecimento',hipertrofia:'Hipertrofia',recomposicao:'Recomposição',manutencao:'Manutenção'};
+const GOAL_ICON = {emagrecimento:'🔥',hipertrofia:'💪',recomposicao:'⚖️',manutencao:'🎯'};
+const MODES = {
+  equilibrado:{label:'Equilibrado',icon:'⚖️',desc:'Progresso sustentável'},
+  seca_rapida:{label:'Seca Rápida',icon:'🔥',desc:'Perda acelerada'},
+  alta_performance:{label:'Performance',icon:'⚡',desc:'Máxima energia'}
+};
+const QUOTES = [
+  {t:'Disciplina é fazer o que precisa ser feito mesmo quando não quer.',a:'— Anônimo'},
+  {t:'O corpo conquista o que a mente acredita.',a:'— Napoleon Hill'},
+  {t:'Pequenas melhorias diárias resultam em grandes transformações.',a:'— Anônimo'},
+  {t:'O segredo está na consistência, não na intensidade.',a:'— Anônimo'},
+  {t:'Você não precisa ser perfeito, apenas consistente.',a:'— Anônimo'},
+  {t:'Seu único concorrente é quem você foi ontem.',a:'— Anônimo'},
+];
+const BADGES_DEF = [
+  {id:'first_calc',icon:'⚡',name:'Primeiro Passo'},
+  {id:'hydration_hero',icon:'💧',name:'Hidratado'},
+  {id:'streak_3',icon:'🔥',name:'3 dias seguidos'},
+  {id:'streak_7',icon:'🏆',name:'Semana completa'},
+  {id:'goal_set',icon:'🎯',name:'Meta definida'},
+  {id:'history_10',icon:'📊',name:'10 registros'},
+];
+const VALID = {
+  peso:{min:30,max:300,msg:'Peso entre 30 e 300 kg'},
+  altura:{min:100,max:250,msg:'Altura entre 100 e 250 cm'},
+  idade:{min:12,max:110,msg:'Idade entre 12 e 110 anos'},
+  gorduraPct:{min:3,max:60,msg:'Gordura entre 3 e 60%'},
+  prazo:{min:7,max:730,msg:'Prazo entre 7 e 730 dias'},
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════ */
+let ST = {
+  page: 'calc',
+  mode: 'equilibrado',
+  res: null,
+  form: {peso:'',altura:'',idade:'',sexo:'m',atividade:'moderado',objetivo:'emagrecimento',gorduraPct:'',prazo:'90',metaPeso:'',faseCiclo:'folicular',treinoHoje:false},
+  water: {cups:0, lastDrink:null, streak:0, lastDate:null, history:[], treinoHoje:false},
+  history: [],     // [{date,kcal,peso,prot,carb,fat}]
+  weightLog: [],   // [{date,peso}]
+  badges: [],
+  notifications: {enabled:false, intervalMin:90, lastNotified:0},
+  charts: {},
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   PERSISTENCE
+═══════════════════════════════════════════════════════════════════ */
+function save() {
+  try {
+    const d = {version:3,mode:ST.mode,form:ST.form,res:ST.res,water:ST.water,history:ST.history,weightLog:ST.weightLog,badges:ST.badges,notifications:ST.notifications};
+    localStorage.setItem('nutri_pro_v2', JSON.stringify(d));
+  } catch(e){}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem('nutri_pro_v2');
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(d.mode) ST.mode = d.mode;
+    if(d.form) ST.form = {...ST.form,...d.form};
+    if(d.res) ST.res = d.res;
+    if(d.water) ST.water = {...ST.water,...d.water};
+    if(d.history) ST.history = d.history;
+    if(d.weightLog) ST.weightLog = d.weightLog;
+    if(d.badges) ST.badges = d.badges;
+    if(d.notifications) ST.notifications = {...ST.notifications,...d.notifications};
+    // corrige virada diária e continuidade do streak
+    checkStreak();
+  } catch(e){}
+}
+function checkStreak() {
+  const today = todayStr();
+  const last = ST.water.lastDate;
+  if(!last) return;
+  if(last !== today) {
+    const diff = daysDiff(last, today);
+    if(diff > 1) ST.water.streak = 0;
+    // novo dia: consumo diário nunca deve vazar para o dia seguinte
+    ST.water.cups = 0;
+    ST.water.lastDrink = null;
+    ST.notifications.lastNotified = 0;
+  }
+}
+function todayStr(d=new Date()) {
+  // data LOCAL, evitando a virada antecipada causada por toISOString()/UTC
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function daysDiff(a,b) {
+  const [ay,am,ad]=a.split('-').map(Number);
+  const [by,bm,bd]=b.split('-').map(Number);
+  return Math.abs((Date.UTC(by,bm-1,bd)-Date.UTC(ay,am-1,ad))/(1000*60*60*24));
+}
+function syncTodayWaterHistory(){
+  const today=todayStr();
+  const ml=ST.water.cups*CUP_ML;
+  const e=ST.water.history.find(h=>h.date===today);
+  if(e) e.ml=ml;
+  else if(ml>0) ST.water.history.push({date:today,ml});
+  ST.water.history=ST.water.history.slice(-30);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CALC ENGINE (Mifflin-St Jeor)
+═══════════════════════════════════════════════════════════════════ */
+function calcNutrition(f, mode) {
+  const {peso,altura,idade,sexo,atividade,objetivo,gorduraPct,prazo,faseCiclo,treinoHoje} = f;
+
+  // ── IMC e peso ideal (Devine) ───────────────────────────────────────
+  const imc = peso / Math.pow(altura/100, 2);
+  const pesoIdeal = sexo==='m'
+    ? 50 + 2.3 * ((altura/2.54) - 60)
+    : 45.5 + 2.3 * ((altura/2.54) - 60);
+  // Se obeso (IMC>30), usar peso ajustado para calcular proteína
+  // Peso ajustado = pesoIdeal + 0.4*(peso - pesoIdeal)
+  const pesoRef = imc > 30
+    ? pesoIdeal + 0.4 * (peso - pesoIdeal)
+    : peso;
+
+  // ── TMB ─────────────────────────────────────────────────────────────
+  // Mifflin-St Jeor (padrão)
+  let tmb = sexo==='m'
+    ? 10*peso + 6.25*altura - 5*idade + 5
+    : 10*peso + 6.25*altura - 5*idade - 161;
+  // Katch-McArdle override se % gordura disponível
+  if(gorduraPct>0) tmb = 370 + 21.6*(peso*(1-gorduraPct/100));
+
+  // ── Ajuste ciclo menstrual (fase lútea: +150 kcal TDEE) ─────────────
+  let cicloBonusKcal = 0;
+  if(sexo==='f') {
+    if(faseCiclo==='lutea') cicloBonusKcal = 150;      // maior gasto, mais fome
+    else if(faseCiclo==='menstrual') cicloBonusKcal = -50; // leve queda
+    else if(faseCiclo==='ovulatoria') cicloBonusKcal = 50;
+  }
+
+  const tdee = tmb * ACT[atividade] + cicloBonusKcal;
+
+  let kcal, prot, fat, carb;
+  // Hidratação base + ajuste treino + ajuste ciclo menstrual
+  let agua = pesoRef*35 + (['intenso','atleta'].includes(atividade)?600:0);
+  if(treinoHoje) agua += 500;
+  if(sexo==='f' && faseCiclo==='lutea') agua += 200; // fase lútea = maior retenção, compensar
+
+  // ── Estratégia coerente com o objetivo ─────────────────────────────
+  if(mode==='seca_rapida'){
+    if(objetivo==='emagrecimento') kcal = tdee * 0.78;
+    else if(objetivo==='recomposicao') kcal = tdee * 0.90;
+    else if(objetivo==='hipertrofia') kcal = tdee + 250;
+    else kcal = tdee;
+    prot = pesoRef * (objetivo==='hipertrofia'?2.2:2.3);
+    fat = pesoRef * 0.75;
+  } else if(mode==='alta_performance'){
+    if(objetivo==='hipertrofia') kcal = tdee + 350;
+    else if(objetivo==='emagrecimento') kcal = tdee - 250;
+    else kcal = tdee + 100;
+    prot = pesoRef * (objetivo==='hipertrofia'||objetivo==='recomposicao'?2.2:2.0);
+    fat = pesoRef * 1.0;
+  } else {
+    const ajustes = {
+      emagrecimento: -(prazo<=60?500:prazo<=90?400:280),
+      hipertrofia: prazo<=90?320:240,
+      recomposicao: -100,
+      manutencao: 0
+    };
+    kcal = tdee + (ajustes[objetivo]||0);
+    prot = pesoRef * (objetivo==='hipertrofia'||objetivo==='recomposicao' ? 2.2 : objetivo==='emagrecimento' ? 2.0 : 1.8);
+    fat = pesoRef * 0.9;
+  }
+
+  // ── Piso de energia e macros SEMPRE sincronizados com kcal ─────────
+  const minK = sexo==='m' ? 1500 : 1200;
+  const kcalAntesDoPiso = kcal;
+  const alerta = kcalAntesDoPiso < minK;
+  const alertaExtreme = kcalAntesDoPiso < (sexo==='m' ? 1200 : 1000);
+  kcal = Math.max(kcal, minK);
+  carb = Math.max((kcal - prot*4 - fat*9) / 4, 50);
+  // se o piso de carbo elevar a soma, kcal exibida acompanha os macros reais
+  const kcalMacros = prot*4 + carb*4 + fat*9;
+  if(kcalMacros > kcal) kcal = kcalMacros;
+
+  const diff = Math.round(kcal - tdee);
+  const kgW = (diff * 7) / 7700;
+
+  // ── Macros split por dia (treino vs descanso) ────────────────────────
+  // Dia de treino: +20% carb, -5% fat
+  // Dia de descanso: -20% carb, +5% fat
+  const carbTreino  = Math.round(carb * 1.20);
+  const carbDescanso = Math.round(carb * 0.80);
+  const fatTreino   = Math.round(fat * 0.95);
+  const fatDescanso = Math.round(fat * 1.05);
+
+  // ── Estimativa de meta com adaptação metabólica ──────────────────────
+  // Modelagem: a cada 4 semanas, TDEE reduz ~3% (adaptação)
+  let metaInfo = null;
+  if(f.metaPeso > 0 && diff !== 0) {
+    const diffPeso = f.metaPeso - peso;
+    const direcao  = diffPeso < 0 ? -1 : 1;
+    let pesoSim    = peso;
+    let tdeeSim    = tdee;
+    let diasSim    = 0;
+    const maxDias  = 1000;
+    const kcalPlanejada = kcal;
+    while(Math.abs(pesoSim - f.metaPeso) > 0.1 && diasSim < maxDias) {
+      const balancoDia = kcalPlanejada - tdeeSim;
+      // se o plano empurra na direção oposta à meta, não promete prazo irreal
+      if((direcao<0 && balancoDia>=0) || (direcao>0 && balancoDia<=0)) { diasSim=maxDias; break; }
+      pesoSim += balancoDia / 7700;
+      diasSim++;
+      // aproximação conservadora: gasto acompanha parte da mudança de peso
+      const razaoPeso = Math.max(.75, Math.min(1.25, pesoSim/peso));
+      tdeeSim = tdee * (0.75 + 0.25*razaoPeso);
+      // adaptação adicional apenas durante déficit prolongado
+      if(direcao<0 && diasSim % 28 === 0) tdeeSim *= 0.98;
+      if(direcao < 0 && pesoSim <= f.metaPeso) break;
+      if(direcao > 0 && pesoSim >= f.metaPeso) break;
+    }
+    metaInfo = {
+      meta: f.metaPeso,
+      diff: diffPeso.toFixed(1),
+      dias: diasSim < maxDias ? diasSim : null,  // null = não vai atingir
+      diasSemAdapt: Math.abs(diffPeso*7700 / Math.abs(diff||1)), // estimativa ingênua para comparar
+      pct: 0
+    };
+  }
+
+  // ── Recomendações inteligentes ───────────────────────────────────────
+  const recs = [];
+  if(gorduraPct===0) recs.push({t:'Adicione % de gordura corporal para cálculo mais preciso (fórmula Katch-McArdle)',c:'#00d4ff'});
+  if(imc > 30) recs.push({t:`IMC ${imc.toFixed(1)} — proteína calculada pelo peso ajustado (${Math.round(pesoRef)} kg) para resultados mais precisos`,c:'#00d4ff'});
+  if(prot/pesoRef < 1.6) recs.push({t:'Proteína abaixo do ideal para preservar massa magra',c:'#ff9800'});
+  if(carb < 100) recs.push({t:'Carboidratos baixos — considere ciclar carbs nos dias de treino',c:'#ffd43b'});
+  if(objetivo==='emagrecimento' && Math.abs(diff) > 600) recs.push({t:'Déficit alto pode causar adaptação metabólica — considere refeed semanal com +200 kcal de carbo',c:'#ff6b6b'});
+  if(sexo==='f' && faseCiclo==='lutea') recs.push({t:'Fase lútea: metabolismo elevado (+150 kcal). Mais fome é normal — priorize proteína e evite ultra-processados',c:'#ff9800'});
+  if(sexo==='f' && faseCiclo==='menstrual') recs.push({t:'Fase menstrual: reduza treinos de alta intensidade e aumente ingestão de ferro (carnes, feijão, folhas escuras)',c:'#c084fc'});
+  if(treinoHoje && carb < 150) recs.push({t:'Dia de treino com carboidrato baixo — risco de queda de performance. Considere o plano de macros para treino',c:'#ffd43b'});
+  if(metaInfo && metaInfo.dias && metaInfo.diasSemAdapt) {
+    const diff_dias = Math.round(metaInfo.dias - metaInfo.diasSemAdapt);
+    if(diff_dias > 14) recs.push({t:`Adaptação metabólica pode atrasar sua meta em ~${diff_dias} dias a mais. Inclua refeeds estratégicos para contornar`,c:'#ff9800'});
+  }
+
+  return {
+    tmb:Math.round(tmb), tdee:Math.round(tdee),
+    kcal:Math.round(kcal), prot:Math.round(prot),
+    carb:Math.round(carb), fat:Math.round(fat),
+    agua:Math.round(agua), diff, alerta, alertaExtreme, minK,
+    kgW: Math.abs(kgW).toFixed(2),
+    pesoFinal: (peso + kgW*(prazo/7)).toFixed(1),
+    cups: Math.ceil(agua/CUP_ML),
+    imc: imc.toFixed(1),
+    pesoRef: Math.round(pesoRef),
+    // macros ciclados
+    carbTreino, carbDescanso, fatTreino, fatDescanso,
+    temCiclo: treinoHoje || ['intenso','atleta'].includes(atividade),
+    // ciclo menstrual
+    cicloBonusKcal,
+    faseCiclo: faseCiclo||'',
+    recs, metaInfo,
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   VALIDATION
+═══════════════════════════════════════════════════════════════════ */
+function validateField(key, val) {
+  if(!VALID[key]) return true;
+  if(val===''||val===null) return true; // optional fields
+  const v=parseFloat(val);
+  return v>=VALID[key].min && v<=VALID[key].max;
+}
+function isFormValid() {
+  const f=ST.form;
+  const prazoOk = f.prazo!=='' && validateField('prazo',f.prazo);
+  const gorduraOk = f.gorduraPct==='' || validateField('gorduraPct',f.gorduraPct);
+  const meta = f.metaPeso==='' ? null : parseFloat(f.metaPeso);
+  const metaOk = meta===null || (Number.isFinite(meta) && meta>=30 && meta<=300);
+  return !!(f.peso && f.altura && f.idade && prazoOk && gorduraOk && metaOk &&
+    validateField('peso',f.peso) && validateField('altura',f.altura) && validateField('idade',f.idade));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CHART FACTORY
+═══════════════════════════════════════════════════════════════════ */
+const CHART_DEFAULTS = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{
+    backgroundColor:'rgba(13,15,23,.95)',titleColor:'#e8eaf0',bodyColor:'#8b8fa8',
+    borderColor:'rgba(255,255,255,.08)',borderWidth:1,cornerRadius:10,padding:10
+  }},
+  scales:{
+    x:{grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'#4a4e65',font:{size:10}}},
+    y:{grid:{color:'rgba(255,255,255,.04)',drawBorder:false},ticks:{color:'#4a4e65',font:{size:10}}}
+  }
+};
+function destroyChart(id) {
+  if(ST.charts[id]) { try{ST.charts[id].destroy();}catch(e){} delete ST.charts[id]; }
+}
+function makeLineChart(canvasId, labels, datasets) {
+  destroyChart(canvasId);
+  const el=document.getElementById(canvasId);
+  if(!el) return;
+  ST.charts[canvasId]=new Chart(el,{type:'line',data:{labels,datasets},options:{...CHART_DEFAULTS,
+    elements:{point:{radius:3,hoverRadius:5}}}});
+}
+function makeBarChart(canvasId, labels, data, color) {
+  destroyChart(canvasId);
+  const el=document.getElementById(canvasId);
+  if(!el) return;
+  ST.charts[canvasId]=new Chart(el,{type:'bar',data:{labels,datasets:[{data,backgroundColor:color+'44',borderColor:color,borderWidth:1.5,borderRadius:6}]},
+    options:{...CHART_DEFAULTS}});
+}
+function makeDoughnut(canvasId, data, colors) {
+  destroyChart(canvasId);
+  const el=document.getElementById(canvasId);
+  if(!el) return;
+  ST.charts[canvasId]=new Chart(el,{type:'doughnut',data:{labels:['P','C','G'],datasets:[{data,backgroundColor:colors.map(c=>c+'55'),borderColor:colors,borderWidth:2,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false},tooltip:{...CHART_DEFAULTS.plugins.tooltip}}}});
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SVG HELPERS
+═══════════════════════════════════════════════════════════════════ */
+function ringHTML(pct, color, size=48, stroke=5) {
+  const r=(size-stroke)/2, c=2*Math.PI*r;
+  return `<div class="ring-wrap" style="width:${size}px;height:${size}px;">
+    <svg width="${size}" height="${size}">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="${stroke}"/>
+      <circle class="ring-arc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
+        stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${c.toFixed(2)}" stroke-linecap="round"
+        style="transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1);"
+        data-circ="${c.toFixed(2)}" data-pct="${Math.min(pct,100)}"/>
+    </svg>
+    <div class="ring-center" style="font-size:9px;font-weight:800;color:${color};">${Math.round(pct)}%</div>
+  </div>`;
+}
+
+function bottleHTML(pct, id='') {
+  const w=44,h=130,bh=h*0.76,by=h*0.19;
+  const p=Math.min(pct,1);
+  const fillH=bh*p, fillY=by+bh-fillH;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" ${id?'id="'+id+'"':''}>
+    <defs>
+      <linearGradient id="wg${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#00e5ff" stop-opacity=".95"/>
+        <stop offset="100%" stop-color="#006699" stop-opacity=".7"/>
+      </linearGradient>
+      <clipPath id="bc${id}"><rect x="4" y="${by}" width="${w-8}" height="${bh}" rx="9"/></clipPath>
+    </defs>
+    <rect x="15" y="2" width="${w-30}" height="15" rx="4" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
+    <rect x="13" y="15" width="${w-26}" height="6" rx="2" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
+    <rect x="4" y="${by}" width="${w-8}" height="${bh}" rx="9" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
+    <rect class="b-fill" x="4" y="${fillY.toFixed(1)}" width="${w-8}" height="${fillH.toFixed(1)}" rx="9" fill="url(#wg${id})" clip-path="url(#bc${id})" style="transition:height 1.2s cubic-bezier(.4,0,.2,1),y 1.2s cubic-bezier(.4,0,.2,1);"/>
+    <rect x="11" y="${by+10}" width="5" height="${(bh*0.35).toFixed(1)}" rx="2.5" fill="rgba(255,255,255,.15)"/>
+    <text x="${w/2}" y="${(by+bh/2+5).toFixed(1)}" text-anchor="middle" fill="white" font-size="9" font-weight="700" font-family="DM Sans,sans-serif">${Math.round(p*100)}%</text>
+  </svg>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════════ */
+function nav(page) {
+  if(ST.page===page) return;
+  // destroy charts before switching
+  Object.keys(ST.charts).forEach(k=>destroyChart(k));
+  const old=document.querySelector('.page');
+  if(old) { old.classList.add('page-exit'); }
+  setTimeout(()=>{
+    ST.page=page;
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.page===page));
+    renderPage();
+  }, 200);
+}
+function renderPage() {
+  const app=document.getElementById('app');
+  let html='';
+  if(ST.page==='calc') html=renderCalc();
+  else if(ST.page==='plan') html=renderPlan();
+  else if(ST.page==='water') html=renderWater();
+  else if(ST.page==='history') html=renderHistory();
+  app.innerHTML=html;
+  const pg=document.querySelector('.page');
+  if(pg) pg.classList.add('page-enter');
+  setTimeout(()=>{ bindAll(); triggerAnims(); },30);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE: CALC
+═══════════════════════════════════════════════════════════════════ */
+function renderCalc() {
+  const f=ST.form;
+  const q=QUOTES[new Date().getDay()%QUOTES.length];
+  return `<div class="page">
+  <div class="hdr"><div class="logo">⚡ NutriCalc Pro</div><div class="sub" style="margin-top:4px;">Configure seu perfil</div></div>
+
+  <div class="quote-card">
+    <div class="quote-text">"${q.t}"</div>
+    <div class="quote-src">${q.a}</div>
+  </div>
+
+  <div class="card card-glow">
+    <span class="chip">📋 DADOS PESSOAIS</span>
+    <div class="row2">
+      <div>
+        <label class="lbl">Peso (kg)</label>
+        <input class="inp" id="f-peso" type="number" placeholder="75" value="${f.peso}" oninput="fset('peso',this.value)"/>
+        <div class="field-error" id="err-peso">${VALID.peso.msg}</div>
+      </div>
+      <div>
+        <label class="lbl">Altura (cm)</label>
+        <input class="inp" id="f-altura" type="number" placeholder="175" value="${f.altura}" oninput="fset('altura',this.value)"/>
+        <div class="field-error" id="err-altura">${VALID.altura.msg}</div>
+      </div>
+      <div>
+        <label class="lbl">Idade</label>
+        <input class="inp" id="f-idade" type="number" placeholder="25" value="${f.idade}" oninput="fset('idade',this.value)"/>
+        <div class="field-error" id="err-idade">${VALID.idade.msg}</div>
+      </div>
+      <div>
+        <label class="lbl">% Gordura (opt.)</label>
+        <input class="inp" id="f-gordura" type="number" placeholder="20" value="${f.gorduraPct}" oninput="fset('gorduraPct',this.value)"/>
+        <div class="field-error" id="err-gordura">${VALID.gorduraPct.msg}</div>
+      </div>
+    </div>
+    <label class="lbl">Sexo Biológico</label>
+    <div class="seg mb14">
+      <button class="seg-btn${f.sexo==='m'?' on':''}" onclick="fset('sexo','m');softRender()">♂ Masculino</button>
+      <button class="seg-btn${f.sexo==='f'?' on':''}" onclick="fset('sexo','f');softRender()">♀ Feminino</button>
+    </div>
+    ${f.sexo==='f'?`
+    <label class="lbl">🌙 Fase do Ciclo Menstrual</label>
+    <div class="pills mb14">
+      ${[['folicular','🌱 Folicular','Dias 6–13'],['ovulatoria','🌸 Ovulatória','Dias 14–15'],['lutea','🌕 Lútea','Dias 16–28'],['menstrual','🩸 Menstrual','Dias 1–5']].map(([v,l,sub])=>`
+        <button class="pill${f.faseCiclo===v?' on':''}" onclick="fset('faseCiclo','${v}');softRender()" title="${sub}">${l}</button>
+      `).join('')}
+    </div>`:''}
+    <label class="lbl">Nível de Atividade</label>
+    <div class="pills">
+      ${Object.entries(ACT_LBL).map(([v,l])=>`<button class="pill${f.atividade===v?' on':''}" onclick="fset('atividade','${v}');softRender()">${l}</button>`).join('')}
+    </div>
+    <label class="lbl" style="margin-top:6px;">🏋️ Treino Hoje?</label>
+    <div class="seg" style="margin-bottom:0;">
+      <button class="seg-btn${f.treinoHoje?' on':''}" onclick="fset('treinoHoje',true);softRender()">✅ Sim</button>
+      <button class="seg-btn${!f.treinoHoje?' on':''}" onclick="fset('treinoHoje',false);softRender()">😴 Descanso</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="chip">🎯 OBJETIVO</span>
+    <div class="goal-grid">
+      ${Object.entries(GOAL_LBL).map(([v,l])=>`
+        <button class="goal-card${f.objetivo===v?' on':''}" onclick="fset('objetivo','${v}');softRender()">
+          <span class="gi">${GOAL_ICON[v]}</span>${l}
+        </button>`).join('')}
+    </div>
+    <label class="lbl">Meta de Peso (kg, opcional)</label>
+    <input class="inp mb14" id="f-meta" type="number" min="30" max="300" step="0.1" placeholder="Ex: 70" value="${f.metaPeso||''}" oninput="fset('metaPeso',this.value)"/>
+    <label class="lbl">Prazo</label>
+    <div class="pills">
+      ${['30','60','90','180','365'].map(v=>`<button class="pill${f.prazo===v?' on':''}" onclick="fset('prazo','${v}');softRender()">${v}d</button>`).join('')}
+      <input class="inp inp-sm" id="f-prazo" style="width:86px;" type="number" min="7" max="730" placeholder="dias" value="${f.prazo}" oninput="fset('prazo',this.value)"/>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="chip">⚡ MODO DE CÁLCULO</span>
+    ${Object.entries(MODES).map(([k,v])=>`
+      <button onclick="ST.mode='${k}';softRender()" style="width:100%;padding:13px 16px;border-radius:12px;
+        border:1px solid ${ST.mode===k?'rgba(0,212,255,.35)':'var(--border)'};
+        background:${ST.mode===k?'rgba(0,212,255,.07)':'var(--bg2)'};
+        color:${ST.mode===k?'var(--c1)':'var(--txt2)'};text-align:left;
+        display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:all .2s;">
+        <span style="font-size:20px;">${v.icon}</span>
+        <div>
+          <div style="font-weight:700;font-size:13px;">${v.label}</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:1px;">${v.desc}</div>
+        </div>
+        ${ST.mode===k?'<span style="margin-left:auto;color:var(--c1);font-size:16px;">✓</span>':''}
+      </button>`).join('')}
+  </div>
+
+  <button class="btn-primary" id="calc-btn" onclick="submitCalc()" ${isFormValid()?'':'disabled'}>
+    Calcular Plano Nutricional 🚀
+  </button>
+  <div class="disclaimer">⚕️ Este app não substitui um nutricionista. Consulte um profissional para um plano individualizado.</div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE: PLAN
+═══════════════════════════════════════════════════════════════════ */
+function renderPlan() {
+  const r=ST.res;
+  if(!r) return `<div class="page"><div class="hdr"><div class="logo">📊 Plano</div></div>
+    <div class="card"><div class="empty"><div class="empty-icon">⚡</div>
+    <div class="empty-title">Nenhum plano calculado</div>
+    <div class="empty-sub">Vá para a aba Calcular e preencha seu perfil</div></div></div>
+    <button class="btn-primary" onclick="nav('calc')">Ir para Calculadora</button></div>`;
+
+  // ── Auto-save histórico ao abrir o plano ─────────────────────────────
+  const today = todayStr();
+  const alreadyToday = ST.history.length>0 && ST.history[ST.history.length-1].date.slice(0,10)===today;
+  if(!alreadyToday) {
+    const f0 = ST.form;
+    const entry = {date:new Date().toISOString(),kcal:r.kcal,prot:r.prot,carb:r.carb,fat:r.fat,peso:+f0.peso||0,modo:MODES[ST.mode].label};
+    ST.history.push(entry);
+    if(ST.history.length>50) ST.history.shift();
+    if(!ST.weightLog.find(w=>w.date===today) && f0.peso) {
+      ST.weightLog.push({date:today,peso:+f0.peso});
+      if(ST.weightLog.length>60) ST.weightLog.shift();
+    }
+    if(ST.history.length>=10) earnBadge('history_10');
+    save();
+  }
+
+  const f=ST.form;
+  const waterPct=Math.min(ST.water.cups/r.cups,1);
+  const waterMl=ST.water.cups*CUP_ML;
+  const diffColor=r.diff<0?'#ff6b6b':'#51cf66';
+  const p_pct=Math.round(r.prot*4/r.kcal*100);
+  const c_pct=Math.round(r.carb*4/r.kcal*100);
+  const g_pct=Math.round(r.fat*9/r.kcal*100);
+
+  // goal progress
+  let goalHtml='';
+  if(f.metaPeso && f.metaPeso>0 && r.metaInfo) {
+    const peso=parseFloat(f.peso);
+    const meta=parseFloat(f.metaPeso);
+    const diff=meta-peso;
+    const metaInfo=r.metaInfo;
+    // find progress from weight log
+    const startPeso = ST.weightLog.length>0?ST.weightLog[0].peso:peso;
+    const totalMudanca=Math.abs(meta-startPeso)||1;
+    const mudancaAtual=Math.abs(peso-startPeso);
+    const pct=Math.min(100,(mudancaAtual/totalMudanca)*100);
+    const ringPct=pct;
+    goalHtml=`<div class="card card-green" style="margin-bottom:12px;">
+      <span class="chip">🎯 META DE PESO</span>
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div style="position:relative;width:90px;height:90px;flex-shrink:0;">
+          <svg width="90" height="90" style="transform:rotate(-90deg);position:absolute;">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(81,207,102,.1)" stroke-width="8"/>
+            <circle class="ring-arc" cx="45" cy="45" r="38" fill="none" stroke="#51cf66" stroke-width="8"
+              stroke-dasharray="${(2*Math.PI*38).toFixed(2)}" stroke-dashoffset="${(2*Math.PI*38).toFixed(2)}"
+              stroke-linecap="round" style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);"
+              data-circ="${(2*Math.PI*38).toFixed(2)}" data-pct="${ringPct.toFixed(1)}"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#51cf66;">${Math.round(pct)}%</div>
+            <div style="font-size:9px;color:var(--txt3);">concluído</div>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <div><div style="color:var(--txt3);font-size:10px;text-transform:uppercase;letter-spacing:1px;">Atual</div>
+              <div style="font-weight:800;font-size:16px;">${peso} kg</div></div>
+            <div style="text-align:center;"><div style="color:var(--txt3);font-size:10px;text-transform:uppercase;letter-spacing:1px;">Diferença</div>
+              <div style="font-weight:800;font-size:16px;color:${diff<0?'#ff6b6b':'#51cf66'};">${diff>0?'+':''}${diff.toFixed(1)} kg</div></div>
+            <div style="text-align:right;"><div style="color:var(--txt3);font-size:10px;text-transform:uppercase;letter-spacing:1px;">Meta</div>
+              <div style="font-weight:800;font-size:16px;color:var(--c1);">${meta} kg</div></div>
+          </div>
+          <div style="color:var(--txt3);font-size:12px;">⏱ Estimativa real: <strong style="color:var(--txt);">${metaInfo.dias ? Math.round(metaInfo.dias)+' dias' : 'Ajuste necessário'}</strong></div>
+          ${metaInfo.dias && metaInfo.diasSemAdapt && Math.round(metaInfo.dias - metaInfo.diasSemAdapt) > 7
+            ? `<div style="color:#ff9800;font-size:11px;margin-top:4px;">⚠️ Sem adaptação seria ${Math.round(metaInfo.diasSemAdapt)}d — adaptação metabólica adiciona ~${Math.round(metaInfo.dias - metaInfo.diasSemAdapt)} dias</div>`
+            : `<div style="color:#51cf66;font-size:11px;margin-top:4px;">✓ Déficit moderado, adaptação mínima</div>`
+          }
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="page">
+  <div class="hdr"><div class="logo">📊 Seu Plano</div><div class="sub" style="margin-top:4px;">${GOAL_LBL[f.objetivo]} · ${MODES[ST.mode].label}</div></div>
+
+  <div class="mode-strip">
+    ${Object.entries(MODES).map(([k,v])=>`<button class="mode-btn${ST.mode===k?' on':''}" onclick="reCalc('${k}')">${v.icon} ${v.label}</button>`).join('')}
+  </div>
+
+  ${r.alertaExtreme?`<div class="alert alert-warn">⛔ Calorias extremamente baixas. Ajustado para ${r.minK} kcal. Procure orientação médica.</div>`:''}
+  ${r.alerta&&!r.alertaExtreme?`<div class="alert alert-warn">⚠️ Ajustado ao mínimo seguro de ${r.minK} kcal/dia.</div>`:''}
+
+  ${goalHtml}
+
+  <!-- HERO -->
+  <div class="hero-card">
+    <div class="hero-glow"></div>
+    <span class="chip">META CALÓRICA DIÁRIA</span>
+    <div class="big-num" id="anim-kcal">0</div>
+    <div style="color:var(--txt3);font-size:13px;margin-top:3px;">kcal / dia</div>
+    <div class="hero-row">
+      <div class="hs"><div class="hs-l">TMB</div><div class="hs-v" style="color:var(--txt2);">${r.tmb}</div></div>
+      <div class="hs"><div class="hs-l">TDEE</div><div class="hs-v" style="color:var(--txt2);">${r.tdee}</div></div>
+      <div class="hs"><div class="hs-l">${r.diff<0?'Déficit':'Superávit'}</div><div class="hs-v" style="color:${diffColor};">${r.diff>0?'+':''}${r.diff} kcal</div></div>
+    </div>
+    ${r.imc?`<div style="margin-top:12px;padding:8px 14px;background:rgba(255,255,255,.04);border-radius:8px;display:inline-flex;gap:8px;align-items:center;">
+      <span style="font-size:11px;color:var(--txt3);">IMC</span>
+      <span style="font-size:13px;font-weight:700;color:${+r.imc<18.5?'#ff9800':+r.imc<25?'#51cf66':+r.imc<30?'#ffd43b':'#ff6b6b'};">${r.imc}</span>
+      <span style="font-size:11px;color:var(--txt3);">${+r.imc<18.5?'Abaixo do peso':+r.imc<25?'Peso normal':+r.imc<30?'Sobrepeso':'Obesidade'}</span>
+      ${r.pesoRef!==+f.peso?`<span style="font-size:10px;color:var(--txt3);">· base ${r.pesoRef}kg</span>`:''}
+    </div>`:''}
+    ${r.cicloBonusKcal&&r.cicloBonusKcal!==0?`<div style="margin-top:8px;font-size:11px;color:#c084fc;">🌙 Ajuste ciclo menstrual: ${r.cicloBonusKcal>0?'+':''}${r.cicloBonusKcal} kcal incluído</div>`:''}
+  </div>
+
+  <!-- MACROS -->
+  <div class="macro-grid">
+    ${[{l:'Proteína',v:r.prot,c:'#00d4ff',ic:'🥩',max:250},{l:'Carboidratos',v:r.carb,c:'#7b2ff7',ic:'🌾',max:400},{l:'Gorduras',v:r.fat,c:'#ff7043',ic:'🥑',max:130}].map(m=>`
+    <div class="macro-card" style="border-color:${m.c}1a;">
+      <div style="font-size:18px;margin-bottom:7px;">${m.ic}</div>
+      ${ringHTML(Math.min(m.v/m.max*100,100), m.c, 48, 5)}
+      <div style="font-size:13px;font-weight:800;color:${m.c};margin-top:6px;">${m.v}g</div>
+      <div style="font-size:10px;color:var(--txt3);margin-top:1px;">${m.l}</div>
+      <div style="font-size:9px;color:var(--txt3);margin-top:2px;">${Math.round(m.v*(m.l==='Gorduras'?9:4))} kcal</div>
+    </div>`).join('')}
+  </div>
+
+  <!-- MACRO CYCLING (treino vs descanso) -->
+  ${r.temCiclo?`<div class="card card-blue" style="margin-bottom:12px;">
+    <span class="chip">🔄 MACROS POR TIPO DE DIA</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:11px;color:var(--c1);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">🏋️ Dia de Treino</div>
+        <div style="font-size:13px;font-weight:700;">P: ${r.prot}g</div>
+        <div style="font-size:13px;font-weight:700;color:#7b2ff7;">C: ${r.carbTreino}g</div>
+        <div style="font-size:13px;font-weight:700;color:#ff7043;">G: ${r.fatTreino}g</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:6px;">${Math.round(r.prot*4+r.carbTreino*4+r.fatTreino*9)} kcal</div>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:11px;color:var(--txt3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">😴 Descanso</div>
+        <div style="font-size:13px;font-weight:700;">P: ${r.prot}g</div>
+        <div style="font-size:13px;font-weight:700;color:#7b2ff7;">C: ${r.carbDescanso}g</div>
+        <div style="font-size:13px;font-weight:700;color:#ff7043;">G: ${r.fatDescanso}g</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:6px;">${Math.round(r.prot*4+r.carbDescanso*4+r.fatDescanso*9)} kcal</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--txt3);line-height:1.5;">💡 Mais carbo nos dias de treino = melhor performance e recuperação. Proteína constante todos os dias.</div>
+  </div>`:''}
+
+  <!-- DOUGHNUT + BARS -->
+  <div class="card">
+    <span class="chip">📊 DISTRIBUIÇÃO CALÓRICA</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center;">
+      <div class="chart-wrap-sm"><canvas id="doughnut-macros"></canvas></div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:10px;height:10px;border-radius:99px;background:#00d4ff;flex-shrink:0;"></div>
+          <div style="font-size:12px;color:var(--txt2);">Proteína</div>
+          <div style="margin-left:auto;font-size:13px;font-weight:700;color:#00d4ff;">${p_pct}%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:10px;height:10px;border-radius:99px;background:#7b2ff7;flex-shrink:0;"></div>
+          <div style="font-size:12px;color:var(--txt2);">Carboidratos</div>
+          <div style="margin-left:auto;font-size:13px;font-weight:700;color:#7b2ff7;">${c_pct}%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:10px;height:10px;border-radius:99px;background:#ff7043;flex-shrink:0;"></div>
+          <div style="font-size:12px;color:var(--txt2);">Gorduras</div>
+          <div style="margin-left:auto;font-size:13px;font-weight:700;color:#ff7043;">${g_pct}%</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      ${[['Proteína',r.prot,250,'#00d4ff'],['Carboidratos',r.carb,400,'#7b2ff7'],['Gorduras',r.fat,130,'#ff7043']].map(([l,v,mx,c])=>`
+      <div class="bar-row"><div class="bar-head"><span class="bl">${l}</span><span class="bv">${v}g</span></div>
+        <div class="bar-track"><div class="bar-fill" data-pct="${Math.min(v/mx*100,100).toFixed(1)}" style="background:${c};box-shadow:0 0 8px ${c}55;"></div></div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- PREVISÃO -->
+  <div class="card card-green">
+    <span class="chip">📈 PREVISÃO DE RESULTADO</span>
+    <div class="prev-grid">
+      <div class="prev-item">
+        <div class="prev-lbl">Por semana</div>
+        <div class="prev-val" style="color:${diffColor};">${r.diff<0?'-':'+'}${r.kgW} kg</div>
+      </div>
+      <div class="prev-item">
+        <div class="prev-lbl">Em ${f.prazo} dias</div>
+        <div class="prev-val" style="color:var(--c1);">${r.pesoFinal} kg</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:10px;color:var(--txt3);font-size:11px;line-height:1.6;">
+      ℹ️ Estimativas baseadas em déficit/superávit contínuo. Resultados reais variam por aderência, genética e outros fatores.
+    </div>
+  </div>
+
+  <!-- SMART RECS -->
+  ${r.recs.length?`<div class="card card-blue">
+    <span class="chip">🧠 RECOMENDAÇÕES INTELIGENTES</span>
+    ${r.recs.map(rec=>`<div class="rec-item">
+      <div class="rec-dot" style="background:${rec.c};"></div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.5;">${rec.t}</div>
+    </div>`).join('')}
+  </div>`:''}
+
+  <!-- ÁGUA PREVIEW -->
+  <div class="card card-water" style="cursor:pointer;" onclick="nav('water')">
+    <div class="water-preview">
+      ${bottleHTML(waterPct,'btl-prev')}
+      <div style="flex:1;">
+        <span class="chip" style="margin-bottom:6px;">💧 HIDRATAÇÃO HOJE</span>
+        <div style="font-size:22px;font-weight:800;color:var(--c6);">${waterMl} <span style="font-size:14px;color:var(--txt3);">ml</span></div>
+        <div style="color:var(--txt3);font-size:12px;margin-top:2px;">de ${r.agua} ml · ${ST.water.cups}/${r.cups} copos</div>
+        <div class="bar-track" style="margin-top:10px;">
+          <div class="bar-fill" data-pct="${Math.min(waterPct*100,100).toFixed(1)}" style="background:linear-gradient(90deg,#00bcd4,#00e5ff);box-shadow:0 0 10px rgba(0,188,212,.4);"></div>
+        </div>
+      </div>
+      <span style="color:var(--txt3);font-size:20px;margin-left:4px;">›</span>
+    </div>
+  </div>
+
+  <div class="disclaimer">⚕️ Consulte um nutricionista para um plano totalmente individualizado.</div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE: WATER
+═══════════════════════════════════════════════════════════════════ */
+function renderWater() {
+  if(!ST.res) return `<div class="page"><div class="hdr"><div class="logo">💧 Hidratação</div></div>
+    <div class="card"><div class="empty"><div class="empty-icon">💧</div>
+    <div class="empty-title">Configure seu plano</div>
+    <div class="empty-sub">Calcule seu plano nutricional para ativar o sistema de hidratação</div></div></div>
+    <button class="btn-primary" onclick="nav('calc')">Ir para Calculadora</button></div>`;
+
+  const r=ST.res;
+  const w=ST.water;
+  const waterPct=Math.min(w.cups/r.cups,1);
+  const waterMl=w.cups*CUP_ML;
+  const remaining=Math.max(0,r.agua-waterMl);
+
+  let statusMsg='',statusColor='#ff9800';
+  if(waterPct>=1){statusMsg='🎉 Meta atingida!';statusColor='#51cf66';}
+  else if(w.cups===0){statusMsg='Beba o primeiro copo agora!';statusColor='#ff9800';}
+  else if(w.lastDrink){
+    const mins=Math.round((Date.now()-w.lastDrink)/60000);
+    if(mins>90){statusMsg=`⚠️ Última dose há ${mins} min`;statusColor='#ff6b6b';}
+    else{const d=new Date(w.lastDrink);statusMsg=`Último às ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;statusColor='var(--c6)';}
+  }
+
+  // weekly water history for mini chart
+  const last7=w.history.slice(-7);
+
+  return `<div class="page">
+  <div class="hdr"><div class="logo">💧 Hidratação</div><div class="sub" style="margin-top:4px;">Meta: ${r.agua} ml / dia</div></div>
+
+  ${w.streak>0?`<div style="text-align:center;margin-bottom:12px;">
+    <div class="streak-badge">🔥 Streak: ${w.streak} ${w.streak===1?'dia':'dias'} consecutivo${w.streak===1?'':'s'}</div>
+  </div>`:''}
+
+  <!-- BOTTLE HERO -->
+  <div class="bottle-hero">
+    <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(0,188,212,.1),transparent 70%);pointer-events:none;"></div>
+    <div style="display:flex;justify-content:center;margin-bottom:16px;" id="big-bottle">${bottleHTML(waterPct,'main')}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--c6);" id="water-ml-display">${waterMl}<span style="font-size:16px;font-family:'DM Sans',sans-serif;color:var(--txt3);"> ml</span></div>
+    <div style="color:var(--txt3);font-size:13px;margin-top:2px;">de ${r.agua} ml · ${Math.round(waterPct*100)}% da meta</div>
+    ${statusMsg?`<div style="display:inline-block;margin-top:12px;padding:8px 18px;border-radius:99px;background:${statusColor}15;color:${statusColor};font-size:12px;font-weight:700;border:1px solid ${statusColor}33;">${statusMsg}</div>`:''}
+    <div class="water-bar-track"><div id="w-bar-main" class="water-bar-fill"></div></div>
+    <div class="bar-labels">
+      <span>0 ml</span>
+      <span style="color:${waterPct>=1?'#51cf66':'var(--txt3)'};font-weight:${waterPct>=1?700:400};">${waterPct>=1?'✓ Concluído!':r.agua+' ml'}</span>
+    </div>
+  </div>
+
+  <!-- TREINO HOJE (ajuste hidratação) -->
+  <div class="card" style="margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <span class="chip" style="margin:0 0 2px;">🏋️ TREINO HOJE?</span>
+        <div style="font-size:11px;color:var(--txt3);">+500 ml na meta de hidratação</div>
+      </div>
+      <div class="seg" style="width:160px;margin:0;">
+        <button class="seg-btn${ST.form.treinoHoje?' on':''}" onclick="setTreinoHoje(true)">✅ Sim</button>
+        <button class="seg-btn${!ST.form.treinoHoje?' on':''}" onclick="setTreinoHoje(false)">😴 Não</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUPS -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span class="chip" style="margin:0;">🥤 COPOS DE ${CUP_ML}ML</span>
+      <div style="color:var(--c6);font-size:14px;font-weight:700;">${w.cups}/${r.cups}</div>
+    </div>
+    <div class="cups-grid">
+      ${Array.from({length:r.cups}).map((_,i)=>{
+        const done=i<w.cups;
+        return `<button class="cup-btn${done?' done':''}" onclick="${done?'rmCup':'addCup'}()">${done?'💧':'·'}</button>`;
+      }).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button class="btn-primary" style="padding:12px;font-size:13px;" onclick="addCup()" ${w.cups>=r.cups?'disabled':''}>+ Beber copo</button>
+      <button class="btn-ghost" style="margin:0;padding:12px;font-size:13px;" onclick="rmCup()" ${w.cups<=0?'disabled':''}>← Desfazer</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--c6);">${waterMl}ml</div>
+      <div class="stat-lbl">Consumido</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#ff9800;">${remaining}ml</div>
+      <div class="stat-lbl">Restante</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--c4);">${w.streak}</div>
+      <div class="stat-lbl">Dias streak</div>
+    </div>
+  </div>
+
+  <!-- WEEKLY CHART -->
+  ${last7.length>1?`<div class="card">
+    <span class="chip">📊 HISTÓRICO SEMANAL</span>
+    <div class="chart-wrap"><canvas id="water-week-chart"></canvas></div>
+  </div>`:''}
+
+  <!-- DICAS -->
+  <div class="card">
+    <span class="chip">💡 DICAS DE HIDRATAÇÃO</span>
+    ${[['🌅','Ao acordar','1 copo em jejum — ativa metabolismo e reidrata após o sono'],
+       ['🏋️','Pré-treino','Hidrate 30min antes para performance máxima'],
+       ['☀️','A cada 60-90min','Programe alarmes — o corpo não sente sede a tempo'],
+       ['🍽️','Antes das refeições','1 copo antes de cada refeição melhora digestão'],
+       ['🌙','À noite','Evite excesso antes de dormir para não acordar']].map(([ic,t,d])=>`
+    <div class="tip-row"><span class="tip-icon">${ic}</span>
+      <div><div class="tip-title">${t}</div><div class="tip-desc">${d}</div></div>
+    </div>`).join('')}
+  </div>
+
+  <div class="card">
+    <span class="chip">🔔 LEMBRETES DE HIDRATAÇÃO</span>
+    <div class="reminder-row">
+      <div><div style="font-size:13px;font-weight:700;">Avisar quando estiver atrasado</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;">Funciona enquanto o app estiver aberto/ativo no navegador.</div></div>
+      <label class="switch"><input type="checkbox" ${ST.notifications.enabled?'checked':''} onchange="toggleNotifications(this.checked)"><span class="slider"></span></label>
+    </div>
+    <div class="reminder-row">
+      <div><div style="font-size:13px;font-weight:700;">Intervalo</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;">Só avisa se a meta ainda não foi concluída.</div></div>
+      <select class="inp inp-sm" style="width:110px;" onchange="setReminderInterval(this.value)">
+        ${[60,90,120,150].map(v=>`<option value="${v}" ${ST.notifications.intervalMin===v?'selected':''}>${v} min</option>`).join('')}
+      </select>
+    </div>
+  </div>
+
+  <button class="btn-ghost" onclick="resetWater()">🔄 Resetar dia</button>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TREND ANALYSIS
+═══════════════════════════════════════════════════════════════════ */
+function analyzeTrends() {
+  const insights = [];
+  const wlog = ST.weightLog;
+  const hist = ST.history;
+
+  // ── Tendência de peso (últimas 2 semanas vs 2 semanas anteriores) ────
+  if(wlog.length >= 4) {
+    const recentes = wlog.slice(-7).map(e=>e.peso);
+    const anteriores = wlog.slice(-14,-7).map(e=>e.peso);
+    if(recentes.length>=2 && anteriores.length>=2) {
+      const mediaRec = recentes.reduce((a,b)=>a+b,0)/recentes.length;
+      const mediaAnt = anteriores.reduce((a,b)=>a+b,0)/anteriores.length;
+      const delta = mediaRec - mediaAnt;
+      if(Math.abs(delta) < 0.2 && ST.res && Math.abs(ST.res.diff) > 200) {
+        insights.push({ic:'⚠️',t:'Peso estagnado',d:'Sem mudança significativa nas últimas 2 semanas com déficit ativo. Considere um refeed de 2 dias ou revisar aderência ao plano.',c:'#ff9800'});
+      } else if(delta < -0.5) {
+        insights.push({ic:'📉',t:'Perda de peso acelerada',d:`-${Math.abs(delta).toFixed(1)} kg na última semana. Certifique-se de estar ingerindo proteína suficiente para preservar massa muscular.`,c:'#ff6b6b'});
+      } else if(delta > 0.5 && ST.res && ST.res.diff < 0) {
+        insights.push({ic:'📈',t:'Peso subindo no déficit',d:'Possível retenção hídrica, ciclo menstrual ou imprecisão de registro. Avalie ao longo de 10+ dias antes de ajustar.',c:'#ffd43b'});
+      } else if(delta < 0 && ST.res && ST.res.diff < 0) {
+        insights.push({ic:'✅',t:'Progresso consistente',d:`Perdendo ~${Math.abs(delta).toFixed(2)} kg/semana. Ritmo saudável e sustentável.`,c:'#51cf66'});
+      }
+    }
+  }
+
+  // ── Variação calórica no histórico ───────────────────────────────────
+  if(hist.length >= 5) {
+    const kcals = hist.slice(-7).map(e=>e.kcal);
+    const mediaKcal = kcals.reduce((a,b)=>a+b,0)/kcals.length;
+    const meta = ST.res ? ST.res.kcal : 0;
+    if(meta && Math.abs(mediaKcal - meta) > meta*0.1) {
+      const diff = mediaKcal - meta;
+      insights.push({
+        ic: diff<0?'🔻':'🔺',
+        t: diff<0?'Calorias abaixo da meta':'Calorias acima da meta',
+        d:`Média dos últimos registros: ${Math.round(mediaKcal)} kcal vs meta de ${meta} kcal (${diff>0?'+':''}${Math.round(diff)} kcal). ${diff<0?'Déficit excessivo pode reduzir metabolismo.':'Verifique se o superávit está alinhado com seu objetivo.'}`,
+        c: Math.abs(diff) > meta*0.2 ? '#ff6b6b' : '#ffd43b'
+      });
+    }
+  }
+
+  // ── Streak de hidratação ─────────────────────────────────────────────
+  if(ST.water.streak >= 7) {
+    insights.push({ic:'🏆',t:`${ST.water.streak} dias de hidratação`,d:'Excelente consistência! A hidratação adequada melhora metabolismo, performance e controle de fome.',c:'#51cf66'});
+  } else if(ST.water.streak === 0 && ST.res) {
+    insights.push({ic:'💧',t:'Hidratação zerada',d:'Registrar água todos os dias ajuda a identificar padrões e manter o hábito. Tente ativar o streak hoje.',c:'#00bcd4'});
+  }
+
+  // ── Tempo sem recalcular ─────────────────────────────────────────────
+  if(hist.length >= 2) {
+    const ultimo = new Date(hist[hist.length-1].date);
+    const diasDesdCalc = Math.floor((Date.now()-ultimo)/(1000*60*60*24));
+    if(diasDesdCalc >= 14) {
+      insights.push({ic:'🔄',t:'Recalcule seu plano',d:`Seu plano foi calculado há ${diasDesdCalc} dias. Se seu peso mudou, recalcule para manter a precisão do déficit/superávit.`,c:'#00d4ff'});
+    }
+  }
+
+  return insights;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE: HISTORY
+═══════════════════════════════════════════════════════════════════ */
+function renderHistory() {
+  const hist=ST.history;
+  const wlog=ST.weightLog;
+  const badges=BADGES_DEF.map(b=>({...b,earned:ST.badges.includes(b.id)}));
+  const q=QUOTES[(new Date().getDay()+2)%QUOTES.length];
+  const insights=analyzeTrends();
+
+  return `<div class="page">
+  <div class="hdr"><div class="logo">📈 Evolução</div><div class="sub" style="margin-top:4px;">Seu progresso ao longo do tempo</div></div>
+
+  <!-- INSIGHTS DE TENDÊNCIA -->
+  ${insights.length?`<div class="card card-blue" style="margin-bottom:12px;">
+    <span class="chip">🔍 ANÁLISE DE TENDÊNCIA</span>
+    ${insights.map(ins=>`<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <div style="font-size:20px;flex-shrink:0;">${ins.ic}</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:${ins.c};margin-bottom:3px;">${ins.t}</div>
+        <div style="font-size:12px;color:var(--txt2);line-height:1.5;">${ins.d}</div>
+      </div>
+    </div>`).join('')}
+  </div>`:''}
+
+  <!-- CONQUISTAS -->
+  <div class="card">
+    <span class="chip">🏆 CONQUISTAS</span>
+    <div class="badges-grid">
+      ${badges.map(b=>`<div class="badge-item${b.earned?' earned':''}">
+        <span class="badge-icon">${b.icon}</span>
+        <div class="badge-name">${b.name}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- PESO CHART -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span class="chip" style="margin:0;">⚖️ HISTÓRICO DE PESO</span>
+      <button class="btn-icon" style="font-size:11px;" onclick="logWeight()">+ Registrar</button>
+    </div>
+    ${wlog.length>1?`<div class="chart-wrap"><canvas id="weight-chart"></canvas></div>`
+    :`<div style="text-align:center;padding:20px 0;color:var(--txt3);font-size:13px;">Registre seu peso para visualizar o gráfico</div>`}
+    <div style="margin-top:12px;">
+      ${wlog.slice(-5).reverse().map(e=>`
+      <div class="hist-entry">
+        <span class="hist-date">${new Date(e.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</span>
+        <span class="hist-val">${e.peso} kg</span>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- CALORIAS CHART -->
+  ${hist.length>1?`<div class="card">
+    <span class="chip">🔥 HISTÓRICO CALÓRICO</span>
+    <div class="chart-wrap"><canvas id="kcal-chart"></canvas></div>
+  </div>`:''}
+
+  <!-- MACRO HISTORY -->
+  ${hist.length>0?`<div class="card">
+    <span class="chip">📋 ÚLTIMOS PLANOS</span>
+    ${hist.slice(-5).reverse().map(e=>`
+    <div class="hist-entry">
+      <div>
+        <div class="hist-val">${e.kcal} kcal</div>
+        <div style="color:var(--txt3);font-size:11px;margin-top:1px;">${new Date(e.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'})}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:12px;color:var(--txt2);">P:${e.prot}g C:${e.carb}g G:${e.fat}g</div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:2px;">${e.peso}kg · ${e.modo}</div>
+      </div>
+    </div>`).join('')}
+  </div>`:`<div class="card"><div class="empty">
+    <div class="empty-icon">📊</div>
+    <div class="empty-title">Nenhum histórico ainda</div>
+    <div class="empty-sub">Calcule seu plano para começar a registrar</div>
+  </div></div>`}
+
+  <!-- MOTIVACIONAL -->
+  <div class="quote-card">
+    <div class="quote-text">"${q.t}"</div>
+    <div class="quote-src">${q.a}</div>
+  </div>
+
+  ${hist.length>0?`<button class="btn-ghost" onclick="clearHistory()">🗑 Limpar histórico</button>`:''}
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ACTIONS
+═══════════════════════════════════════════════════════════════════ */
+function fset(k,v) {
+  ST.form[k]=v;
+  // validate
+  const errEl=document.getElementById('err-'+{peso:'peso',altura:'altura',idade:'idade',gorduraPct:'gordura'}[k]);
+  if(errEl) {
+    const valid=validateField(k,v)||v==='';
+    errEl.classList.toggle('show',!valid&&v!=='');
+    const inp=document.getElementById('f-'+{peso:'peso',altura:'altura',idade:'idade',gorduraPct:'gordura'}[k]);
+    if(inp) inp.classList.toggle('error',!valid&&v!=='');
+  }
+  if(k==='prazo') {
+    const inp=document.getElementById('f-prazo');
+    if(inp) inp.classList.toggle('error',!validateField('prazo',v));
+  }
+  if(k==='metaPeso') {
+    const inp=document.getElementById('f-meta');
+    const n=v===''?null:parseFloat(v);
+    if(inp) inp.classList.toggle('error',n!==null&&(!Number.isFinite(n)||n<30||n>300));
+  }
+  const btn=document.getElementById('calc-btn');
+  if(btn) btn.disabled=!isFormValid();
+  save();
+}
+
+function softRender() {
+  // re-render current page without full nav transition
+  Object.keys(ST.charts).forEach(k=>destroyChart(k));
+  const app=document.getElementById('app');
+  let html='';
+  if(ST.page==='calc') html=renderCalc();
+  else if(ST.page==='plan') html=renderPlan();
+  else if(ST.page==='water') html=renderWater();
+  else html=renderHistory();
+  app.innerHTML=html;
+  setTimeout(()=>{ bindAll(); triggerAnims(); },20);
+}
+
+function submitCalc() {
+  if(!isFormValid()) return;
+  const f={...ST.form,peso:+ST.form.peso,altura:+ST.form.altura,idade:+ST.form.idade,gorduraPct:+ST.form.gorduraPct||0,prazo:+ST.form.prazo,metaPeso:+ST.form.metaPeso||0};
+  ST.res=calcNutrition(f,ST.mode);
+  // log to history
+  const entry={date:new Date().toISOString(),kcal:ST.res.kcal,prot:ST.res.prot,carb:ST.res.carb,fat:ST.res.fat,peso:f.peso,modo:MODES[ST.mode].label};
+  ST.history.push(entry);
+  if(ST.history.length>50) ST.history.shift();
+  // weight log
+  const today=todayStr();
+  if(!ST.weightLog.find(w=>w.date===today)) {
+    ST.weightLog.push({date:today,peso:f.peso});
+    if(ST.weightLog.length>60) ST.weightLog.shift();
+  }
+  // badges
+  earnBadge('first_calc');
+  if(f.metaPeso>0) earnBadge('goal_set');
+  if(ST.history.length>=10) earnBadge('history_10');
+  save();
+  nav('plan');
+}
+
+function reCalc(m) {
+  ST.mode=m;
+  const f={...ST.form,peso:+ST.form.peso,altura:+ST.form.altura,idade:+ST.form.idade,gorduraPct:+ST.form.gorduraPct||0,prazo:+ST.form.prazo,metaPeso:+ST.form.metaPeso||0};
+  ST.res=calcNutrition(f,m);
+  save();
+  softRender();
+}
+
+function setTreinoHoje(val) {
+  ST.form.treinoHoje = val;
+  // recalculate res com novo treinoHoje para atualizar meta de água
+  const f = {...ST.form, peso:+ST.form.peso, altura:+ST.form.altura, idade:+ST.form.idade,
+    gorduraPct:+ST.form.gorduraPct||0, prazo:+ST.form.prazo, metaPeso:+ST.form.metaPeso||0};
+  if(isFormValid()) {
+    ST.res = calcNutrition(f, ST.mode);
+  }
+  save();
+  softRender();
+}
+
+function addCup() {
+  if(!ST.res) return;
+  checkStreak();
+  if(ST.water.cups>=ST.res.cups) return;
+  const today=todayStr();
+  if(ST.water.lastDate!==today) {
+    if(ST.water.lastDate) {
+      const d=daysDiff(ST.water.lastDate,today);
+      ST.water.streak = d<=1 ? ST.water.streak+1 : 1;
+    } else ST.water.streak=1;
+    ST.water.lastDate=today;
+  }
+  ST.water.cups++;
+  ST.water.lastDrink=Date.now();
+  syncTodayWaterHistory();
+  if(ST.water.cups>=ST.res.cups) earnBadge('hydration_hero');
+  if(ST.water.streak>=3) earnBadge('streak_3');
+  if(ST.water.streak>=7) earnBadge('streak_7');
+  save();
+  softRender();
+}
+
+function rmCup() {
+  checkStreak();
+  if(ST.water.cups<=0) return;
+  ST.water.cups--;
+  syncTodayWaterHistory();
+  save();
+  softRender();
+}
+
+function resetWater() {
+  checkStreak();
+  ST.water.cups=0;
+  ST.water.lastDrink=null;
+  syncTodayWaterHistory();
+  save();
+  softRender();
+}
+
+function logWeight() {
+  const val=prompt('Registrar peso atual (kg):');
+  if(!val) return;
+  const p=parseFloat(val);
+  if(isNaN(p)||p<30||p>300) { alert('Valor inválido (30-300 kg)'); return; }
+  const today=todayStr();
+  const idx=ST.weightLog.findIndex(w=>w.date===today);
+  if(idx>=0) ST.weightLog[idx].peso=p;
+  else ST.weightLog.push({date:today,peso:p});
+  ST.form.peso=String(p);
+  if(isFormValid()) {
+    const f={...ST.form,peso:+ST.form.peso,altura:+ST.form.altura,idade:+ST.form.idade,gorduraPct:+ST.form.gorduraPct||0,prazo:+ST.form.prazo,metaPeso:+ST.form.metaPeso||0};
+    ST.res=calcNutrition(f,ST.mode);
+  }
+  save();
+  softRender();
+}
+
+function clearHistory() {
+  if(!confirm('Limpar todo o histórico?')) return;
+  ST.history=[]; ST.weightLog=[];
+  save();
+  softRender();
+}
+
+function earnBadge(id) {
+  if(!ST.badges.includes(id)) { ST.badges.push(id); save(); }
+}
+
+function showToast(msg){
+  let el=document.getElementById('app-toast');
+  if(!el){ el=document.createElement('div'); el.id='app-toast'; el.className='toast'; document.body.appendChild(el); }
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(showToast._t); showToast._t=setTimeout(()=>el.classList.remove('show'),2600);
+}
+async function toggleNotifications(enabled){
+  if(enabled && 'Notification' in window){
+    let perm=Notification.permission;
+    if(perm==='default') perm=await Notification.requestPermission();
+    if(perm!=='granted'){ ST.notifications.enabled=false; save(); softRender(); showToast('Permissão de notificações não concedida.'); return; }
+  } else if(enabled && !('Notification' in window)){
+    ST.notifications.enabled=false; save(); softRender(); showToast('Este navegador não suporta notificações.'); return;
+  }
+  ST.notifications.enabled=enabled; ST.notifications.lastNotified=0; save();
+  showToast(enabled?'Lembretes ativados.':'Lembretes desativados.');
+}
+function setReminderInterval(v){
+  ST.notifications.intervalMin=Math.max(60,parseInt(v)||90);
+  ST.notifications.lastNotified=0; save();
+}
+function checkHydrationReminder(){
+  checkStreak();
+  if(!ST.notifications.enabled || !ST.res || ST.water.cups>=ST.res.cups) return;
+  if(document.hidden) return;
+  const now=Date.now();
+  const base=ST.water.lastDrink || new Date(new Date().setHours(8,0,0,0)).getTime();
+  const wait=ST.notifications.intervalMin*60000;
+  if(now-base<wait || now-ST.notifications.lastNotified<wait) return;
+  ST.notifications.lastNotified=now; save();
+  const faltam=Math.max(0,ST.res.agua-ST.water.cups*CUP_ML);
+  try { new Notification('💧 Hora de beber água', {body:`Faltam aproximadamente ${faltam} ml para sua meta de hoje.`}); } catch(e){}
+  showToast(`💧 Lembrete: faltam ${faltam} ml para a meta.`);
+}
+setInterval(checkHydrationReminder,60000);
+
+/* ═══════════════════════════════════════════════════════════════════
+   BIND EVENTS
+═══════════════════════════════════════════════════════════════════ */
+function bindAll() {
+  // inputs already use inline oninput handlers
+  // nothing extra needed
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TRIGGER ANIMATIONS
+═══════════════════════════════════════════════════════════════════ */
+function triggerAnims() {
+  // ring arcs
+  document.querySelectorAll('.ring-arc').forEach(arc=>{
+    const circ=parseFloat(arc.dataset.circ);
+    const pct=parseFloat(arc.dataset.pct);
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{ arc.style.strokeDashoffset=circ*(1-pct/100); },80);
+    });
+  });
+  // bar fills
+  document.querySelectorAll('.bar-fill[data-pct]').forEach(el=>{
+    setTimeout(()=>{ el.style.width=parseFloat(el.dataset.pct)+'%'; },100);
+  });
+  // water bars (no data-pct)
+  const wbar=document.getElementById('w-bar-main');
+  if(wbar&&ST.res) setTimeout(()=>{ wbar.style.width=Math.min(ST.water.cups/ST.res.cups*100,100)+'%'; },120);
+
+  // animated number
+  const kcalEl=document.getElementById('anim-kcal');
+  if(kcalEl&&ST.res) animNum(kcalEl, ST.res.kcal, 700);
+
+  // charts
+  setTimeout(()=>buildCharts(), 150);
+}
+
+function animNum(el, to, dur) {
+  const start=performance.now();
+  const run=ts=>{
+    const p=Math.min((ts-start)/dur,1);
+    const e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(to*e).toLocaleString('pt-BR');
+    if(p<1) requestAnimationFrame(run);
+  };
+  requestAnimationFrame(run);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BUILD CHARTS
+═══════════════════════════════════════════════════════════════════ */
+function buildCharts() {
+  const r=ST.res;
+  // doughnut on plan page
+  if(document.getElementById('doughnut-macros')&&r) {
+    makeDoughnut('doughnut-macros',[r.prot*4,r.carb*4,r.fat*9],['#00d4ff','#7b2ff7','#ff7043']);
+  }
+  // weight chart on history
+  const wlog=ST.weightLog;
+  if(document.getElementById('weight-chart')&&wlog.length>1) {
+    const labels=wlog.slice(-12).map(e=>new Date(e.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}));
+    const data=wlog.slice(-12).map(e=>e.peso);
+    makeLineChart('weight-chart',labels,[{label:'Peso',data,borderColor:'#00d4ff',backgroundColor:'rgba(0,212,255,.08)',fill:true,tension:.4}]);
+  }
+  // kcal history
+  const hist=ST.history;
+  if(document.getElementById('kcal-chart')&&hist.length>1) {
+    const labels=hist.slice(-12).map(e=>new Date(e.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}));
+    const data=hist.slice(-12).map(e=>e.kcal);
+    makeBarChart('kcal-chart',labels,data,'#7b2ff7');
+  }
+  // water weekly
+  const wh=ST.water.history;
+  if(document.getElementById('water-week-chart')&&wh.length>1) {
+    const last7=wh.slice(-7);
+    const labels=last7.map(e=>new Date(e.date).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}));
+    const data=last7.map(e=>e.ml);
+    makeBarChart('water-week-chart',labels,data,'#00bcd4');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════ */
+function startApp() {
+  const splash=document.getElementById('splash');
+  splash.style.opacity='0';
+  setTimeout(()=>{
+    splash.style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('nav').style.display='flex';
+    renderPage();
+  },500);
+}
+
+// boot
+load();
+checkStreak();
+save();
+setTimeout(checkHydrationReminder,1500);
+// skip splash if returning user
+if(ST.res || ST.history.length>0) {
+  document.getElementById('splash').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('nav').style.display='flex';
+  renderPage();
+}
+</script>
+</body>
+</html>
