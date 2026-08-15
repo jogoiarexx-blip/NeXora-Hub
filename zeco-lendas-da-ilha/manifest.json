@@ -1,0 +1,15 @@
+{
+  "name": "Zeco e a Ilha das Gemas",
+  "short_name": "Zeco",
+  "description": "Plataforma 2D — ajude Zeco a recuperar as gemas da ilha.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#3a1e5c",
+  "theme_color": "#3a1e5c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

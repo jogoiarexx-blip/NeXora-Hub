@@ -1,0 +1,354 @@
+/* =============================================================
+   Zeco e a Ilha das Gemas — Estilos (CSS)
+   ============================================================= */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    touch-action: none;
+    overscroll-behavior: none;
+  }
+  body {
+    background: linear-gradient(180deg, #1b1030 0%, #3a1e5c 40%, #6b2d8f 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    color: #fff8e7;
+    overflow: hidden;
+    padding: 8px;
+  }
+  #wrap {
+    position: relative;
+    border: 6px solid #ffd166;
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(255,209,102,0.4), inset 0 0 20px rgba(0,0,0,0.4);
+    overflow: hidden;
+    width: 100%;
+    aspect-ratio: 800 / 450;
+  }
+  canvas {
+    display: block;
+    background: #7ec8e3;
+    width: 100%;
+    height: 100%;
+  }
+  #hud {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 2px 2px 2px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+  #hud span { background: rgba(0,0,0,0.35); padding: 4px 10px; border-radius: 8px; }
+  #hudLeft, #hudRight { display: flex; gap: 8px; align-items: center; }
+  #powerupStatus { display: flex; gap: 4px; }
+  #powerupStatus span { font-size: 16px; padding: 3px 7px; }
+  #muteBtn {
+    pointer-events: auto;
+    cursor: pointer;
+    font-size: 16px !important;
+  }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(10,5,20,0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .screen { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; margin: auto; }
+  #overlay h2 { color: #ffd166; font-size: 26px; margin-bottom: 10px; }
+  #overlay p { max-width: 420px; margin-bottom: 16px; line-height: 1.5; }
+  .menuTitle {
+    font-size: 40px;
+    letter-spacing: 3px;
+    color: #ffd166;
+    text-shadow: 3px 3px 0 #d1495b, 0 0 20px rgba(255,209,102,0.5);
+    margin-bottom: 2px;
+  }
+  .menuSubtitle {
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: #fff8e7;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    opacity: 0.9;
+  }
+  .menuButtons { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .secondaryBtn {
+    background: rgba(255,209,102,0.15);
+    color: #ffd166;
+    box-shadow: 0 4px 0 rgba(255,209,102,0.25);
+    border: 2px solid rgba(255,209,102,0.6);
+  }
+  .secondaryBtn:active { box-shadow: 0 1px 0 rgba(255,209,102,0.25); }
+  .howToList {
+    text-align: left;
+    max-width: 440px;
+    list-style: none;
+    line-height: 1.9;
+    margin-bottom: 18px;
+    font-size: 14px;
+  }
+  .levelSelectTitle {
+    font-size: 30px;
+    letter-spacing: 1px;
+    color: #ffd166;
+    text-shadow: 2px 2px 0 #6b2d8f, 0 0 22px rgba(255,209,102,0.55);
+    margin-bottom: 6px;
+  }
+  .levelSelectBanner {
+    font-size: 15px;
+    font-weight: bold;
+    color: #1b1030;
+    background: linear-gradient(120deg, #ffe9a8, #ffd166 45%, #ffc94d);
+    border: 2px solid rgba(255,255,255,0.6);
+    box-shadow: 0 0 18px rgba(255,209,102,0.55), 0 4px 0 rgba(0,0,0,0.25);
+    padding: 8px 18px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    animation: bannerPop 0.45s cubic-bezier(.25,1.5,.5,1);
+  }
+  .levelSelectHint {
+    font-size: 13px;
+    color: #d9c9f0;
+    max-width: 440px;
+    margin-bottom: 10px;
+  }
+  .levelProgressWrap {
+    width: 100%;
+    max-width: 380px;
+    margin-bottom: 20px;
+  }
+  .levelProgressLabel {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #d9c9f0;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .levelProgressLabel b { color: #ffd166; }
+  .levelProgressBar {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,209,102,0.35);
+    overflow: hidden;
+  }
+  .levelProgressFill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #9be8ff, #ffd166 60%, #ff9a6b);
+    box-shadow: 0 0 10px rgba(255,209,102,0.7);
+    transition: width 0.5s cubic-bezier(.25,1,.5,1);
+  }
+  #levelGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+    gap: 16px;
+    justify-content: center;
+    max-width: 560px;
+    margin-bottom: 20px;
+  }
+  .levelTile {
+    position: relative;
+    background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02));
+    border: 2px solid rgba(255,209,102,0.45);
+    border-radius: 14px;
+    padding: 14px 10px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.18s cubic-bezier(.25,1.4,.5,1), border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 6px 14px rgba(0,0,0,0.25);
+    animation: tileFadeIn 0.4s cubic-bezier(.25,1,.5,1) backwards;
+  }
+  .levelTile::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.35) 50%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform 0.55s ease;
+    pointer-events: none;
+  }
+  .levelTile:hover::before, .levelTile:active::before { transform: translateX(120%); }
+  .levelTile:hover, .levelTile:active {
+    transform: translateY(-4px) scale(1.04);
+    border-color: rgba(255,209,102,0.9);
+    box-shadow: 0 8px 0 rgba(0,0,0,0.25), 0 12px 22px rgba(255,209,102,0.25);
+  }
+  .levelTile.completed {
+    border-color: rgba(155,232,255,0.85);
+    background: linear-gradient(160deg, rgba(155,232,255,0.16), rgba(155,232,255,0.03));
+    box-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 0 16px rgba(155,232,255,0.35);
+  }
+  .levelTile.justCompleted {
+    animation: tileFadeIn 0.4s cubic-bezier(.25,1,.5,1) backwards, justCompletedPulse 1.6s ease-in-out infinite;
+    border-color: #ffe9a8;
+  }
+  .levelTile.nextUp {
+    border-style: dashed;
+    border-color: rgba(255,209,102,0.95);
+  }
+  .tileBadge {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    background: linear-gradient(135deg, #ff9a6b, #d1495b);
+    color: #fff8e7;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    padding: 3px 8px 3px 10px;
+    border-bottom-left-radius: 10px;
+    box-shadow: -2px 2px 6px rgba(0,0,0,0.3);
+  }
+  .tileBadge.next {
+    background: linear-gradient(135deg, #9be8ff, #1b8bb3);
+  }
+  .levelTile .levelNum {
+    font-weight: bold;
+    color: #ffd166;
+    font-size: 15px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+  .levelIcons { display: flex; align-items: flex-end; gap: 8px; height: 36px; }
+  .crystalIcon {
+    width: 13px;
+    height: 34px;
+    clip-path: polygon(50% 0%, 100% 18%, 82% 100%, 18% 100%, 0% 18%);
+    background: #3a3a45;
+    opacity: 0.5;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .crystalIcon.earned {
+    background: linear-gradient(160deg, #9be8ff, #1b8bb3 55%, #0d5c78);
+    box-shadow: 0 0 8px rgba(127,219,255,0.85);
+    opacity: 1;
+    animation: gemGlow 2.2s ease-in-out infinite;
+  }
+  .silverIcon {
+    width: 18px;
+    height: 18px;
+    clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+    background: #3a3a45;
+    opacity: 0.5;
+    align-self: flex-end;
+    margin-bottom: 2px;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .silverIcon.earned {
+    background: linear-gradient(160deg, #f2f7fa, #aebcc7 55%, #7c8994);
+    box-shadow: 0 0 8px rgba(238,243,246,0.85);
+    opacity: 1;
+    animation: gemGlow 2.2s ease-in-out infinite;
+    animation-delay: 0.4s;
+  }
+  @keyframes gemGlow {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.35); }
+  }
+  @keyframes tileFadeIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.92); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes justCompletedPulse {
+    0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 0 10px rgba(255,209,102,0.35); }
+    50% { box-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 0 26px rgba(255,209,102,0.85); }
+  }
+  @keyframes bannerPop {
+    0% { opacity: 0; transform: translateY(-8px) scale(0.85); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  button {
+    background: #d1495b;
+    color: #fff8e7;
+    border: none;
+    padding: 12px 28px;
+    font-size: 17px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 0 #8c2d3a;
+    transition: transform 0.1s;
+  }
+  button:active { transform: translateY(3px); box-shadow: 0 1px 0 #8c2d3a; }
+  .hidden { display: none !important; }
+
+  #touchControls {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 14px;
+    pointer-events: none;
+  }
+  #touchControls.hidden { display: none !important; }
+  .dpad {
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+  }
+  .touchBtn {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: rgba(255,209,102,0.35);
+    border: 3px solid rgba(255,209,102,0.8);
+    color: #fff8e7;
+    font-size: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+  .touchBtn:active, .touchBtn.active {
+    background: rgba(255,209,102,0.7);
+  }
+  #jumpBtn {
+    width: 78px;
+    height: 78px;
+    pointer-events: auto;
+  }
+
+  @media (min-width: 720px) {
+    #touchControls { display: none !important; }
+  }
+
+  .bestScoreDisplay {
+    font-size: 14px;
+    color: #ffd166;
+    opacity: 0.9;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Respeita a preferência do usuário por menos animação/movimento:
+     desliga transições e animações decorativas da UI (menus, cards, barras). */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
