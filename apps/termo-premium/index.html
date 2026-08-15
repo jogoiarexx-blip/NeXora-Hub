@@ -158,6 +158,7 @@ body.neon .cell{box-shadow: inset 0 0 0 1px rgba(0,212,255,.08)}
   .cell{width:62px;height:62px}
 }
 </style>
+<link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
 <div class="app">
@@ -934,24 +935,7 @@ window.addEventListener("keydown", (e)=>{
   else if(/^[A-Z]$/.test(key)) handleKey(key);
 });
 
-// Manifest básico para instalação quando hospedado via HTTPS
-(function registerPWA(){
-  try{
-    const manifest = {
-      name:"Termo Premium V5",
-      short_name:"TermoV5",
-      start_url:".",
-      display:"standalone",
-      background_color:"#111827",
-      theme_color:"#111827",
-      icons:[]
-    };
-    const manifestBlob = new Blob([JSON.stringify(manifest)], {type:"application/json"});
-    const manifestURL = URL.createObjectURL(manifestBlob);
-    const link = document.createElement("link");
-    link.rel = "manifest"; link.href = manifestURL; document.head.appendChild(link);
-  }catch(e){}
-})();
+// Manifest PWA fornecido por manifest.webmanifest
 
 load();
 startGame();
@@ -959,5 +943,6 @@ renderAll();
 checkAchievements();
 setTimeout(maybeDailyNotification, 800);
 </script>
+<script src="../pwa-install.js"></script>
 </body>
 </html>
