@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casa Check ✨ Pro</title>
+<style>
+:root {
+  --green: #2ECC71;
+  --green-dark: #27AE60;
+  --green-light: #A8E063;
+  --yellow: #F1C40F;
+  --orange: #E67E22;
+  --red: #E74C3C;
+  --blue: #3498DB;
+  --purple: #9B59B6;
+  --pink: #E91E8C;
+  --teal: #1ABC9C;
+  --bg: #F0FDF4;
+  --card: #FFFFFF;
+  --text: #1A3A2A;
+  --text-muted: #6B9080;
+  --border: #D1FAE5;
+  --shadow: 0 4px 20px rgba(46,204,113,0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+  background-image: radial-gradient(circle at 20% 20%, #D1FAE5 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, #FEF9C3 0%, transparent 50%);
+  padding-bottom: 100px;
+}
+
+/* ── HEADER ── */
+header {
+  background: linear-gradient(135deg, #27AE60, #2ECC71, #A8E063);
+  padding: 18px 20px 16px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(39,174,96,0.4);
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+  animation: shimmer 4s ease-in-out infinite;
+}
+@keyframes shimmer { 0%,100%{transform:translate(0,0)} 50%{transform:translate(5%,5%)} }
+header h1 { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.8rem; color:white; letter-spacing:2px; text-shadow:0 2px 10px rgba(0,0,0,0.2); position:relative; }
+header p { color:rgba(255,255,255,0.85); font-size:0.8rem; margin-top:2px; font-weight:600; position:relative; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: white;
+  border-top: 2px solid var(--border);
+  display: flex;
+  z-index: 100;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+}
+.nav-btn {
+  flex: 1; padding: 10px 4px; border: none; background: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.6rem; font-weight: 800;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+.nav-btn .nav-icon { font-size: 1.4rem; transition: transform 0.2s; }
+.nav-btn.active { color: var(--green-dark); }
+.nav-btn.active .nav-icon { transform: scale(1.15); }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: block; }
+.container { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+/* ── PROFILE SELECTOR ── */
+.profile-bar {
+  background: white;
+  border-bottom: 2px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.profile-bar::-webkit-scrollbar { display: none; }
+.profile-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 99px;
+  border: 2px solid var(--border);
+  background: white; cursor: pointer; white-space: nowrap;
+  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.8rem; font-weight: 800;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.profile-chip.active {
+  background: linear-gradient(135deg, var(--green), var(--green-light));
+  border-color: var(--green); color: white;
+  box-shadow: 0 3px 10px rgba(46,204,113,0.4);
+}
+.profile-chip .avatar { font-size: 1rem; }
+.profile-chip-add {
+  padding: 6px 12px; border-radius: 99px;
+  border: 2px dashed #CBD5E1; background: none; cursor: pointer;
+  font-size: 1rem; flex-shrink: 0; color: var(--text-muted);
+  transition: all 0.2s;
+}
+.profile-chip-add:hover { border-color: var(--green); color: var(--green); }
+
+/* ── XP BANNER ── */
+.xp-banner {
+  background: var(--card);
+  border-radius: 20px; padding: 18px 20px; margin-bottom: 14px;
+  box-shadow: var(--shadow); border: 2px solid var(--border);
+  text-align: center; position: relative; overflow: hidden;
+}
+.xp-banner::after { content:'🏆'; position:absolute; right:16px; top:50%; transform:translateY(-50%); font-size:2.5rem; opacity:0.12; }
+.xp-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:2px; color:var(--text-muted); font-weight:700; }
+.xp-value { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:2.5rem; color:var(--green-dark); line-height:1; margin:4px 0; }
+.level-badge { display:inline-block; background:linear-gradient(135deg,var(--yellow),var(--orange)); color:white; padding:3px 14px; border-radius:20px; font-size:0.78rem; font-weight:800; margin-bottom:10px; box-shadow:0 2px 8px rgba(241,196,15,0.4); }
+.xp-bar-wrap { background:#E8F5E9; border-radius:999px; height:12px; overflow:hidden; }
+.xp-bar { height:100%; background:linear-gradient(90deg,var(--green),#A8E063); border-radius:999px; transition:width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+.xp-bar-text { font-size:0.68rem; color:var(--text-muted); margin-top:4px; font-weight:700; }
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.05rem; color:var(--text);
+  margin:16px 0 10px; display:flex; align-items:center; gap:8px;
+}
+.section-title .pill {
+  background:var(--border); color:var(--green-dark); font-family:'Nunito',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:0.7rem; font-weight:800; padding:2px 10px; border-radius:99px;
+}
+
+/* ── TASK CARD ── */
+.task-card {
+  background: var(--card); border: 2px solid var(--border); border-radius: 16px;
+  padding: 13px 14px; margin-bottom: 9px; display: flex; align-items: center;
+  gap: 12px; cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04); user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.task-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.task-card:active { transform: scale(0.97); }
+.task-check {
+  width:34px; height:34px; border-radius:50%; border:3px solid #CBD5E1;
+  background:white; display:flex; align-items:center; justify-content:center;
+  font-size:1rem; flex-shrink:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  color: transparent;
+}
+.task-check.checked {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+  box-shadow: 0 4px 12px rgba(46,204,113,0.4);
+}
+.task-icon { font-size:1.4rem; flex-shrink:0; width:34px; text-align:center; }
+.task-info { flex:1; min-width:0; }
+.task-name { font-weight:700; font-size:0.9rem; }
+.task-xp { font-size:0.72rem; font-weight:800; color:var(--green-dark); margin-top:1px; }
+.task-card.custom-task { border-color: #FEE2E2; }
+.task-card.custom-task .task-xp { color: var(--orange); }
+.task-delete-btn {
+  width:28px; height:28px; border-radius:50%; border:none;
+  background:#FEE2E2; color:#EF4444; cursor:pointer; font-size:0.8rem;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  opacity:0.4; transition:opacity 0.2s;
+}
+.task-card:hover .task-delete-btn { opacity:1; }
+@media (hover: none) {
+  .task-delete-btn { opacity:1; }
+}
+
+@keyframes taskOut {
+  0%   { opacity:1; transform:translateX(0) scale(1); max-height:80px; margin-bottom:9px; }
+  40%  { opacity:0; transform:translateX(60px) scale(0.95); }
+  100% { opacity:0; transform:translateX(60px) scale(0.95); max-height:0; margin-bottom:0; padding:0; }
+}
+.task-card.removing { animation:taskOut 0.45s cubic-bezier(0.4,0,0.6,1) forwards; overflow:hidden; pointer-events:none; }
+
+/* ── ADD TASK BUTTON ── */
+.add-task-btn {
+  width:100%; padding:12px; border-radius:16px;
+  border:2px dashed #CBD5E1; background:none; cursor:pointer;
+  font-family:'Nunito',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:0.9rem; font-weight:700;
+  color:var(--text-muted); display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:all 0.2s; margin-bottom:9px;
+}
+.add-task-btn:hover { border-color:var(--green); color:var(--green-dark); background:rgba(46,204,113,0.05); }
+
+/* ── STATS GRID ── */
+.stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:14px; }
+.stat-box { background:var(--card); border:2px solid var(--border); border-radius:14px; padding:12px 8px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.stat-icon { font-size:1.2rem; margin-bottom:2px; }
+.stat-value { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.3rem; color:var(--text); line-height:1; }
+.stat-label { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); font-weight:700; margin-top:2px; }
+
+/* ── WEEKLY MISSION ── */
+.mission-card {
+  background: linear-gradient(135deg, #7C3AED, #9B59B6);
+  border-radius: 20px; padding: 18px 20px; margin-bottom: 14px;
+  color: white; position: relative; overflow: hidden;
+  box-shadow: 0 6px 24px rgba(124,58,237,0.35);
+}
+.mission-card::before {
+  content: '🎯'; position:absolute; right:16px; top:50%;
+  transform:translateY(-50%); font-size:3.5rem; opacity:0.2;
+}
+.mission-title { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1rem; margin-bottom:4px; }
+.mission-desc { font-size:0.78rem; opacity:0.85; font-weight:600; margin-bottom:12px; }
+.mission-progress-wrap { background:rgba(255,255,255,0.25); border-radius:999px; height:10px; overflow:hidden; }
+.mission-progress-bar { height:100%; background:white; border-radius:999px; transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+.mission-footer { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+.mission-xp { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.1rem; }
+.mission-pct { font-size:0.72rem; opacity:0.85; font-weight:700; }
+.mission-complete { background:rgba(255,255,255,0.15); border-radius:10px; padding:6px 12px; font-size:0.78rem; font-weight:800; text-align:center; margin-top:8px; }
+
+/* ── RESET ── */
+.reset-area { text-align:center; margin-top:8px; }
+.btn-reset {
+  background:none; border:2px solid #FCA5A5; color:#EF4444;
+  padding:8px 20px; border-radius:99px; font-family:'Nunito',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:0.8rem; font-weight:800; cursor:pointer; transition:all 0.2s;
+}
+.btn-reset:hover { background:#FEF2F2; }
+
+/* ── HEATMAP PAGE ── */
+.heatmap-wrap { background:white; border-radius:20px; padding:18px; margin-bottom:14px; box-shadow:var(--shadow); border:2px solid var(--border); }
+.heatmap-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.heatmap-title { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.1rem; }
+.heatmap-nav { display:flex; gap:6px; }
+.heatmap-nav button { width:30px; height:30px; border-radius:50%; border:2px solid var(--border); background:white; cursor:pointer; font-size:0.9rem; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.heatmap-nav button:hover { border-color:var(--green); }
+.month-label { font-size:0.85rem; font-weight:800; color:var(--text-muted); text-align:center; margin-bottom:8px; }
+.heatmap-weekdays { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:4px; }
+.heatmap-weekday { text-align:center; font-size:0.58rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
+.heatmap-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.heatmap-cell {
+  aspect-ratio:1; border-radius:6px; background:#E8F5E9;
+  cursor:pointer; position:relative; transition:transform 0.15s;
+}
+.heatmap-cell:hover { transform:scale(1.2); z-index:10; }
+.heatmap-cell.empty { background:transparent; cursor:default; pointer-events:none; }
+.heatmap-cell.level-0 { background:#F1F5F1; }
+.heatmap-cell.level-1 { background:#C8EAD4; }
+.heatmap-cell.level-2 { background:#80CCA0; }
+.heatmap-cell.level-3 { background:#3DAD6A; }
+.heatmap-cell.level-4 { background:#1A7A42; }
+.heatmap-cell.today { box-shadow:0 0 0 2px var(--orange); }
+.heatmap-tooltip {
+  position: fixed; background: #1A3A2A; color: white;
+  padding: 6px 12px; border-radius: 10px; font-size: 0.75rem;
+  font-weight: 700; pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -130%);
+  white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  opacity: 0; transition: opacity 0.15s;
+}
+.heatmap-tooltip.visible { opacity: 1; }
+.heatmap-legend { display:flex; align-items:center; gap:6px; margin-top:12px; justify-content:flex-end; font-size:0.68rem; color:var(--text-muted); font-weight:700; }
+.legend-cell { width:12px; height:12px; border-radius:3px; }
+
+.history-summary { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.summary-card { background:white; border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.summary-value { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:2rem; color:var(--green-dark); }
+.summary-label { font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); font-weight:700; margin-top:2px; }
+
+.day-detail { background:white; border-radius:16px; padding:16px; margin-bottom:10px; border:2px solid var(--border); box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+.day-detail-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.day-detail-date { font-weight:800; font-size:0.88rem; }
+.day-detail-xp { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; color:var(--green-dark); font-size:1rem; }
+.day-detail-tasks { display:flex; flex-wrap:wrap; gap:6px; }
+.day-task-chip { background:var(--border); color:var(--green-dark); padding:3px 10px; border-radius:99px; font-size:0.72rem; font-weight:800; }
+.no-history { text-align:center; padding:40px 20px; color:var(--text-muted); }
+.no-history .no-icon { font-size:3rem; margin-bottom:10px; }
+
+/* ── FAMILY PAGE ── */
+.family-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.family-card {
+  background:white; border:2px solid var(--border); border-radius:20px;
+  padding:18px 14px; text-align:center; cursor:pointer;
+  transition:all 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.04);
+  position:relative;
+}
+.family-card:hover { transform:translateY(-3px); box-shadow:var(--shadow); }
+.family-card.selected { border-color:var(--green); background:linear-gradient(135deg,#F0FFF4,#DCFCE7); }
+.family-delete-btn {
+  position: absolute; top: 8px; left: 8px;
+  width: 22px; height: 22px; border-radius: 50%; border: none;
+  background: #FEE2E2; color: #EF4444; cursor: pointer; font-size: 0.65rem;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+}
+.family-card:hover .family-delete-btn { opacity: 1; }
+@media (hover: none) { .family-delete-btn { opacity: 0.5; } }
+.family-avatar { font-size:2.8rem; margin-bottom:8px; }
+.family-name { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.05rem; }
+.family-xp { font-size:0.72rem; font-weight:800; color:var(--text-muted); margin-top:2px; }
+.family-level { display:inline-block; background:linear-gradient(135deg,var(--yellow),var(--orange)); color:white; padding:2px 10px; border-radius:99px; font-size:0.68rem; font-weight:800; margin-top:6px; }
+.family-rank { position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; background:var(--yellow); font-size:0.7rem; font-weight:900; display:flex; align-items:center; justify-content:center; }
+.add-member-card {
+  border:2px dashed #CBD5E1; background:none; border-radius:20px;
+  padding:18px 14px; text-align:center; cursor:pointer; transition:all 0.2s;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  color:var(--text-muted); font-weight:700; font-size:0.88rem;
+  min-height:150px;
+}
+.add-member-card:hover { border-color:var(--green); color:var(--green-dark); background:rgba(46,204,113,0.05); }
+.add-member-icon { font-size:2rem; }
+
+.leaderboard { background:white; border-radius:20px; padding:18px; box-shadow:var(--shadow); border:2px solid var(--border); }
+.leaderboard-title { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.05rem; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+.lb-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.2rem; width:30px; text-align:center; color:var(--text-muted); }
+.lb-rank.gold { color:#F59E0B; }
+.lb-rank.silver { color:#9CA3AF; }
+.lb-rank.bronze { color:#B45309; }
+.lb-avatar { font-size:1.5rem; }
+.lb-info { flex:1; }
+.lb-name { font-weight:800; font-size:0.88rem; }
+.lb-sub { font-size:0.7rem; color:var(--text-muted); font-weight:700; }
+.lb-xp { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.1rem; color:var(--green-dark); }
+
+/* ── MODALS ── */
+.modal-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4);
+  z-index:999; align-items:center; justify-content:center; padding:20px;
+  backdrop-filter:blur(4px);
+}
+.modal-box {
+  background:white; border-radius:24px; padding:28px 24px;
+  max-width:340px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes modalIn { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
+.modal-title { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1.3rem; margin-bottom:8px; }
+.modal-sub { font-size:0.85rem; color:var(--text-muted); font-weight:600; margin-bottom:20px; }
+.modal-input {
+  width:100%; padding:12px 14px; border:2px solid var(--border); border-radius:12px;
+  font-family:'Nunito',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:0.9rem; font-weight:700;
+  outline:none; transition:border 0.2s; margin-bottom:12px;
+}
+.modal-input:focus { border-color:var(--green); }
+.modal-row { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.modal-chip {
+  padding:6px 14px; border-radius:99px; border:2px solid var(--border);
+  background:white; cursor:pointer; font-size:0.8rem; font-weight:800;
+  transition:all 0.15s;
+}
+.modal-chip.selected { background:var(--green); border-color:var(--green); color:white; }
+.modal-chip.emoji { font-size:1.2rem; padding:6px 10px; }
+.xp-input-row { display:flex; align-items:center; gap:8px; margin-bottom:20px; }
+.xp-input-row label { font-size:0.8rem; font-weight:800; color:var(--text-muted); flex-shrink:0; }
+.xp-input-row input { flex:1; }
+.modal-buttons { display:flex; gap:10px; }
+.btn-primary {
+  flex:1; padding:12px; border-radius:12px; border:none;
+  background:linear-gradient(135deg,var(--green),var(--green-light));
+  color:white; font-family:'Nunito',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; font-size:0.9rem; font-weight:800;
+  cursor:pointer; transition:all 0.2s; box-shadow:0 4px 12px rgba(46,204,113,0.4);
+}
+.btn-primary:hover { transform:translateY(-1px); }
+.btn-secondary {
+  flex:1; padding:12px; border-radius:12px; border:2px solid var(--border);
+  background:white; color:var(--text-muted); font-family:'Nunito',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:0.9rem; font-weight:800; cursor:pointer; transition:all 0.2s;
+}
+.btn-danger {
+  flex:1; padding:12px; border-radius:12px; border:2px solid #FCA5A5;
+  background:white; color:#EF4444; font-family:'Nunito',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:0.9rem; font-weight:800; cursor:pointer; transition:all 0.2s;
+}
+
+/* ── TOAST ── */
+.toast {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:#1A3A2A; color:white; padding:10px 22px; border-radius:99px;
+  font-size:0.85rem; font-weight:700; opacity:0; transition:all 0.3s; z-index:9999;
+  white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,0.3);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── CONFETTI CANVAS ── */
+#confetti-canvas {
+  position:fixed; inset:0; pointer-events:none; z-index:9998;
+  width:100%; height:100%;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:30px 20px; }
+.empty-state .e-icon { font-size:3rem; margin-bottom:10px; }
+.empty-state p { color:var(--text-muted); font-weight:700; font-size:0.9rem; }
+
+/* ── DATE LABEL ── */
+.date-label-wrap { padding:10px 16px 0; }
+.date-label { font-size:0.78rem; font-weight:800; color:var(--text-muted); text-transform:capitalize; }
+.greet-text { font-family:'Fredoka One','Trebuchet MS',system-ui,sans-serif; font-size:1rem; color:var(--text); margin-top:2px; }
+
+/* ── V2.1 RESPONSIVE / UTILITIES ── */
+.app-tools{background:var(--card);border:2px solid var(--border);border-radius:18px;padding:14px;margin-top:14px;box-shadow:var(--shadow)}
+.app-tools-title{font-weight:900;margin-bottom:10px}.tool-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tool-btn{border:2px solid var(--border);background:white;border-radius:12px;padding:10px;font:800 .78rem 'Nunito',system-ui;cursor:pointer;color:var(--text)}
+.tool-btn:hover{border-color:var(--green);background:#f7fff9}.status-line{font-size:.72rem;color:var(--text-muted);font-weight:800;margin-top:9px}
+.task-meta{font-size:.67rem;color:var(--text-muted);font-weight:800;margin-top:2px}.task-actions{display:flex;gap:5px}.task-edit-btn{width:28px;height:28px;border-radius:50%;border:none;background:#E0F2FE;color:#0369A1;cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.modal-label{font-size:.75rem;font-weight:900;color:var(--text-muted);margin:4px 0 6px;display:block}.day-picker{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}.day-chip{border:2px solid var(--border);background:#fff;border-radius:999px;padding:5px 8px;font-size:.7rem;font-weight:900;cursor:pointer}.day-chip.selected{background:var(--green);color:white;border-color:var(--green)}
+@media (min-width: 760px){body{padding-bottom:30px}.container{max-width:1080px;padding:22px 28px}.date-label-wrap{max-width:1080px;margin:auto;padding:16px 28px 0}.bottom-nav{left:50%;right:auto;transform:translateX(-50%);width:420px;bottom:16px;border:2px solid var(--border);border-radius:18px;overflow:hidden}.stats-grid{grid-template-columns:repeat(4,1fr)}#tasks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.task-card{margin-bottom:0}.family-grid{grid-template-columns:repeat(3,1fr)}.history-summary{grid-template-columns:repeat(4,1fr)}.app-tools{margin-bottom:70px}}
+@media (min-width: 1100px){#page-home .container{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.8fr);column-gap:20px}#page-home .xp-banner,#page-home .mission-card,#page-home .section-title:has(+ #tasks),#page-home #tasks,#page-home .add-task-btn{grid-column:1}#page-home .section-title:has(+ .stats-grid),#page-home .stats-grid,#page-home .reset-area,#page-home .app-tools{grid-column:2}.stats-grid{grid-template-columns:1fr 1fr}}
+
+</style>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#27AE60">
+</head>
+<body>
+
+<header>
+  <h1>🏠 Casa Check ✨</h1>
+  <p>Transforme suas tarefas em conquistas!</p>
+</header>
+
+<!-- PROFILE BAR -->
+<div class="profile-bar" id="profile-bar"></div>
+
+<!-- PAGE: HOME -->
+<div class="page active" id="page-home">
+  <div class="date-label-wrap">
+    <div class="date-label" id="date-label"></div>
+    <div class="greet-text" id="greet"></div>
+  </div>
+  <div class="container">
+    <!-- XP Banner -->
+    <div class="xp-banner">
+      <div class="xp-label">XP Total Acumulado</div>
+      <div class="xp-value" id="xp-total">0</div>
+      <div class="level-badge" id="level-badge">⭐ Nível 1 — Calouro</div>
+      <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
+      <div class="xp-bar-text" id="xp-bar-text">0 / 100 XP para o próximo nível</div>
+    </div>
+
+    <!-- Weekly Mission -->
+    <div class="mission-card" id="mission-card">
+      <div class="mission-title">🎯 Missão Semanal</div>
+      <div class="mission-desc" id="mission-desc">Faça pelo menos 1 tarefa em 5 dias desta semana!</div>
+      <div class="mission-progress-wrap">
+        <div class="mission-progress-bar" id="mission-bar" style="width:0%"></div>
+      </div>
+      <div class="mission-footer">
+        <div class="mission-xp" id="mission-xp-label">+150 XP</div>
+        <div class="mission-pct" id="mission-pct">0/5 dias</div>
+      </div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="section-title">
+      📋 Tarefas de Hoje
+      <span class="pill" id="progress-pill">0/12</span>
+    </div>
+    <div id="tasks"></div>
+    <button class="add-task-btn" onclick="openAddTask()">➕ Adicionar tarefa personalizada</button>
+
+    <!-- Stats -->
+    <div class="section-title">📊 Minhas Estatísticas</div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-icon">📅</div><div class="stat-value" id="stat-week">0</div><div class="stat-label">Essa semana</div></div>
+      <div class="stat-box"><div class="stat-icon">📆</div><div class="stat-value" id="stat-month">0</div><div class="stat-label">Esse mês</div></div>
+      <div class="stat-box"><div class="stat-icon">🔥</div><div class="stat-value" id="stat-streak">0d</div><div class="stat-label">Sequência</div></div>
+      <div class="stat-box"><div class="stat-icon">⭐</div><div class="stat-value" id="stat-year">0</div><div class="stat-label">Esse ano</div></div>
+    </div>
+
+    <div class="reset-area">
+      <button class="btn-reset" onclick="openReset()">🔄 Resetar tarefas de hoje</button>
+    </div>
+    <div class="app-tools">
+      <div class="app-tools-title">⚙️ Ferramentas do Casa Check</div>
+      <div class="tool-grid">
+        <button class="tool-btn" id="install-btn" onclick="installApp()">📲 Instalar app</button>
+        <button class="tool-btn" onclick="requestNotifications()">🔔 Ativar notificações</button>
+        <button class="tool-btn" onclick="exportBackup()">💾 Exportar backup</button>
+        <button class="tool-btn" onclick="document.getElementById('import-backup').click()">📥 Importar backup</button>
+      </div>
+      <input id="import-backup" type="file" accept="application/json,.json" hidden onchange="importBackup(event)">
+      <div class="status-line" id="connection-status">🟢 Online</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: HISTORY / HEATMAP -->
+<div class="page" id="page-history">
+  <div class="container">
+    <div class="section-title">📅 Histórico — <span id="history-profile-name">Você</span></div>
+
+    <div class="history-summary">
+      <div class="summary-card">
+        <div class="summary-value" id="hs-total-days">0</div>
+        <div class="summary-label">Dias ativos</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-value" id="hs-total-tasks">0</div>
+        <div class="summary-label">Tarefas feitas</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-value" id="hs-best-streak">0</div>
+        <div class="summary-label">Melhor sequência</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-value" id="hs-total-xp">0</div>
+        <div class="summary-label">XP total</div>
+      </div>
+    </div>
+
+    <div class="heatmap-wrap">
+      <div class="heatmap-header">
+        <div class="heatmap-title">🌡️ Mapa de Atividade</div>
+        <div class="heatmap-nav">
+          <button onclick="changeHeatmapMonth(-1)">‹</button>
+          <button onclick="changeHeatmapMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="month-label" id="heatmap-month-label"></div>
+      <div class="heatmap-weekdays">
+        <div class="heatmap-weekday">Dom</div>
+        <div class="heatmap-weekday">Seg</div>
+        <div class="heatmap-weekday">Ter</div>
+        <div class="heatmap-weekday">Qua</div>
+        <div class="heatmap-weekday">Qui</div>
+        <div class="heatmap-weekday">Sex</div>
+        <div class="heatmap-weekday">Sáb</div>
+      </div>
+      <div class="heatmap-grid" id="heatmap-grid"></div>
+      <div class="heatmap-legend">
+        Menos
+        <div class="legend-cell" style="background:#F1F5F1"></div>
+        <div class="legend-cell" style="background:#C8EAD4"></div>
+        <div class="legend-cell" style="background:#80CCA0"></div>
+        <div class="legend-cell" style="background:#3DAD6A"></div>
+        <div class="legend-cell" style="background:#1A7A42"></div>
+        Mais
+      </div>
+    </div>
+
+    <div class="section-title">📋 Dias Recentes</div>
+    <div id="history-days"></div>
+  </div>
+</div>
+
+<!-- PAGE: FAMILY -->
+<div class="page" id="page-family">
+  <div class="container">
+    <div class="section-title">👨‍👩‍👧‍👦 Modo Família</div>
+
+    <div class="family-grid" id="family-grid"></div>
+
+    <div class="leaderboard" id="leaderboard">
+      <div class="leaderboard-title">🏆 Ranking da Família</div>
+      <div id="lb-rows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- Reset Modal -->
+<div class="modal-overlay" id="modal-reset">
+  <div class="modal-box">
+    <div class="modal-title">🔄 Resetar Tarefas</div>
+    <div class="modal-sub">Isso vai apagar o progresso de hoje. Tem certeza?</div>
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeModal('modal-reset')">Cancelar</button>
+      <button class="btn-danger" onclick="confirmReset()">Resetar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="modal-add-task">
+  <div class="modal-box">
+    <div class="modal-title" id="task-modal-title">➕ Nova Tarefa</div>
+    <div class="modal-sub">Crie uma tarefa personalizada para sua lista</div>
+    <input class="modal-input" id="new-task-name" placeholder="Nome da tarefa..." maxlength="40">
+    <div style="margin-bottom:8px;font-size:0.78rem;font-weight:800;color:var(--text-muted);">Ícone</div>
+    <div class="modal-row" id="emoji-picker">
+      <span class="modal-chip emoji selected" data-emoji="🧺" onclick="selectEmoji(this)">🧺</span>
+      <span class="modal-chip emoji" data-emoji="🪥" onclick="selectEmoji(this)">🪥</span>
+      <span class="modal-chip emoji" data-emoji="🧽" onclick="selectEmoji(this)">🧽</span>
+      <span class="modal-chip emoji" data-emoji="🛒" onclick="selectEmoji(this)">🛒</span>
+      <span class="modal-chip emoji" data-emoji="🐕" onclick="selectEmoji(this)">🐕</span>
+      <span class="modal-chip emoji" data-emoji="🚗" onclick="selectEmoji(this)">🚗</span>
+      <span class="modal-chip emoji" data-emoji="💊" onclick="selectEmoji(this)">💊</span>
+      <span class="modal-chip emoji" data-emoji="📦" onclick="selectEmoji(this)">📦</span>
+      <span class="modal-chip emoji" data-emoji="🪟" onclick="selectEmoji(this)">🪟</span>
+      <span class="modal-chip emoji" data-emoji="🛁" onclick="selectEmoji(this)">🛁</span>
+    </div>
+    <div class="form-grid">
+      <div><label class="modal-label">XP</label><input class="modal-input" id="new-task-xp" type="number" min="5" max="100" value="10"></div>
+      <div><label class="modal-label">Vezes por dia</label><input class="modal-input" id="new-task-max" type="number" min="1" max="10" value="1"></div>
+    </div>
+    <div class="form-grid">
+      <div><label class="modal-label">Cômodo/categoria</label><select class="modal-input" id="new-task-category"><option>Geral</option><option>Cozinha</option><option>Banheiro</option><option>Quarto</option><option>Sala</option><option>Lavanderia</option><option>Quintal</option><option>Compras</option></select></div>
+      <div><label class="modal-label">Horário (opcional)</label><input class="modal-input" id="new-task-time" type="time"></div>
+    </div>
+    <label class="modal-label">Dias da semana</label>
+    <div class="day-picker" id="task-day-picker">
+      <button type="button" class="day-chip selected" data-day="0">Dom</button><button type="button" class="day-chip selected" data-day="1">Seg</button><button type="button" class="day-chip selected" data-day="2">Ter</button><button type="button" class="day-chip selected" data-day="3">Qua</button><button type="button" class="day-chip selected" data-day="4">Qui</button><button type="button" class="day-chip selected" data-day="5">Sex</button><button type="button" class="day-chip selected" data-day="6">Sáb</button>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeModal('modal-add-task')">Cancelar</button>
+      <button class="btn-primary" id="task-save-btn" onclick="confirmAddTask()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal-overlay" id="modal-add-member">
+  <div class="modal-box">
+    <div class="modal-title">👤 Novo Membro</div>
+    <div class="modal-sub">Adicione alguém da família à lista!</div>
+    <input class="modal-input" id="new-member-name" placeholder="Nome do membro..." maxlength="20">
+    <div style="margin-bottom:8px;font-size:0.78rem;font-weight:800;color:var(--text-muted);">Avatar</div>
+    <div class="modal-row" id="avatar-picker">
+      <span class="modal-chip emoji selected" data-avatar="👦" onclick="selectAvatar(this)">👦</span>
+      <span class="modal-chip emoji" data-avatar="👧" onclick="selectAvatar(this)">👧</span>
+      <span class="modal-chip emoji" data-avatar="👨" onclick="selectAvatar(this)">👨</span>
+      <span class="modal-chip emoji" data-avatar="👩" onclick="selectAvatar(this)">👩</span>
+      <span class="modal-chip emoji" data-avatar="👴" onclick="selectAvatar(this)">👴</span>
+      <span class="modal-chip emoji" data-avatar="👵" onclick="selectAvatar(this)">👵</span>
+      <span class="modal-chip emoji" data-avatar="🧒" onclick="selectAvatar(this)">🧒</span>
+      <span class="modal-chip emoji" data-avatar="🐶" onclick="selectAvatar(this)">🐶</span>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeModal('modal-add-member')">Cancelar</button>
+      <button class="btn-primary" onclick="confirmAddMember()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Remove Member Modal -->
+<div class="modal-overlay" id="modal-remove-member">
+  <div class="modal-box">
+    <div class="modal-title">🗑️ Remover Membro</div>
+    <div class="modal-sub" id="remove-member-sub">Isso vai apagar todos os dados de <strong id="remove-member-name"></strong>. Tem certeza?</div>
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeModal('modal-remove-member')">Cancelar</button>
+      <button class="btn-danger" onclick="confirmRemoveMember()">Remover</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-home" onclick="goPage('home')">
+    <span class="nav-icon">🏠</span>Home
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="goPage('history')">
+    <span class="nav-icon">📅</span>Histórico
+  </button>
+  <button class="nav-btn" id="nav-family" onclick="goPage('family')">
+    <span class="nav-icon">👨‍👩‍👧</span>Família
+  </button>
+</nav>
+
+<script>
+// ─── CONSTANTS ─────────────────────────────────────────────
+const DEFAULT_TASKS = [
+  { id: 0,  name: "Arrumar cama",      xp: 10, icon: "🛏️", maxTimes: 1 },
+  { id: 1,  name: "Lavar louça",       xp: 15, icon: "🍽️", maxTimes: 2 },
+  { id: 2,  name: "Fazer almoço",      xp: 20, icon: "🍳", maxTimes: 1 },
+  { id: 3,  name: "Varrer casa",       xp: 10, icon: "🧹", maxTimes: 1 },
+  { id: 4,  name: "Lavar roupa",       xp: 20, icon: "👕", maxTimes: 1 },
+  { id: 5,  name: "Tirar o lixo",      xp: 10, icon: "🗑️", maxTimes: 1 },
+  { id: 6,  name: "Regar as plantas",  xp: 10, icon: "🪴", maxTimes: 1 },
+  { id: 7,  name: "Organizar gavetas", xp: 15, icon: "🗂️", maxTimes: 1 },
+  { id: 8,  name: "Limpar computador", xp: 20, icon: "💻", maxTimes: 1 },
+  { id: 9,  name: "Lavar quintal",     xp: 25, icon: "🌿", maxTimes: 1 },
+  { id: 10, name: "Cortar a grama",    xp: 30, icon: "🌱", maxTimes: 1 },
+];
+
+const LEVELS = [
+  { name: "Calouro",      min: 0    },
+  { name: "Aprendiz",     min: 100  },
+  { name: "Arrumador",    min: 300  },
+  { name: "Guardião",     min: 600  },
+  { name: "Mestre Casa",  min: 1200 },
+  { name: "Veterano",     min: 2000 },
+  { name: "Especialista", min: 3500 },
+  { name: "Lendário",     min: 6000 },
+];
+
+const WEEK_MISSION = { goal: 5, xp: 150 };
+
+// ─── STATE ─────────────────────────────────────────────────
+let appData = {
+  profiles: [
+    { id: 'default', name: 'Eu', avatar: '😊', data: {} }
+  ],
+  activeProfile: 'default',
+  customTasks: [],         // global custom tasks per profile
+  taskArchive: {},         // preserves history after custom task removal
+  weeklyRewards: {},      // one reward per profile/week
+  settings: { notifications: false }
+};
+let heatmapMonth = new Date().getMonth();
+let heatmapYear  = new Date().getFullYear();
+
+// ─── STORAGE ───────────────────────────────────────────────
+const pad2 = n => String(n).padStart(2,'0');
+const localDateKey = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const todayKey = () => localDateKey(new Date());
+const dateFromKey = key => /^\d{4}-\d{2}-\d{2}$/.test(key) ? new Date(key+'T12:00:00') : new Date(key);
+const STORAGE_KEY = 'casacheck_v3';
+const LEGACY_STORAGE_KEYS = ['casacheck_v2'];
+
+async function loadAll() {
+  let saved = null;
+  try {
+    for (const key of [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]) {
+      const local = localStorage.getItem(key);
+      if (local) { saved = JSON.parse(local); break; }
+    }
+  } catch(e) { console.warn('Falha ao ler armazenamento local', e); }
+  if (!saved) {
+    try { if (window.storage) { const r = await window.storage.get(STORAGE_KEY); if (r) saved = JSON.parse(r.value); } } catch(e) {}
+  }
+  if (saved && typeof saved === 'object') {
+    if (Array.isArray(saved.profiles) && saved.profiles.length) appData.profiles = saved.profiles;
+    if (saved.activeProfile) appData.activeProfile = saved.activeProfile;
+    if (Array.isArray(saved.customTasks)) appData.customTasks = saved.customTasks;
+    if (saved.taskArchive) appData.taskArchive = saved.taskArchive;
+    if (saved.weeklyRewards) appData.weeklyRewards = saved.weeklyRewards;
+    if (saved.settings) appData.settings = {...appData.settings, ...saved.settings};
+  }
+  migrateData();
+  ensureTodayKey();
+  await saveAll();
+}
+
+function migrateData() {
+  appData.profiles = (appData.profiles || []).filter(Boolean);
+  if (!appData.profiles.length) appData.profiles = [{id:'default',name:'Eu',avatar:'😊',data:{}}];
+  if (!appData.profiles.some(p => p.id === appData.activeProfile)) appData.activeProfile = appData.profiles[0].id;
+  for (const p of appData.profiles) {
+    p.data = p.data || {};
+    const migrated = {};
+    for (const [oldKey, day] of Object.entries(p.data)) {
+      const dt = dateFromKey(oldKey);
+      const key = Number.isNaN(dt.getTime()) ? oldKey : localDateKey(dt);
+      const normalized = day && typeof day === 'object' ? day : {tasks:{},xp:0};
+      if (Array.isArray(normalized.tasks)) { const obj={}; normalized.tasks.forEach(i=>obj[i]=(obj[i]||0)+1); normalized.tasks=obj; }
+      normalized.tasks = normalized.tasks || {}; normalized.xp = Number(normalized.xp)||0;
+      if (migrated[key]) {
+        for (const [id,n] of Object.entries(normalized.tasks)) migrated[key].tasks[id]=(migrated[key].tasks[id]||0)+(Number(n)||0);
+        migrated[key].xp += normalized.xp;
+      } else migrated[key]=normalized;
+    }
+    p.data = migrated;
+  }
+  appData.taskArchive = appData.taskArchive || {}; appData.weeklyRewards = appData.weeklyRewards || {};
+  for (const t of appData.customTasks || []) appData.taskArchive[t.id] = {name:t.name,icon:t.icon,xp:t.xp,category:t.category||'Geral'};
+}
+
+async function saveAll() {
+  const data = JSON.stringify(appData);
+  // Salva no localStorage (persistente em PWA/APK)
+  try { localStorage.setItem(STORAGE_KEY, data); } catch(e) {}
+  // Também salva no window.storage se disponível
+  try {
+    if (window.storage) await window.storage.set(STORAGE_KEY, data);
+  } catch(e) {}
+}
+
+function ensureTodayKey() {
+  const p = activeProfile();
+  if (!p.data) p.data = {};
+  if (!p.data[todayKey()]) p.data[todayKey()] = { tasks: {}, xp: 0 };
+  if (Array.isArray(p.data[todayKey()].tasks)) {
+    const old = p.data[todayKey()].tasks;
+    p.data[todayKey()].tasks = {};
+    old.forEach(i => { p.data[todayKey()].tasks[i] = 1; });
+  }
+}
+
+// ─── PROFILE HELPERS ───────────────────────────────────────
+function activeProfile() {
+  return appData.profiles.find(p => p.id === appData.activeProfile) || appData.profiles[0];
+}
+function setActiveProfile(id) {
+  if (!appData.profiles.some(p => p.id === id)) return;
+  appData.activeProfile = id;
+  ensureTodayKey();
+  saveAll();
+}
+
+function profileXP(profile) {
+  let s = 0;
+  for (let d in (profile.data||{})) s += (profile.data[d].xp || 0);
+  return s;
+}
+
+function totalTasksDone(dayData) {
+  if (!dayData || !dayData.tasks) return 0;
+  if (Array.isArray(dayData.tasks)) return dayData.tasks.length;
+  return Object.values(dayData.tasks).reduce((a, b) => a + b, 0);
+}
+
+// ─── TASK HELPERS ──────────────────────────────────────────
+function allTasks() {
+  const custom = (appData.customTasks || []).filter(t => t.profileId === appData.activeProfile);
+  return [...DEFAULT_TASKS, ...custom];
+}
+
+function getTimes(taskId) {
+  return (activeProfile().data[todayKey()].tasks[taskId] || 0);
+}
+
+function totalXP() { return profileXP(activeProfile()); }
+
+function getLevel(xp) {
+  let lvl = 0;
+  for (let i = 0; i < LEVELS.length; i++) { if (xp >= LEVELS[i].min) lvl = i; }
+  return lvl;
+}
+
+function getStreakDays(profile) {
+  let streak = 0, d = new Date();
+  while (true) {
+    let key = localDateKey(d);
+    if ((profile.data||{})[key] && totalTasksDone(profile.data[key]) > 0) {
+      streak++; d.setDate(d.getDate() - 1);
+    } else break;
+  }
+  return streak;
+}
+
+function weekTaskCount(profile) {
+  let s = 0, now = new Date();
+  for (let d in (profile.data||{})) {
+    const dt = dateFromKey(d); const ws = startOfWeek(now); const we = new Date(ws); we.setDate(ws.getDate()+7); if (dt >= ws && dt < we) s += totalTasksDone(profile.data[d]);
+  }
+  return s;
+}
+
+function monthTaskCount(profile) {
+  let s = 0, now = new Date();
+  for (let d in (profile.data||{})) {
+    if (dateFromKey(d).getMonth() === now.getMonth() && dateFromKey(d).getFullYear() === now.getFullYear())
+      s += totalTasksDone(profile.data[d]);
+  }
+  return s;
+}
+
+function yearTaskCount(profile) {
+  let s = 0, now = new Date();
+  for (let d in (profile.data||{})) {
+    if (dateFromKey(d).getFullYear() === now.getFullYear()) s += totalTasksDone(profile.data[d]);
+  }
+  return s;
+}
+
+// Weekly mission: count days this week where user completed at least 1 task
+function startOfWeek(date=new Date()) { const d=new Date(date.getFullYear(),date.getMonth(),date.getDate(),12); d.setDate(d.getDate()-d.getDay()); return d; }
+function weekKey(date=new Date()) { const ws=startOfWeek(date); return localDateKey(ws); }
+function weekActiveDays(profile) {
+  let count=0; const ws=startOfWeek(); const we=new Date(ws); we.setDate(ws.getDate()+7);
+  for (const [k,v] of Object.entries(profile.data||{})) { const dt=dateFromKey(k); if(dt>=ws && dt<we && totalTasksDone(v)>0) count++; }
+  return count;
+}
+
+function bestStreak(profile) {
+  if (!profile.data) return 0;
+  const days = Object.keys(profile.data).sort((a, b) => dateFromKey(a) - dateFromKey(b));
+  let best = 0, cur = 0;
+  let prev = null;
+  for (let d of days) {
+    if (totalTasksDone(profile.data[d]) === 0) continue;
+    const date = dateFromKey(d);
+    if (prev && (date - prev) / 86400000 === 1) cur++;
+    else cur = 1;
+    if (cur > best) best = cur;
+    prev = date;
+  }
+  return best;
+}
+
+function esc(v){ return String(v ?? '').replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c])); }
+function taskDueToday(t){ return !Array.isArray(t.days) || t.days.length===0 || t.days.includes(new Date().getDay()); }
+
+// ─── RENDER ────────────────────────────────────────────────
+function render() {
+  renderProfileBar();
+  renderHome();
+}
+
+function renderProfileBar() {
+  const bar = document.getElementById('profile-bar');
+  bar.innerHTML = '';
+  appData.profiles.forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'profile-chip' + (p.id === appData.activeProfile ? ' active' : '');
+    chip.innerHTML = `<span class="avatar">${esc(p.avatar)}</span>${esc(p.name)}`;
+    chip.onclick = () => { setActiveProfile(p.id); render(); };
+    bar.appendChild(chip);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'profile-chip-add';
+  addBtn.textContent = '➕';
+  addBtn.title = 'Adicionar membro';
+  addBtn.onclick = () => openModal('modal-add-member');
+  bar.appendChild(addBtn);
+}
+
+function renderHome() {
+  const profile = activeProfile();
+  const xp = totalXP();
+  const today = profile.data[todayKey()];
+
+  // Date & greet
+  const opts = { weekday:'long', day:'numeric', month:'long' };
+  document.getElementById('date-label').textContent = new Date().toLocaleDateString('pt-br', opts);
+  const h = new Date().getHours();
+  document.getElementById('greet').textContent =
+    h < 12 ? '☀️ Bom dia! Que tal começar o dia?' :
+    h < 18 ? '🌤️ Boa tarde! Continue firme!' :
+              '🌙 Boa noite! Termine o dia bem!';
+
+  // XP banner
+  const lvlIdx = getLevel(xp);
+  const lvl = LEVELS[lvlIdx];
+  const nextLvl = LEVELS[lvlIdx + 1];
+  document.getElementById('xp-total').textContent = xp;
+  document.getElementById('level-badge').textContent = `⭐ Nível ${lvlIdx + 1} — ${lvl.name}`;
+  if (nextLvl) {
+    const pct = Math.min(100, ((xp - lvl.min) / (nextLvl.min - lvl.min)) * 100);
+    document.getElementById('xp-bar').style.width = pct + '%';
+    document.getElementById('xp-bar-text').textContent = `${xp - lvl.min} / ${nextLvl.min - lvl.min} XP para o próximo nível`;
+  } else {
+    document.getElementById('xp-bar').style.width = '100%';
+    document.getElementById('xp-bar-text').textContent = 'Nível máximo atingido! 🏆';
+  }
+
+  // Weekly mission
+  const activeDays = weekActiveDays(profile);
+  const missionPct = Math.min(100, (activeDays / WEEK_MISSION.goal) * 100);
+  document.getElementById('mission-bar').style.width = missionPct + '%';
+  document.getElementById('mission-pct').textContent = `${activeDays}/${WEEK_MISSION.goal} dias`;
+  document.getElementById('mission-xp-label').textContent = `+${WEEK_MISSION.xp} XP`;
+  const missionDone = activeDays >= WEEK_MISSION.goal; const missionRewarded=!!appData.weeklyRewards[profile.id+':'+weekKey()];
+  if (missionDone) {
+    document.getElementById('mission-desc').textContent = '🎉 Missão cumprida! Parabéns!';
+    if (!document.getElementById('mission-complete-badge')) {
+      const badge = document.createElement('div');
+      badge.id = 'mission-complete-badge';
+      badge.className = 'mission-complete';
+      badge.textContent = missionRewarded ? '✅ Bônus de +150 XP conquistado esta semana!' : '✅ Missão completa! O bônus será registrado na próxima ação.';
+      document.getElementById('mission-card').appendChild(badge);
+    }
+  } else {
+    document.getElementById('mission-desc').textContent = 'Faça pelo menos 1 tarefa em 5 dias desta semana!';
+    const badge = document.getElementById('mission-complete-badge');
+    if (badge) badge.remove();
+  }
+
+  // Tasks
+  const tasks = allTasks().filter(taskDueToday);
+  const pending = tasks.filter(t => getTimes(t.id) < t.maxTimes);
+  const totalDone = totalTasksDone(today);
+  const totalAll  = tasks.reduce((a, t) => a + t.maxTimes, 0);
+  document.getElementById('progress-pill').textContent = `${totalDone}/${totalAll}`;
+
+  const container = document.getElementById('tasks');
+  container.innerHTML = '';
+
+  if (pending.length === 0) {
+    const msg = document.createElement('div');
+    msg.className = 'empty-state';
+    msg.innerHTML = '<div class="e-icon">🎉</div><p>Casa toda limpa! Incrível!</p>';
+    container.appendChild(msg);
+  } else {
+    pending.forEach(t => {
+      const times = getTimes(t.id);
+      const card = document.createElement('div');
+      const isCustom = t.custom;
+      card.className = 'task-card' + (isCustom ? ' custom-task' : '');
+      const subtitle = t.maxTimes > 1 && times > 0
+        ? `+${t.xp} XP · ${times}/${t.maxTimes} vezes`
+        : `+${t.xp} XP`;
+      card.innerHTML = `
+        <div class="task-check">✓</div>
+        <div class="task-icon">${esc(t.icon)}</div>
+        <div class="task-info">
+          <div class="task-name">${esc(t.name)}</div>
+          <div class="task-xp">${subtitle}</div>
+          ${isCustom ? `<div class="task-meta">${esc(t.category||'Geral')}${t.time ? ' · ⏰ '+esc(t.time) : ''}</div>` : ''}
+        </div>
+        ${isCustom ? `<div class="task-actions"><button class="task-edit-btn" data-edit-id="${esc(t.id)}">✏️</button><button class="task-delete-btn" data-delete-id="${esc(t.id)}">🗑</button></div>` : ''}
+      `;
+      if (isCustom) { card.querySelector('.task-delete-btn').onclick=(e)=>deleteCustomTask(t.id,e); card.querySelector('.task-edit-btn').onclick=(e)=>openEditTask(t.id,e); }
+      card.onclick = (e) => {
+        if (e.target.closest('.task-delete-btn') || e.target.closest('.task-edit-btn')) return;
+        // Animate check circle immediately
+        const chk = card.querySelector('.task-check');
+        if (chk) chk.classList.add('checked');
+        doTask(t.id, card);
+      };
+      container.appendChild(card);
+    });
+  }
+
+  // Stats
+  document.getElementById('stat-week').textContent = weekTaskCount(profile);
+  document.getElementById('stat-month').textContent = monthTaskCount(profile);
+  document.getElementById('stat-streak').textContent = getStreakDays(profile) + 'd';
+  document.getElementById('stat-year').textContent = yearTaskCount(profile);
+}
+
+// ─── HEATMAP ───────────────────────────────────────────────
+function renderHistory() {
+  const profile = activeProfile();
+  document.getElementById('history-profile-name').textContent = profile.name;
+
+  // Summary
+  const allDays = Object.keys(profile.data||{}).filter(d => totalTasksDone(profile.data[d]) > 0);
+  document.getElementById('hs-total-days').textContent = allDays.length;
+  let totalT = 0;
+  for (let d in (profile.data||{})) totalT += totalTasksDone(profile.data[d]);
+  document.getElementById('hs-total-tasks').textContent = totalT;
+  document.getElementById('hs-best-streak').textContent = bestStreak(profile) + 'd';
+  document.getElementById('hs-total-xp').textContent = profileXP(profile);
+
+  // Heatmap
+  renderHeatmap(profile);
+
+  // Recent days
+  const recentDays = Object.keys(profile.data||{})
+    .filter(d => totalTasksDone(profile.data[d]) > 0)
+    .sort((a, b) => dateFromKey(b) - dateFromKey(a))
+    .slice(0, 10);
+
+  const hist = document.getElementById('history-days');
+  hist.innerHTML = '';
+  if (recentDays.length === 0) {
+    hist.innerHTML = '<div class="no-history"><div class="no-icon">📭</div><p>Nenhum dia registrado ainda.</p></div>';
+    return;
+  }
+  const tasks = allTasks();
+  recentDays.forEach(d => {
+    const dayData = profile.data[d];
+    const date = dateFromKey(d);
+    const label = date.toLocaleDateString('pt-br', { weekday:'long', day:'numeric', month:'long' });
+    const doneIds = Object.entries(dayData.tasks).flatMap(([id, times]) => Array(Number(times)||0).fill(id));
+    const card = document.createElement('div');
+    card.className = 'day-detail';
+    const taskChips = doneIds.map(id => {
+      const t = tasks.find(t => String(t.id) === String(id)) || appData.taskArchive[id] || { icon: '✅', name: 'Tarefa removida' };
+      return `<span class="day-task-chip">${esc(t.icon)} ${esc(t.name)}</span>`;
+    }).join('');
+    card.innerHTML = `
+      <div class="day-detail-header">
+        <div class="day-detail-date">${label}</div>
+        <div class="day-detail-xp">+${dayData.xp || 0} XP</div>
+      </div>
+      <div class="day-detail-tasks">${taskChips}</div>
+    `;
+    hist.appendChild(card);
+  });
+}
+
+function renderHeatmap(profile) {
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('heatmap-month-label').textContent = `${monthNames[heatmapMonth]} ${heatmapYear}`;
+
+  const grid = document.getElementById('heatmap-grid');
+  grid.innerHTML = '';
+
+  // Ensure tooltip exists
+  let tooltip = document.getElementById('heatmap-tooltip');
+  if (!tooltip) {
+    tooltip = document.createElement('div');
+    tooltip.id = 'heatmap-tooltip';
+    tooltip.className = 'heatmap-tooltip';
+    document.body.appendChild(tooltip);
+  }
+  const hideTooltip = () => tooltip.classList.remove('visible');
+
+  const firstDay = new Date(heatmapYear, heatmapMonth, 1).getDay();
+  const daysInMonth = new Date(heatmapYear, heatmapMonth + 1, 0).getDate();
+  const today = new Date();
+
+  for (let i = 0; i < firstDay; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'heatmap-cell empty';
+    grid.appendChild(cell);
+  }
+
+  for (let i = 1; i <= daysInMonth; i++) {
+    const date = new Date(heatmapYear, heatmapMonth, i);
+    const key = localDateKey(date);
+    const count = totalTasksDone((profile.data||{})[key]);
+    // Absolute scale: 0=none, 1-2=light, 3-5=medium-light, 6-8=medium-dark, 9+=dark
+    const level = count === 0 ? 0
+                : count <= 2  ? 1
+                : count <= 5  ? 2
+                : count <= 8  ? 3
+                : 4;
+    const cell = document.createElement('div');
+    const isToday = localDateKey(date) === localDateKey(today);
+    cell.className = `heatmap-cell level-${level}${isToday ? ' today' : ''}`;
+    const label = `${i}/${heatmapMonth+1}: ${count} tarefa(s)`;
+
+    // Mouse tooltip
+    cell.addEventListener('mouseenter', (e) => {
+      tooltip.textContent = label;
+      tooltip.style.left = (e.clientX) + 'px';
+      tooltip.style.top  = (e.clientY) + 'px';
+      tooltip.classList.add('visible');
+    });
+    cell.addEventListener('mouseleave', hideTooltip);
+
+    // Touch tooltip
+    cell.addEventListener('click', (e) => {
+      tooltip.textContent = label;
+      tooltip.style.left = (e.clientX) + 'px';
+      tooltip.style.top  = (e.clientY) + 'px';
+      tooltip.classList.add('visible');
+      setTimeout(hideTooltip, 2000);
+    });
+
+    grid.appendChild(cell);
+  }
+
+  // Hide tooltip on scroll
+  document.addEventListener('scroll', hideTooltip, { passive: true });
+}
+
+function changeHeatmapMonth(dir) {
+  heatmapMonth += dir;
+  if (heatmapMonth < 0) { heatmapMonth = 11; heatmapYear--; }
+  if (heatmapMonth > 11) { heatmapMonth = 0; heatmapYear++; }
+  renderHeatmap(activeProfile());
+}
+
+// ─── FAMILY ────────────────────────────────────────────────
+function renderFamily() {
+  const grid = document.getElementById('family-grid'); grid.innerHTML = '';
+  const sorted = [...appData.profiles].sort((a,b)=>profileXP(b)-profileXP(a));
+  appData.profiles.forEach(p => {
+    const xp=profileXP(p), lvlIdx=getLevel(xp), rank=sorted.indexOf(p)+1;
+    const rankEmoji=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`#${rank}`;
+    const card=document.createElement('div'); card.className='family-card'+(p.id===appData.activeProfile?' selected':'');
+    if(p.id!=='default' && appData.profiles.length>1){ const del=document.createElement('button');del.className='family-delete-btn';del.textContent='✕';del.onclick=e=>openRemoveMember(p.id,p.name,e);card.appendChild(del); }
+    const parts=[['family-rank',rankEmoji],['family-avatar',p.avatar],['family-name',p.name],['family-xp',xp+' XP'],['family-level',`Nível ${lvlIdx+1} — ${LEVELS[lvlIdx].name}`]];
+    for(const [cls,txt] of parts){const el=document.createElement('div');el.className=cls;el.textContent=txt;card.appendChild(el);}
+    card.onclick=e=>{if(!e.target.closest('.family-delete-btn')){setActiveProfile(p.id);render();goPage('home');}}; grid.appendChild(card);
+  });
+  const addCard=document.createElement('div');addCard.className='add-member-card';const ai=document.createElement('div');ai.className='add-member-icon';ai.textContent='➕';addCard.append(ai,document.createTextNode('Adicionar membro'));addCard.onclick=()=>openModal('modal-add-member');grid.appendChild(addCard);
+  const lbRows=document.getElementById('lb-rows');lbRows.innerHTML='';
+  sorted.forEach((p,i)=>{const xp=profileXP(p),rankClass=i===0?'gold':i===1?'silver':i===2?'bronze':'',rankLabel=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}º`,streak=getStreakDays(p);const row=document.createElement('div');row.className='lb-row';
+    const r=document.createElement('div');r.className='lb-rank '+rankClass;r.textContent=rankLabel;const av=document.createElement('div');av.className='lb-avatar';av.textContent=p.avatar;const info=document.createElement('div');info.className='lb-info';const nm=document.createElement('div');nm.className='lb-name';nm.textContent=p.name+(p.id===appData.activeProfile?' 👈':'');const sub=document.createElement('div');sub.className='lb-sub';sub.textContent=`🔥 ${streak} dias • ${weekTaskCount(p)} tarefas esta semana`;info.append(nm,sub);const x=document.createElement('div');x.className='lb-xp';x.textContent=String(xp);row.append(r,av,info,x);lbRows.appendChild(row);});
+}
+
+// ─── ACTIONS ───────────────────────────────────────────────
+async function doTask(id, cardEl) {
+  const tasks = allTasks();
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const profile = activeProfile();
+  const today = profile.data[todayKey()];
+  const times = getTimes(id);
+  if (times >= t.maxTimes) return;
+
+  // Capture BEFORE state for mission check
+  const prevActiveDays = weekActiveDays(profile);
+  const todayHadTasksBefore = totalTasksDone(today) > 0;
+
+  today.tasks[id] = times + 1;
+  today.xp = (today.xp || 0) + t.xp;
+
+  // Check weekly mission bonus: only fires if today just became active (first task of the day)
+  // and that pushed us from goal-1 to goal
+  if (!todayHadTasksBefore) {
+    const nowActiveDays = weekActiveDays(profile);
+    const rewardKey = profile.id + ':' + weekKey();
+    if (prevActiveDays < WEEK_MISSION.goal && nowActiveDays >= WEEK_MISSION.goal && !appData.weeklyRewards[rewardKey]) {
+      appData.weeklyRewards[rewardKey] = true;
+      today.xp += WEEK_MISSION.xp;
+      setTimeout(() => showToast(`🎯 Missão semanal completa! +${WEEK_MISSION.xp} XP bônus!`), 600);
+      spawnConfetti();
+    }
+  }
+
+  await saveAll();
+
+  if (t.maxTimes > 1 && today.tasks[id] < t.maxTimes) {
+    showToast(`✅ ${t.name} (${today.tasks[id]}x) — +${t.xp} XP!`);
+    spawnConfetti();
+    render();
+    return;
+  }
+
+  showToast(`✅ ${t.name} — +${t.xp} XP!`);
+  spawnConfetti();
+
+  if (cardEl) {
+    cardEl.classList.add('removing');
+    setTimeout(() => render(), 420);
+  } else render();
+}
+
+async function deleteCustomTask(taskId, e) {
+  e.stopPropagation();
+  const doomed=(appData.customTasks||[]).find(t=>t.id===taskId); if(doomed) appData.taskArchive[taskId]={name:doomed.name,icon:doomed.icon,xp:doomed.xp,category:doomed.category||'Geral'};
+  appData.customTasks = (appData.customTasks || []).filter(t => t.id !== taskId);
+  await saveAll();
+  render();
+  showToast('🗑 Tarefa removida!');
+}
+
+// ─── ADD TASK ───────────────────────────────────────────────
+let selectedEmoji = '🧺';
+let editingTaskId = null;
+function selectEmoji(el) {
+  document.querySelectorAll('#emoji-picker .modal-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedEmoji = el.dataset.emoji;
+}
+document.querySelectorAll('#task-day-picker .day-chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('selected')));
+function selectedTaskDays(){return [...document.querySelectorAll('#task-day-picker .day-chip.selected')].map(c=>Number(c.dataset.day));}
+function openEditTask(id,e){ if(e)e.stopPropagation(); const t=(appData.customTasks||[]).find(x=>x.id===id); if(!t)return; editingTaskId=id; document.getElementById('task-modal-title').textContent='✏️ Editar Tarefa'; document.getElementById('task-save-btn').textContent='Salvar'; document.getElementById('new-task-name').value=t.name; document.getElementById('new-task-xp').value=t.xp; document.getElementById('new-task-max').value=t.maxTimes||1; document.getElementById('new-task-category').value=t.category||'Geral'; document.getElementById('new-task-time').value=t.time||''; selectedEmoji=t.icon||'🧺'; document.querySelectorAll('#emoji-picker .modal-chip').forEach(c=>c.classList.toggle('selected',c.dataset.emoji===selectedEmoji)); const days=Array.isArray(t.days)?t.days:[0,1,2,3,4,5,6]; document.querySelectorAll('#task-day-picker .day-chip').forEach(c=>c.classList.toggle('selected',days.includes(Number(c.dataset.day)))); openModal('modal-add-task'); }
+function openAddTask() {
+  editingTaskId = null; document.getElementById('task-modal-title').textContent='➕ Nova Tarefa'; document.getElementById('task-save-btn').textContent='Adicionar';
+  document.getElementById('new-task-name').value = '';
+  document.getElementById('new-task-xp').value = '10'; document.getElementById('new-task-max').value='1'; document.getElementById('new-task-category').value='Geral'; document.getElementById('new-task-time').value='';
+  document.querySelectorAll('#task-day-picker .day-chip').forEach(c=>c.classList.add('selected'));
+  selectedEmoji = '🧺';
+  document.querySelectorAll('#emoji-picker .modal-chip').forEach((c,i) => c.classList.toggle('selected', i===0));
+  openModal('modal-add-task');
+}
+async function confirmAddTask() {
+  const name=document.getElementById('new-task-name').value.trim();
+  const xp=Math.max(5,Math.min(100,parseInt(document.getElementById('new-task-xp').value)||10));
+  const maxTimes=Math.max(1,Math.min(10,parseInt(document.getElementById('new-task-max').value)||1));
+  const category=document.getElementById('new-task-category').value||'Geral'; const time=document.getElementById('new-task-time').value||''; const days=selectedTaskDays();
+  if(!name){document.getElementById('new-task-name').focus();return;} if(!days.length){showToast('Escolha pelo menos um dia da semana.');return;}
+  appData.customTasks=appData.customTasks||[];
+  if(editingTaskId){ const t=appData.customTasks.find(x=>x.id===editingTaskId); if(t) Object.assign(t,{name,xp,icon:selectedEmoji,maxTimes,category,time,days}); }
+  else { const id='custom_'+Date.now(); appData.customTasks.push({id,name,xp,icon:selectedEmoji,maxTimes,category,time,days,custom:true,profileId:appData.activeProfile}); editingTaskId=id; }
+  appData.taskArchive[editingTaskId]={name,icon:selectedEmoji,xp,category}; await saveAll(); closeModal('modal-add-task'); render(); showToast('✅ Tarefa salva!'); editingTaskId=null;
+}
+
+// ─── ADD MEMBER ────────────────────────────────────────────
+let selectedAvatar = '👦';
+let removeMemberId = null;
+
+function selectAvatar(el) {
+  document.querySelectorAll('#avatar-picker .modal-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAvatar = el.dataset.avatar;
+}
+async function confirmAddMember() {
+  const name = document.getElementById('new-member-name').value.trim();
+  if (!name) { document.getElementById('new-member-name').focus(); return; }
+  const id = 'profile_' + Date.now();
+  appData.profiles.push({ id, name, avatar: selectedAvatar, data: {} });
+  appData.activeProfile = id;
+  ensureTodayKey();
+  await saveAll();
+  closeModal('modal-add-member');
+  render();
+  showToast(`👤 ${name} entrou na família!`);
+}
+
+function openRemoveMember(id, name, e) {
+  e.stopPropagation();
+  removeMemberId = id;
+  document.getElementById('remove-member-name').textContent = name;
+  openModal('modal-remove-member');
+}
+
+async function confirmRemoveMember() {
+  if (!removeMemberId || removeMemberId === 'default') return;
+  appData.profiles = appData.profiles.filter(p => p.id !== removeMemberId);
+  appData.customTasks = (appData.customTasks || []).filter(t => t.profileId !== removeMemberId);
+  if (appData.activeProfile === removeMemberId) appData.activeProfile = appData.profiles[0].id;
+  ensureTodayKey();
+  await saveAll();
+  closeModal('modal-remove-member');
+  render();
+  renderFamily();
+  showToast('🗑 Membro removido!');
+  removeMemberId = null;
+}
+
+// ─── RESET ─────────────────────────────────────────────────
+function openReset() { openModal('modal-reset'); }
+async function confirmReset() {
+  const profile = activeProfile();
+  profile.data[todayKey()] = { tasks: {}, xp: 0 };
+  await saveAll();
+  closeModal('modal-reset');
+  render();
+  showToast('🔄 Tarefas de hoje resetadas!');
+}
+
+// ─── MODAL ─────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none'; });
+});
+
+// ─── NAVIGATION ────────────────────────────────────────────
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'history') renderHistory();
+  if (name === 'family')  renderFamily();
+}
+
+// ─── TOAST ─────────────────────────────────────────────────
+let toastTimeout;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+
+// ─── BACKUP / INSTALL / NOTIFICATIONS / CONNECTIVITY ──────
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;const b=document.getElementById('install-btn');if(b)b.style.display='block';});
+window.addEventListener('appinstalled',()=>showToast('📲 Casa Check instalado!'));
+async function installApp(){ if(deferredInstallPrompt){deferredInstallPrompt.prompt(); await deferredInstallPrompt.userChoice; deferredInstallPrompt=null;} else showToast('Use o menu do navegador → Instalar app/Adicionar à tela inicial.'); }
+function exportBackup(){ const blob=new Blob([JSON.stringify({...appData,exportedAt:new Date().toISOString(),version:3},null,2)],{type:'application/json'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='casa-check-backup-'+todayKey()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);showToast('💾 Backup exportado!'); }
+async function importBackup(ev){ const f=ev.target.files?.[0]; if(!f)return; try{const d=JSON.parse(await f.text()); if(!Array.isArray(d.profiles)||!d.profiles.length)throw new Error('Backup inválido'); appData={...appData,...d}; migrateData(); ensureTodayKey(); await saveAll(); render(); showToast('📥 Backup restaurado!');}catch(e){showToast('❌ Arquivo de backup inválido.');} ev.target.value=''; }
+async function requestNotifications(){ if(!('Notification' in window)){showToast('🔕 Este navegador não suporta notificações.');return;} const p=await Notification.requestPermission(); appData.settings.notifications=p==='granted'; await saveAll(); if(p==='granted'){new Notification('Casa Check 🏠',{body:'Notificações ativadas! Suas tarefas podem ser lembradas enquanto o app estiver aberto.',icon:'casa-check-192x192.png'});} else showToast('Notificações não foram autorizadas.'); }
+function updateConnectionStatus(){const el=document.getElementById('connection-status');if(el)el.textContent=navigator.onLine?'🟢 Online · dados salvos neste aparelho':'🟠 Offline · Casa Check continua funcionando';}
+window.addEventListener('online',updateConnectionStatus);window.addEventListener('offline',updateConnectionStatus);setTimeout(updateConnectionStatus,0);
+function checkScheduledTasks(){ if(!appData.settings.notifications||Notification.permission!=='granted'||document.hidden)return; const now=new Date();const hh=pad2(now.getHours())+':'+pad2(now.getMinutes()); const marker='cc_notify_'+todayKey()+'_'+hh+'_'+appData.activeProfile; if(sessionStorage.getItem(marker))return; const due=allTasks().filter(t=>taskDueToday(t)&&t.time===hh&&getTimes(t.id)<t.maxTimes); if(due.length){sessionStorage.setItem(marker,'1'); new Notification('Casa Check 🏠',{body:due.length===1?'Hora de: '+due[0].name:`Você tem ${due.length} tarefas programadas agora.`,icon:'casa-check-192x192.png'});} }
+setInterval(checkScheduledTasks,60000);
+
+// ─── CONFETTI (Canvas) ─────────────────────────────────────
+let confettiCanvas = null;
+let confettiCtx    = null;
+let confettiParticles = [];
+let confettiRaf    = null;
+
+function initConfettiCanvas() {
+  if (confettiCanvas) return;
+  confettiCanvas = document.createElement('canvas');
+  confettiCanvas.id = 'confetti-canvas';
+  confettiCanvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9998;width:100%;height:100%;';
+  confettiCanvas.width  = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+  document.body.appendChild(confettiCanvas);
+  confettiCtx = confettiCanvas.getContext('2d');
+  window.addEventListener('resize', () => {
+    confettiCanvas.width  = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  });
+}
+
+function spawnConfetti() {
+  initConfettiCanvas();
+  const colors = ['#2ECC71','#F1C40F','#E74C3C','#3498DB','#9B59B6','#E67E22'];
+  for (let i = 0; i < 14; i++) {
+    confettiParticles.push({
+      x:     Math.random() * confettiCanvas.width,
+      y:     Math.random() * confettiCanvas.height * 0.4,
+      r:     Math.random() * 4 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx:    (Math.random() - 0.5) * 1.5,
+      vy:    Math.random() * 1.5 + 0.5,
+      alpha: 1,
+      decay: Math.random() * 0.018 + 0.014,
+    });
+  }
+  // Only start the loop if not already running
+  if (!confettiRaf) {
+    confettiRaf = requestAnimationFrame(tickConfetti);
+  }
+}
+
+function tickConfetti() {
+  confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  confettiParticles = confettiParticles.filter(p => p.alpha > 0.03);
+
+  for (const p of confettiParticles) {
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.vy += 0.06;
+    p.alpha -= p.decay;
+
+    confettiCtx.beginPath();
+    confettiCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    confettiCtx.fillStyle = p.color;
+    confettiCtx.globalAlpha = Math.max(0, p.alpha);
+    confettiCtx.fill();
+    confettiCtx.closePath();
+  }
+
+  confettiCtx.globalAlpha = 1;
+
+  if (confettiParticles.length > 0) {
+    confettiRaf = requestAnimationFrame(tickConfetti);
+  } else {
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    confettiRaf = null;
+  }
+}
+
+// ─── INIT ──────────────────────────────────────────────────
+loadAll().then(() => {
+  // On load, if mission is already complete this week but bonus was never stored, nothing to do
+  // (bonus is only awarded at the moment of completion via doTask — this is intentional
+  // to avoid retroactive double-awarding on reload)
+  render();
+});
+</script>
+
+
+
+
+<script src="../pwa-install.js"></script>
+</body>
+</html>
