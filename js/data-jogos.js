@@ -8,10 +8,11 @@ const JOGOS = [
   {
     id: 'rampage',
     type: 'jogo',
-    title: 'Rampage',
+    title: 'Rampage 1.2',
     genre: 'ação',
     accent: 'var(--red)',
-    desc: 'Vire um monstro gigante e destrua a cidade inteira. Ação pura, sem freio.',
+    thumb: 'assets/thumbs/rampage.png',
+    desc: 'Destrua 10 fases, desbloqueie monstros, evolua habilidades e enfrente chefes. Versão 1.2 para PC e celular.',
     path: 'jogos/rampage/index.html'
   },
   {
@@ -24,22 +25,23 @@ const JOGOS = [
     path: 'jogos/forbidden-duel/index.html'
   },
   {
-    id: 'dragon-wings',
+    id: 'dragon-fury',
     type: 'jogo',
-    title: 'Dragon Wings',
+    title: 'Dragon Fury 1.2',
     genre: 'shooter',
     accent: 'var(--fire)',
-    desc: 'Shmup bullet-heaven: desvie de padrões de tiro, suba de nível e enfrente chefes.',
-    path: 'jogos/dragon-wings/index.html'
+    thumb: 'assets/thumbs/dragon-fury.webp',
+    desc: 'Shmup de ação com 5 fases progressivas', chefes épicos, upgrades, conquistas, dragões escolta e sistema de rank. Versão 1.2.',
+    path: 'jogos/dragon-fury/index.html'
   },
   {
     id: 'navinha-arcade',
     type: 'jogo',
-    title: 'Navinha Arcade',
+    title: 'Navinha Arcade 1.2',
     genre: 'shooter',
     accent: 'var(--fire)',
-    thumb: 'assets/thumbs/navinha-arcade.jpg',
-    desc: 'Shmup de 10 fases: resgate aliados, colete upgrades e enfrente um chefe por fase.',
+    thumb: 'assets/thumbs/navinha-arcade.png',
+    desc: 'Arcade espacial v1.2 com 10 fases, 5 naves, chefes multiestágio, power-ups, resgates, conquistas e suporte completo a PC e celular.',
     path: 'jogos/navinha-arcade/index.html'
   },
   {

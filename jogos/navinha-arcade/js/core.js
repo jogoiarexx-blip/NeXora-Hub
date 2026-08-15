@@ -192,7 +192,11 @@ const SHIP_DEFS = [
     { key: 'phantom', name: 'Fantasma Branca', desc: 'Mais veloz e ágil, casco mais estreito',
       color: '#f2f2f2', w: 34, h: 44, speed: 7.5, healthBonus: 0, bulletDmg: 1, unlockCost: 280 },
     { key: 'juggernaut', name: 'Blindada Cinza', desc: 'Lenta e robusta, tiro com o dobro de dano',
-      color: '#9aa5b1', w: 50, h: 58, speed: 4.2, healthBonus: 1, bulletDmg: 2, unlockCost: 420 }
+      color: '#9aa5b1', w: 50, h: 58, speed: 4.2, healthBonus: 1, bulletDmg: 2, unlockCost: 420 },
+    { key: 'spectre', name: 'Espectro Violeta', desc: 'Ágil, pequena e focada em esquiva',
+      color: '#9d5cff', w: 32, h: 42, speed: 8.2, healthBonus: 0, bulletDmg: 1, unlockCost: 600 },
+    { key: 'phoenix', name: 'Fênix Solar', desc: 'Canhão pesado e casco reforçado',
+      color: '#ff7a18', w: 46, h: 54, speed: 5.2, healthBonus: 1, bulletDmg: 3, unlockCost: 850 }
 ];
 
 // Índices das naves que precisam ser liberadas na loja (tudo que não é a 0)

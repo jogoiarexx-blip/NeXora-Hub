@@ -67,7 +67,10 @@ function update() {
     if (keys['arrowup'] || keys['w']) player.y -= player.speed;
     if (keys['arrowdown'] || keys['s']) player.y += player.speed;
 
-    if (keys[' '] || isTouching) shoot();
+    if (keys[' '] || isTouching || (typeof controlMode !== 'undefined' && controlMode === 'MOUSE' && mouseHoverActive)) shoot();
+    if (player.overdriveTimer > 0) player.overdriveTimer--;
+    if (player.droneTimer > 0) player.droneTimer--;
+    if (typeof updatePhaseHazards === 'function') updatePhaseHazards();
 
     // Toque / mouse: segue X e Y
     if (touchX !== null) {
@@ -133,14 +136,15 @@ function update() {
                 const bDmg = bullets[i].dmg || 1;
                 bullets.splice(i, 1);
                 e.health -= bDmg;
-                e.hitFlash = 4;
-                spawnParticles(bx, by, '#fff', 4);
-                hitStopFrames = e.type === 'boss' ? 3 : 1;
+                e.hitFlash = e.type === 'boss' ? 2 : 3;
+                spawnParticles(bx, by, '#fff', e.type === 'boss' ? 1 : 3);
+                // v1.2: impactos normais no boss não congelam mais o loop.
+                hitStopFrames = e.type === 'boss' ? 0 : 1;
 
                 if (e.health <= 0) {
                     playExplosion();
                     shakeTime = e.type === 'boss' ? 18 : (e.type === 'tank' ? 10 : 6);
-                    hitStopFrames = e.type === 'boss' ? 8 : 2;
+                    hitStopFrames = e.type === 'boss' ? 2 : 1;
 
                     const scoreTable = {
                         boss: 500, shooter: 25, tank: 30, spinner: 20,
@@ -154,7 +158,7 @@ function update() {
 
                     spawnParticles(e.x + e.w / 2, e.y + e.h / 2,
                         e.type === 'boss' ? '#f00' : (e.type === 'tank' ? '#fa0' : '#ff0'),
-                        e.type === 'boss' ? 60 : (e.type === 'tank' ? 22 : 15));
+                        e.type === 'boss' ? 38 : (e.type === 'tank' ? 18 : 12));
 
                     if (e.type === 'splitter') {
                         spawnEnemyOfType('splitter_mini', e.x + e.w / 2 - 24, e.y + e.h / 2);
@@ -387,6 +391,10 @@ function draw() {
         drawLevelSelectScreen();
     } else if (gameState === 'STORY_COMPLETE') {
         drawStoryCompleteScreen();
+    } else if (gameState === 'SETTINGS') {
+        drawSettingsScreen();
+    } else if (gameState === 'ACHIEVEMENTS') {
+        drawAchievementsScreen();
     } else {
         if (player && player.w && (player.invincible <= 0 || Math.floor(player.invincible / 4) % 2 === 0)) {
             drawPlayerShip();
@@ -427,6 +435,7 @@ function draw() {
             }
         });
 
+        if (typeof drawPhaseHazards === 'function') drawPhaseHazards();
         drawPowerups();
         drawRescues();
 
@@ -446,6 +455,9 @@ function draw() {
         if (gameState === 'TUTORIAL') drawTutorialOverlay();
     }
 
+    if (typeof flashOverlay !== 'undefined' && flashOverlay > 0) { ctx.fillStyle='rgba(255,255,255,' + Math.min(.45, flashOverlay/22) + ')'; ctx.fillRect(0,0,W,H); flashOverlay--; }
+    if (typeof drawAchievementToast === 'function') drawAchievementToast();
+    if (typeof achievementToastTimer !== 'undefined' && achievementToastTimer > 0) achievementToastTimer--;
     // Botão de mute sempre visível
     drawMuteButton();
 

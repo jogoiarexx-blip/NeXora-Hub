@@ -52,6 +52,7 @@ function setupLevel(level) {
     const phase = getPhase(level);
     enemiesToKill = phase.enemiesToKill || (12 + level * 3);
     levelDecor = generateLevelDecor(level);
+    if (typeof resetPhaseHazards === 'function') resetPhaseHazards();
     resetPhaseObjectives();
     phaseScoreStart = score;
     if (typeof setMusicForLevel === 'function') setMusicForLevel(level);
