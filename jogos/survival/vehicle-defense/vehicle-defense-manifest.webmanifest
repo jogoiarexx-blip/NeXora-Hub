@@ -1,0 +1,11 @@
+{
+  "name": "Vehicle Defense V10.2",
+  "short_name": "Vehicle Defense",
+  "start_url": "./vehicle-defense-v10.2-visual.html",
+  "display": "fullscreen",
+  "background_color": "#03050b",
+  "theme_color": "#03050b",
+  "orientation": "any",
+  "description": "Vehicle Defense V10.2 — war-rig survival com progressão, autosave e modo offline.",
+  "icons": [{"src":"./vehicle-defense-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

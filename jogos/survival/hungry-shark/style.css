@@ -1,0 +1,115 @@
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  margin: 0; 
+  overflow: hidden; 
+  background: linear-gradient(180deg, #0a1929 0%, #1a3a52 50%, #2a4a62 100%);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+canvas { 
+  display: block; 
+  width: 100vw;
+  height: 100vh;
+}
+#joystick {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255,255,255,0.1);
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  display: none;
+  z-index: 100;
+}
+#joystick-handle {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: rgba(255,255,255,0.6);
+  border: 2px solid white;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+#ui-buttons {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+}
+.ui-btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 10px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  text-align: center;
+}
+@media (max-width: 768px) {
+  #joystick, #ui-buttons { display: flex; }
+}
+
+
+/* ===== V3.1 - CONTROLES E ACABAMENTO VISUAL ===== */
+html, body { width: 100%; height: 100%; background: #061827; }
+body::after {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 50;
+  box-shadow: inset 0 0 110px rgba(0, 7, 16, .72), inset 0 0 28px rgba(58, 180, 255, .08);
+}
+#joystick {
+  width: 132px; height: 132px;
+  background: radial-gradient(circle, rgba(128,220,255,.16), rgba(0,45,78,.24));
+  border: 2px solid rgba(163,229,255,.45);
+  box-shadow: inset 0 0 24px rgba(105,210,255,.16), 0 8px 30px rgba(0,0,0,.28);
+  backdrop-filter: blur(3px);
+}
+#joystick-handle {
+  width: 54px; height: 54px;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.92), rgba(91,196,239,.66));
+  border-color: rgba(225,248,255,.9);
+  box-shadow: 0 0 20px rgba(87,210,255,.42);
+}
+#ui-buttons { gap: 8px; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); }
+.ui-btn {
+  width: 58px; height: 58px; border-radius: 17px;
+  background: linear-gradient(160deg, rgba(31,93,128,.72), rgba(8,34,55,.82));
+  border: 1px solid rgba(176,231,255,.55);
+  box-shadow: inset 0 1px rgba(255,255,255,.14), 0 7px 18px rgba(0,0,0,.3);
+  backdrop-filter: blur(6px);
+}
+.ui-btn:active { transform: scale(.93); filter: brightness(1.3); }
+.action-btn { font-size: 21px; flex-direction: column; line-height: 1; }
+.action-btn span { margin-top: 4px; font-size: 8px; letter-spacing: .6px; opacity: .9; }
+#btn-dash { border-color: rgba(255,220,85,.75); box-shadow: 0 0 16px rgba(255,203,47,.18), inset 0 1px rgba(255,255,255,.15); }
+
+@media (pointer: coarse), (max-width: 900px) {
+  #joystick, #ui-buttons { display: flex; }
+  #joystick { left: max(14px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); }
+}
+@media (max-height: 520px) {
+  #ui-buttons { flex-direction: row; flex-wrap: wrap; width: 136px; justify-content: flex-end; }
+  .ui-btn { width: 48px; height: 48px; border-radius: 14px; }
+  #joystick { width: 108px; height: 108px; }
+  #joystick-handle { width: 44px; height: 44px; }
+}
+
+/* ===== V3.2 - CORREÇÃO DO MODELO DO TUBARÃO =====
+   O renderer foi redesenhado no player.js com proporções limitadas para
+   dorsal, peitorais, cauda e dentes. Mantido aqui apenas como marcador de versão. */
