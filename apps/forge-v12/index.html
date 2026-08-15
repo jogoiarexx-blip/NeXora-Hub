@@ -2072,7 +2072,7 @@ function getNotifSettings(){const d=safeParse(NOTIF_KEY,{enabled:false,time:'19:
 function renderNotifStatus(){const st=getNotifSettings();setText('notifStatus',st.enabled?`Ativo · ${st.time}`:'Desativado')}
 function disableNotifications(){const st=getNotifSettings();st.enabled=false;localStorage.setItem(NOTIF_KEY,JSON.stringify(st));renderNotifStatus();clearInterval(_reminderTimer);showFlash('🔕','Lembrete desativado','Você pode ativá-lo novamente quando quiser.')}
 function toggleNotifications(){const st=getNotifSettings();openModal({title:'LEMBRETE DE TREINO',msg:'Informe um horário no formato HH:MM. O navegador precisa permitir notificações.',confirmLabel:st.enabled?'Atualizar':'Ativar',inputMode:true,inputDefault:st.time||'19:00',inputType:'text',inputPlaceholder:'19:00',onConfirm:async val=>{if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(val||'')){showFlash('❗','Horário inválido','Use HH:MM, por exemplo 19:00.',true);return}let perm='granted';if('Notification'in window&&Notification.permission!=='granted')perm=await Notification.requestPermission();if(!('Notification'in window)||perm!=='granted'){showFlash('🔕','Notificações bloqueadas','Permita notificações nas configurações do navegador.',true);return}localStorage.setItem(NOTIF_KEY,JSON.stringify({enabled:true,time:val,last:''}));renderNotifStatus();startReminderLoop();showFlash('🔔','Lembrete ativado',`Treino às ${val}.`)}})}
-async function fireLocalNotification(title,body){try{if('serviceWorker'in navigator){const reg=await navigator.serviceWorker.getRegistration();if(reg){await reg.showNotification(title,{body,icon:'icon-192.svg',badge:'icon-192.svg',tag:'forge-reminder'});return}}if('Notification'in window&&Notification.permission==='granted')new Notification(title,{body})}catch{}}
+async function fireLocalNotification(title,body){try{if('serviceWorker'in navigator){const reg=await navigator.serviceWorker.getRegistration();if(reg){await reg.showNotification(title,{body,icon:'icon-192.png',badge:'icon-192.png',tag:'forge-reminder'});return}}if('Notification'in window&&Notification.permission==='granted')new Notification(title,{body})}catch{}}
 function checkReminder(){const st=getNotifSettings();if(!st.enabled)return;const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,[h,m]=st.time.split(':').map(Number);if(now.getHours()>h||(now.getHours()===h&&now.getMinutes()>=m)){if(st.last!==today&&getToday().length===0){fireLocalNotification('FORGE · Hora de treinar','Você ainda não registrou treino hoje. Uma sessão curta já mantém a consistência.');st.last=today;localStorage.setItem(NOTIF_KEY,JSON.stringify(st));renderNotifStatus()}}}
 function startReminderLoop(){clearInterval(_reminderTimer);checkReminder();_reminderTimer=setInterval(checkReminder,60000)}
 function registerPWA(){if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{})}
@@ -2168,5 +2168,6 @@ function openStepsGoalModal(){
 }
 
 </script>
+<script src="../pwa-install.js"></script>
 </body>
 </html>
