@@ -162,7 +162,7 @@ if('serviceWorker' in navigator){
     try {
       // limpa caches da versão que causou o problema no GitHub Pages
       const names = await caches.keys();
-      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-shell-v3' && n !== 'nexora-content-v3').map(n => caches.delete(n)));
+      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-shell-v8' && n !== 'nexora-content-v8').map(n => caches.delete(n)));
       await navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'});
     } catch(err){ console.warn('PWA:', err); }
   });

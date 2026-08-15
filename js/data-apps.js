@@ -5,14 +5,13 @@
    =================================================================== */
 
 const APPS = [
-  // --- exemplo de como adicionar um app (apague o comentário) ---
-  // {
-  //   id: 'meu-app',
-  //   type: 'app',
-  //   title: 'Nome do App',
-  //   genre: 'produtividade',     // categoria do app, vira filtro dentro da aba "apps"
-  //   accent: 'var(--amber)',
-  //   desc: 'Descrição curta, uma frase.',
-  //   path: 'apps/meu-app/index.html' // ou link externo (loja de apps, site do projeto)
-  // }
+  {
+    id: 'confeipro',
+    type: 'app',
+    title: 'Confeipro',
+    genre: 'gestão',
+    accent: 'var(--amber)',
+    desc: 'Gestão de confeitaria com receitas, ingredientes, produtos, pedidos e custos.',
+    path: 'apps/confeipro/index.html'
+  }
 ];

@@ -18,10 +18,10 @@ const JOGOS = [
   {
     id: 'forbidden-duel',
     type: 'jogo',
-    title: 'Forbidden Duel',
+    title: 'Forbidden Duel Memories 1.2',
     genre: 'cartas',
     accent: 'var(--steel)',
-    desc: 'Duelo de cartas estilo Yu-Gi-Oh, com fusões e mais de 60 cartas pra montar seu deck.',
+    desc: 'Versão 1.2 com campanha RPG, história, chefes, fusões, magias, equipamentos, terrenos e cartas organizadas por famílias.',
     path: 'jogos/forbidden-duel/index.html'
   },
   {
@@ -71,6 +71,24 @@ const JOGOS = [
     accent: 'var(--red)',
     desc: 'Jogo de sobrevivência com controles, áudio, sistema de salvamento e interface própria.',
     path: 'jogos/last-campfire/index.html'
+  },
+  {
+    id: 'mecanica-do-ze',
+    type: 'jogo',
+    title: 'Mecânica do Zé',
+    genre: 'simulação',
+    accent: 'var(--amber)',
+    desc: 'Gerencie a oficina do Zé, faça serviços, evolua a mecânica e acompanhe dinheiro, contas e progresso. Compatível com PC e celular.',
+    path: 'jogos/mecanica-do-ze/index.html'
+  },
+  {
+    id: 'hungry-shark',
+    type: 'jogo',
+    title: 'Hungry Shark 3.1',
+    genre: 'ação',
+    accent: 'var(--fire)',
+    desc: 'Sobreviva no oceano, devore inimigos, evolua o tubarão, desbloqueie habilidades, pets, títulos e conquistas. Versão 3.1 melhorada.',
+    path: 'jogos/hungry-shark/index.html'
   },
   {
     id: 'exemplo',
