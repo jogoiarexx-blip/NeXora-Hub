@@ -31,7 +31,7 @@ const JOGOS = [
     genre: 'shooter',
     accent: 'var(--fire)',
     thumb: 'assets/thumbs/dragon-fury.webp',
-    desc: 'Shmup de ação com 5 fases progressivas', chefes épicos, upgrades, conquistas, dragões escolta e sistema de rank. Versão 1.2.',
+    desc: 'Shmup de ação com 5 fases progressivas, chefes épicos, upgrades, conquistas, dragões escolta e sistema de rank. Versão 1.2.',
     path: 'jogos/dragon-fury/index.html'
   },
   {
