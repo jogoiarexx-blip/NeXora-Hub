@@ -70,3 +70,7 @@ Pode usar uma dessas no campo `accent` ou passar um hex direto.
 
 ## Organização física dos jogos — v13
 Os jogos agora ficam em `jogos/<categoria>/<jogo>/`. Categorias: arcade, shoot-em-up, plataforma, survival, cartas, simulacao, corrida, rpg e outros.
+
+
+## v15 — Apps em pastas próprias
+Os apps Termo Premium, NutriCalc Pro, Iron Training, FORGE V12 e Invest+ agora ficam em uma pasta própria com `index.html`. Também foram corrigidos os caminhos de Casa Check, Desafios do Amor e XP Life.
