@@ -216,3 +216,66 @@ canvas{cursor:default}
 
 /* v1.4 enemies/boss */
 .campaign-enemies{font-size:11px;opacity:.72;margin-top:6px;letter-spacing:.2px}.campaign-card{line-height:1.25}
+
+/* ---- Last Campfire cover menu ---- */
+#menuScreen{
+  position:absolute;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg, rgba(3,7,15,.12) 0%, rgba(3,7,15,.20) 42%, rgba(3,7,15,.86) 100%),
+    url("assets/last-campfire-cover.png") center center / cover no-repeat;
+  justify-content:flex-end;
+  padding-bottom:34px;
+  gap:9px;
+}
+#menuScreen .title,
+#menuScreen .subtitle:first-of-type,
+#menuScreen .campaign-card{
+  position:relative;
+  z-index:2;
+}
+#menuScreen .title{
+  font-size:0;
+  height:0;
+  margin:0;
+}
+#menuScreen .title::after{
+  content:"";
+  display:none;
+}
+#menuScreen .subtitle:first-of-type{
+  display:none;
+}
+#menuScreen .campaign-card{
+  background:rgba(5,8,16,.72);
+  border-color:rgba(255,190,110,.38);
+  backdrop-filter:blur(5px);
+  margin:0 0 2px;
+}
+#menuScreen .menu-btn{
+  position:relative;
+  z-index:2;
+  box-shadow:0 4px 0 #0009, 0 0 18px #0007;
+}
+#menuScreen > .subtitle:last-child{
+  position:relative;
+  z-index:2;
+  background:rgba(5,8,16,.68);
+  padding:5px 12px;
+  border-radius:10px;
+  margin:2px 0 0;
+}
+@media (max-width: 759px){
+  #menuScreen{
+    background-position:center center;
+    padding-bottom:14px;
+  }
+  #menuScreen .campaign-card{
+    max-width:92vw;
+    font-size:11px;
+  }
+  #menuScreen .menu-btn{
+    width:min(230px,72vw);
+    padding:11px 14px;
+  }
+}
