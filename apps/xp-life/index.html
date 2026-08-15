@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 
 
@@ -3029,20 +3029,7 @@ if ('serviceWorker' in navigator) {
 </script>
 
 
-<script>
-// NeXora integration: this app runs under the Hub PWA. Remove legacy nested service workers
-// so they cannot take control of the app folder or delete the Hub/offline caches.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      const here = new URL('./', location.href).href;
-      for (const reg of regs) {
-        if (reg.scope === here || reg.scope.startsWith(here)) await reg.unregister();
-      }
-    } catch (_) {}
-  });
-}
-</script>
+
+<script src="../pwa-install.js"></script>
 </body>
 </html>
