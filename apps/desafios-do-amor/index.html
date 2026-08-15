@@ -1727,7 +1727,7 @@
         window.onload=async function(){ await recoverFromIndexedDB(); legacyOnload?.(); updateSettingsUI(); checkReminder(); setTimeout(()=>checkForUpdates(false),1500); };
     </script>
 
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.webmanifest">
 <script>
 if ("serviceWorker" in navigator) {
   Promise.resolve(null).then(reg => {
@@ -1743,20 +1743,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<script>
-// NeXora integration: this app runs under the Hub PWA. Remove legacy nested service workers
-// so they cannot take control of the app folder or delete the Hub/offline caches.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      const here = new URL('./', location.href).href;
-      for (const reg of regs) {
-        if (reg.scope === here || reg.scope.startsWith(here)) await reg.unregister();
-      }
-    } catch (_) {}
-  });
-}
-</script>
+
+<script src="../pwa-install.js"></script>
 </body>
 </html>
