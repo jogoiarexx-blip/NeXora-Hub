@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Guia de Instalação - XP Life APK</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #ffd93d;
+            margin-top: 40px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+        .method {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #ffd93d;
+        }
+        .step {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .btn {
+            display: inline-block;
+            background: #ffd93d;
+            color: #333;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .highlight {
+            background: rgba(255, 217, 61, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .warning {
+            background: rgba(255, 107, 107, 0.3);
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .success {
+            background: rgba(78, 205, 196, 0.3);
+            border-left: 4px solid #4ecdc4;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        .emoji {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 XP Life - Guia APK</h1>
+        <p style="text-align: center; font-size: 1.2em; opacity: 0.9;">
+            Transforme o XP Life em um aplicativo Android!
+        </p>
+
+        <div class="success">
+            <strong>✅ Tudo pronto!</strong> Todos os arquivos necessários já foram criados. 
+            Agora é só seguir um dos métodos abaixo para gerar seu APK.
+        </div>
+
+        <h2>🎯 Método 1: PWA Builder (RECOMENDADO)</h2>
+        <div class="method">
+            <p><span class="emoji">⏱️</span> <strong>Tempo:</strong> ~15 minutos</p>
+            <p><span class="emoji">💰</span> <strong>Custo:</strong> Grátis</p>
+            <p><span class="emoji">🎓</span> <strong>Dificuldade:</strong> Fácil</p>
+            
+            <div class="step">
+                <strong>Passo 1:</strong> Hospedar os arquivos online<br>
+                • Opção fácil: <a href="https://pages.github.com/" target="_blank" class="btn">GitHub Pages</a><br>
+                • Outras opções: Netlify, Vercel, Firebase Hosting
+            </div>
+            
+            <div class="step">
+                <strong>Passo 2:</strong> Gerar ícones PNG<br>
+                • Execute <code>python3 generate-icons.py</code><br>
+                • Ou use: <a href="https://cloudconvert.com/svg-to-png" target="_blank" class="btn">CloudConvert</a>
+            </div>
+            
+            <div class="step">
+                <strong>Passo 3:</strong> Usar PWA Builder<br>
+                <a href="https://www.pwabuilder.com/" target="_blank" class="btn">Abrir PWA Builder</a><br>
+                • Cole a URL onde hospedou<br>
+                • Clique em "Package for Stores"<br>
+                • Escolha Android e gere o APK
+            </div>
+        </div>
+
+        <h2>🎯 Método 2: Converter Online</h2>
+        <div class="method">
+            <p><span class="emoji">⏱️</span> <strong>Tempo:</strong> ~5 minutos</p>
+            <p><span class="emoji">💰</span> <strong>Custo:</strong> Grátis (com ads) ou $5-10 (sem ads)</p>
+            
+            <div class="step">
+                <strong>Websites que convertem:</strong><br>
+                <a href="https://pwa2apk.com/" target="_blank" class="btn">PWA2APK</a>
+                <a href="https://appsgeyser.com/" target="_blank" class="btn">AppsGeyser</a><br>
+                • Faça upload dos arquivos ou cole a URL<br>
+                • Baixe o APK gerado
+            </div>
+        </div>
+
+        <h2>🎯 Método 3: Apache Cordova (Avançado)</h2>
+        <div class="method">
+            <p><span class="emoji">⏱️</span> <strong>Tempo:</strong> ~30 minutos</p>
+            <p><span class="emoji">🎓</span> <strong>Dificuldade:</strong> Avançado</p>
+            
+            <div class="warning">
+                <strong>⚠️ Requer:</strong> Node.js, Android Studio, Java JDK instalados
+            </div>
+            
+            <div class="step">
+                <code>npm install -g cordova</code><br>
+                <code>cordova create xplife com.xplife.app XPLife</code><br>
+                <code>cp -r * xplife/www/</code><br>
+                <code>cd xplife && cordova platform add android</code><br>
+                <code>cordova build android</code>
+            </div>
+        </div>
+
+        <h2>📦 Arquivos Incluídos</h2>
+        <div class="step">
+            ✅ <code>index.html</code> - App principal<br>
+            ✅ <code>manifest.json</code> - Configurações PWA<br>
+            ✅ <code>sw.js</code> - Service Worker<br>
+            ✅ <code>icon.svg</code> - Ícone fonte<br>
+            ✅ <code>generate-icons.py</code> - Gerador de ícones<br>
+            ⬜ <code>icon-192.png</code> - Precisa gerar<br>
+            ⬜ <code>icon-512.png</code> - Precisa gerar
+        </div>
+
+        <h2>🚀 Testando o APK</h2>
+        <div class="step">
+            1. Transfira o APK para seu Android<br>
+            2. Habilite "Fontes Desconhecidas"<br>
+            3. Instale o APK<br>
+            4. Abra o XP Life<br>
+            5. Comece a gamificar sua vida! 🎮
+        </div>
+
+        <div class="success">
+            <strong>💡 Dica:</strong> O método PWA Builder + GitHub Pages é o mais fácil e 100% gratuito!
+        </div>
+
+        <h2>📚 Documentação Completa</h2>
+        <p>
+            Consulte o arquivo <code>README.md</code> para instruções detalhadas de todos os métodos.
+        </p>
+
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid rgba(255,255,255,0.3);">
+            <p style="font-size: 2em;">🎮 Boa sorte com seu RPG da vida real!</p>
+        </div>
+    </div>
+</body>
+</html>

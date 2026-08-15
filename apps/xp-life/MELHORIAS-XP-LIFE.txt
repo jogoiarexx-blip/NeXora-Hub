@@ -1,0 +1,22 @@
+XP LIFE - MELHORIAS APLICADAS
+
+- PWA instalável corrigido para GitHub Pages/subpastas.
+- Service Worker corrigido: removidas referências a css/style.css e js/main.js inexistentes.
+- Cache offline atualizado com index, manifest e ícones reais.
+- Registro do Service Worker alterado de /sw.js para ./sw.js.
+- Manifest atualizado para desktop/mobile, sem travar orientação vertical.
+- Botão de instalação do aplicativo usando beforeinstallprompt.
+- Tela App & Notificações adicionada.
+- Notificações reais do sistema via Service Worker.
+- Botão para solicitar permissão de notificações.
+- Botão para testar notificações.
+- Lembretes configuráveis de hidratação: 30, 60, 90 ou 120 minutos.
+- Lembrete diário configurável em horários predefinidos.
+- Estado online/offline exibido na tela de configurações.
+- Clique na notificação abre/foca o XP Life.
+- Melhor aproveitamento de tela em PCs maiores.
+- Respeito a prefers-reduced-motion para acessibilidade.
+- BUG CORRIGIDO: levelUp descontava o XP necessário duas vezes.
+
+IMPORTANTE SOBRE NOTIFICAÇÕES:
+Sem um servidor de push, navegadores/PWAs não conseguem garantir lembretes exatos quando o app está totalmente encerrado pelo sistema. Os lembretes locais funcionam enquanto o app/PWA está ativo ou pode continuar executando em segundo plano. Para notificações garantidas com o app fechado seria necessário integrar Web Push com backend.

@@ -1,0 +1,3032 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XP Life">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#667eea">
+<meta name="description" content="Transforme sua vida em um RPG! Complete tarefas, ganhe XP, suba de nível e conquiste seus objetivos.">
+
+<title>XP Life 2.0 - RPG de Vida</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+  touch-action: manipulation;
+}
+
+.particle {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: float-particle 20s infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   CONFETES - NOVO!
+======================================== */
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform, opacity;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotateZ(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotateZ(720deg);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   NOTIFICAÇÃO ELEGANTE - MELHORADA!
+======================================== */
+#notification {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.98), rgba(118, 75, 162, 0.98));
+  color: white;
+  padding: 18px 28px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 16px;
+  z-index: 10000;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  min-width: 200px;
+  text-align: center;
+}
+
+#notification.show {
+  top: 30px;
+  animation: notification-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes notification-bounce {
+  0% { transform: translateX(-50%) translateY(-20px) scale(0.8); opacity: 0; }
+  50% { transform: translateX(-50%) translateY(5px) scale(1.05); }
+  100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+}
+
+#notification.success {
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.98), rgba(39, 174, 96, 0.98));
+}
+
+#notification.warning {
+  background: linear-gradient(135deg, rgba(241, 196, 15, 0.98), rgba(243, 156, 18, 0.98));
+}
+
+#notification.error {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.98), rgba(192, 57, 43, 0.98));
+}
+
+/* ========================================
+   CONTAINER PRINCIPAL - TRANSIÇÕES MELHORADAS
+======================================== */
+#game {
+  max-width: 500px;
+  width: 100%;
+  background: rgba(20, 20, 35, 0.95);
+  border-radius: 25px;
+  padding: 30px;
+  box-shadow: 
+    0 25px 70px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* TRANSIÇÕES SUAVES ENTRE TELAS - NOVO! */
+.screen {
+  animation: screenFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes screenFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.screen.fade-out {
+  animation: screenFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes screenFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+}
+
+h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  text-align: center;
+  background: linear-gradient(45deg, #ff6b6b, #ffd93d, #4ecdc4, #a78bfa);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #ffd93d;
+}
+
+h3 {
+  font-size: 18px;
+  margin: 25px 0 12px 0;
+  color: #a78bfa;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+h3::before {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #a78bfa);
+}
+
+h3::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, #a78bfa, transparent);
+}
+
+/* ========================================
+   BOTÕES COM FEEDBACK MELHORADO
+======================================== */
+button {
+  width: 100%;
+  padding: 15px;
+  margin: 8px 0;
+  font-size: 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  box-shadow: 
+    0 6px 20px rgba(102, 126, 234, 0.4),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  -webkit-appearance: none;
+  touch-action: manipulation;
+  will-change: transform;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+button:active {
+  transform: scale(0.98) translateY(2px);
+  box-shadow: 
+    0 3px 10px rgba(102, 126, 234, 0.4),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+button:active::before {
+  left: 100%;
+}
+
+button.primary-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
+  font-size: 18px;
+  padding: 18px;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
+  }
+  50% {
+    box-shadow: 0 8px 35px rgba(255, 217, 61, 0.8);
+  }
+}
+
+button.completed {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  cursor: not-allowed;
+  opacity: 0.8;
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+}
+
+button.back-btn {
+  background: linear-gradient(135deg, #555 0%, #333 100%);
+  margin-bottom: 20px;
+}
+
+button.gender-btn {
+  width: 48%;
+  display: inline-block;
+  margin: 10px 1%;
+  padding: 80px 20px 20px 20px;
+  font-size: 18px;
+  position: relative;
+}
+
+button.gender-btn .emoji {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 60px;
+  transition: transform 0.3s ease;
+}
+
+button.gender-btn:active .emoji {
+  transform: translateX(-50%) scale(1.2);
+}
+
+button.gender-btn.male {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+button.gender-btn.female {
+  background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+  box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+}
+
+button.daily-challenge-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5);
+  animation: pulse-challenge 3s ease-in-out infinite;
+}
+
+@keyframes pulse-challenge {
+  0%, 100% {
+    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 12px 35px rgba(245, 87, 108, 0.8);
+    transform: scale(1.02);
+  }
+}
+
+.section {
+  margin-top: 20px;
+  padding-top: 15px;
+}
+
+.hidden { 
+  display: none !important;
+}
+
+/* ========================================
+   PLAYER COM ANIMAÇÕES MELHORADAS
+======================================== */
+#playerContainer {
+  text-align: center;
+  margin: 30px 0;
+}
+
+#player {
+  font-size: 140px;
+  display: inline-block;
+  animation: float3d 4s ease-in-out infinite;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  will-change: transform, filter;
+}
+
+@keyframes float3d {
+  0%, 100% { 
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-15px) scale(1.05);
+  }
+  50% { 
+    transform: translateY(-5px) scale(1);
+  }
+  75% {
+    transform: translateY(-15px) scale(1.05);
+  }
+}
+
+/* CONFETES AO SUBIR DE NÍVEL - NOVO! */
+.player-pulse {
+  animation: megaPulse 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+}
+
+@keyframes megaPulse {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+  }
+  25% {
+    transform: scale(1.4) rotate(-5deg);
+    filter: drop-shadow(0 20px 50px rgba(255, 215, 0, 0.9));
+  }
+  50% { 
+    transform: scale(1.3) rotate(5deg);
+    filter: drop-shadow(0 25px 60px rgba(255, 107, 107, 0.9));
+  }
+  75% {
+    transform: scale(1.4) rotate(-5deg);
+    filter: drop-shadow(0 20px 50px rgba(167, 139, 250, 0.9));
+  }
+}
+
+.level-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd93d 0%, #ff6b6b 100%);
+  color: #000;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 18px;
+  margin-top: 15px;
+  box-shadow: 0 5px 15px rgba(255, 217, 61, 0.5);
+  animation: glow 2s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+
+.level-badge.level-up {
+  animation: levelUpBadge 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes levelUpBadge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3) rotate(5deg); }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 5px 15px rgba(255, 217, 61, 0.5);
+  }
+  50% {
+    box-shadow: 0 5px 30px rgba(255, 217, 61, 0.9);
+  }
+}
+
+/* ========================================
+   PROGRESS BARS ANIMADAS - NOVO!
+======================================== */
+.progress-container {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  height: 24px;
+  overflow: hidden;
+  position: relative;
+  margin: 15px 0;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 200% 100%;
+  border-radius: 18px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  animation: shimmer 2s infinite;
+  box-shadow: 
+    0 0 20px rgba(102, 126, 234, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-shine 2s infinite;
+}
+
+@keyframes progress-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 13px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+  color: white;
+}
+
+.stats {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 2px solid rgba(167, 139, 250, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  padding-left: 10px;
+  border-radius: 8px;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-row strong {
+  color: #a78bfa;
+}
+
+.stat-row span {
+  color: #ffd93d;
+  font-weight: 600;
+}
+
+#xpProgress {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  height: 30px;
+  margin: 15px 0;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid rgba(167, 139, 250, 0.3);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#xpBar {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd93d 0%, #ff6b6b 100%);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 18px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(255, 217, 61, 0.6);
+  animation: xp-pulse 2s ease-in-out infinite;
+}
+
+@keyframes xp-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 217, 61, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 107, 107, 0.8);
+  }
+}
+
+#xpText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 14px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin: 8px 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border-left: 4px solid #a78bfa;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.task-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(5px);
+}
+
+.task-row.completed {
+  opacity: 0.6;
+  border-left-color: #2ecc71;
+}
+
+.task-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #a78bfa;
+  border-radius: 6px;
+  margin-right: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.task-checkbox.checked {
+  background: #2ecc71;
+  border-color: #2ecc71;
+}
+
+.task-checkbox.checked::after {
+  content: '✓';
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.task-info {
+  flex: 1;
+}
+
+.task-name {
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.task-streak {
+  font-size: 12px;
+  color: #ffd93d;
+}
+
+.task-xp {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  color: white;
+  white-space: nowrap;
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.badge {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(102, 126, 234, 0.2));
+  border: 2px solid rgba(167, 139, 250, 0.5);
+  border-radius: 15px;
+  padding: 20px 15px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.badge:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 10px 30px rgba(167, 139, 250, 0.4);
+  border-color: rgba(167, 139, 250, 0.8);
+}
+
+.badge.locked {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+.badge.locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Treinos */
+.workout-item {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+  border: 2px solid rgba(167, 139, 250, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 12px 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.workout-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.workout-item:hover::before {
+  left: 100%;
+}
+
+.workout-item:active {
+  transform: scale(0.98);
+}
+
+.workout-item.completed {
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2));
+  border-color: rgba(46, 204, 113, 0.5);
+}
+
+.workout-item.completed::after {
+  content: '✓';
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.workout-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.workout-icon {
+  font-size: 32px;
+}
+
+.workout-title {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.workout-desc {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  margin-left: 44px;
+}
+
+/* Hidratação */
+.water-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.water-btn {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a3a0 100%);
+  padding: 20px 10px;
+  border-radius: 12px;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.water-btn::before {
+  content: '💧';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+}
+
+.water-btn:active {
+  transform: scale(0.95) translateY(2px);
+  box-shadow: 0 3px 10px rgba(78, 205, 196, 0.4);
+}
+
+.water-goal-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  align-items: center;
+}
+
+.water-goal-input input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid rgba(167, 139, 250, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.water-goal-input input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+}
+
+.water-goal-input button {
+  width: auto;
+  padding: 12px 24px;
+  margin: 0;
+}
+
+/* Histórico */
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.history-day {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(167, 139, 250, 0.2);
+  border-radius: 12px;
+  padding: 15px 10px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.history-day:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(167, 139, 250, 0.5);
+}
+
+.history-day.active {
+  background: linear-gradient(135deg, rgba(255, 217, 61, 0.2), rgba(255, 107, 107, 0.2));
+  border-color: rgba(255, 217, 61, 0.6);
+}
+
+.history-date {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 5px;
+}
+
+.history-xp {
+  font-weight: bold;
+  color: #ffd93d;
+  font-size: 16px;
+}
+
+.history-tasks {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 3px;
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  #game {
+    padding: 20px;
+    border-radius: 20px;
+  }
+  
+  h1 {
+    font-size: 28px;
+  }
+  
+  #player {
+    font-size: 100px;
+  }
+  
+  .badges-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .water-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ========================================
+   PWA / INSTALAÇÃO / CONFIGURAÇÕES
+======================================== */
+.pwa-card {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 12px 0;
+}
+.pwa-card p { line-height: 1.5; opacity: .86; margin: 8px 0 12px; }
+.setting-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.setting-row:last-child { border-bottom: 0; }
+.setting-row label { font-weight: 650; }
+.setting-row small { display: block; opacity: .7; margin-top: 4px; line-height: 1.35; }
+.setting-select {
+  width: auto;
+  min-width: 120px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 10px;
+  background: rgba(15,15,28,.9);
+  color: #fff;
+  font-size: 15px;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.09);
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+#installAppBtn { background: linear-gradient(135deg, #10b981, #059669); }
+#notificationPermissionBtn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+@media (min-width: 900px) {
+  #game { max-width: 680px; padding: 36px; }
+  body { padding: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ===== XP LIFE 2.0 ===== */
+.dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.dash-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px;text-align:left}.dash-card strong{display:block;font-size:12px;opacity:.75;margin-bottom:5px}.dash-card span{font-size:18px;font-weight:800}.rpg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.rpg-attr{background:rgba(255,255,255,.08);padding:12px;border-radius:12px}.mini-bar{height:8px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden;margin-top:7px}.mini-bar>i{display:block;height:100%;background:linear-gradient(90deg,#667eea,#f093fb);border-radius:99px}.form-card{background:rgba(255,255,255,.08);padding:14px;border-radius:14px;margin:12px 0}.form-card input,.form-card select{width:100%;box-sizing:border-box;margin:5px 0 10px;padding:11px;border-radius:9px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.2);color:white}.weekday-row{display:flex;gap:5px;flex-wrap:wrap}.weekday-row label{font-size:12px;background:rgba(255,255,255,.08);padding:7px;border-radius:8px}.mission-card{background:rgba(255,255,255,.08);border-radius:13px;padding:13px;margin:10px 0}.mission-head{display:flex;justify-content:space-between;gap:10px}.stats-bars{display:flex;align-items:flex-end;gap:7px;height:160px;margin:16px 0 8px}.stats-col{flex:1;text-align:center;font-size:10px}.stats-col .bar{min-height:2px;background:linear-gradient(180deg,#f093fb,#667eea);border-radius:8px 8px 2px 2px}.stats-col b{display:block;margin-top:5px}.avatar-title{font-size:13px;opacity:.8;margin-top:4px}.small-note{font-size:12px;opacity:.7;line-height:1.4}.danger-btn{background:linear-gradient(135deg,#ff6b6b,#ee5253)!important}.success-btn{background:linear-gradient(135deg,#1dd1a1,#10ac84)!important}
+@media(min-width:800px){.dashboard-grid{grid-template-columns:repeat(4,1fr)}.rpg-grid{grid-template-columns:repeat(3,1fr)}}
+
+</style>
+</head>
+<body>
+
+<div id="notification"></div>
+
+<div id="game">
+  <!-- SETUP -->
+  <div id="setup" class="screen hidden">
+    <h1>🎮 XP Life</h1>
+    <h2>Escolha seu personagem</h2>
+    <button class="gender-btn male" onclick="selectGender('male')">
+      <span class="emoji">👨</span>
+      Masculino
+    </button>
+    <button class="gender-btn female" onclick="selectGender('female')">
+      <span class="emoji">👩</span>
+      Feminino
+    </button>
+  </div>
+
+  <!-- MENU PRINCIPAL -->
+  <div id="menu" class="screen hidden">
+    <h1>🎮 XP Life</h1>
+    
+    <div id="playerContainer">
+      <div id="player">🧑</div>
+      <div class="level-badge" id="levelBadge">Level 1</div><div class="avatar-title" id="avatarTitle">Iniciante</div>
+    </div>
+
+    <div id="xpProgress">
+      <div id="xpBar" style="width: 0%"></div>
+      <div id="xpText">0 / 100 XP</div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="dash-card"><strong>💧 Água</strong><span id="dashWater">0 / 2400 ml</span></div>
+      <div class="dash-card"><strong>🪙 Life Coins</strong><span id="dashCoins">0</span></div>
+      <div class="dash-card"><strong>⚔️ Poder RPG</strong><span id="dashPower">0</span></div>
+      <div class="dash-card"><strong>📈 XP Hoje</strong><span id="dashXPToday">0</span></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-row">
+        <strong>🔥 Streak Atual</strong>
+        <span id="currentStreak">0 dias</span>
+      </div>
+      <div class="stat-row">
+        <strong>⭐ XP Total</strong>
+        <span id="totalXP">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>✅ Tarefas Hoje</strong>
+        <span id="tasksToday">0</span>
+      </div>
+    </div>
+
+    <button class="primary-btn" onclick="openScreen('tasks')">📋 Tarefas</button>
+    <button onclick="openScreen('rpgProgress')">⚔️ Progresso RPG</button>
+    <button onclick="openScreen('weeklyMissions')">🗓️ Missões Semanais</button>
+    <button onclick="openScreen('statistics')">📈 Estatísticas</button>
+    <button class="daily-challenge-btn" onclick="openScreen('dailyChallenge')">🎲 Desafio Diário</button>
+    <button onclick="openScreen('workouts')">💪 Treinos</button>
+    <button onclick="openScreen('water')">💧 Hidratação</button>
+    <button onclick="openScreen('achievements')">🏆 Conquistas</button>
+    <button onclick="openScreen('ranking')">📊 Ranking</button>
+    <button onclick="openScreen('history')">📅 Histórico</button>
+    <button onclick="openScreen('appSettings')">⚙️ App & Notificações</button>
+    <button id="installAppBtn" onclick="installApp()" hidden>📲 Instalar XP Life</button>
+    <button id="soundToggle" onclick="toggleSound()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🔊 Som: ON</button>
+    <button class="back-btn" onclick="resetProgress()">🔄 Resetar Progresso</button>
+  </div>
+
+  <!-- APP & NOTIFICAÇÕES -->
+  <div id="appSettings" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button>
+    <h2>⚙️ App & Notificações</h2>
+
+    <div class="pwa-card">
+      <strong>📲 Instalação</strong>
+      <div id="installStatus" class="status-pill">Verificando...</div>
+      <p>Instale o XP Life como aplicativo para abrir em tela própria e ter uma experiência mais parecida com app nativo.</p>
+      <button id="settingsInstallBtn" onclick="installApp()">📲 Instalar XP Life</button>
+    </div>
+
+    <div class="pwa-card">
+      <strong>🔔 Notificações</strong>
+      <div id="notificationStatus" class="status-pill">Verificando...</div>
+      <p>Ative as notificações para receber lembretes enquanto o navegador/PWA permite execução em segundo plano.</p>
+      <button id="notificationPermissionBtn" onclick="requestNotificationPermission()">🔔 Ativar notificações</button>
+      <button onclick="sendTestNotification()">🧪 Testar notificação</button>
+    </div>
+
+    <div class="pwa-card">
+      <div class="setting-row">
+        <div>
+          <label for="waterReminderSelect">💧 Lembrete de água</label>
+          <small>Intervalo entre lembretes quando a meta diária ainda não foi atingida.</small>
+        </div>
+        <select id="waterReminderSelect" class="setting-select" onchange="updateReminderSettings()">
+          <option value="0">Desligado</option>
+          <option value="30">30 min</option>
+          <option value="60">1 hora</option>
+          <option value="90">1h30</option>
+          <option value="120">2 horas</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div>
+          <label for="dailyReminderSelect">🎯 Lembrete diário</label>
+          <small>Lembra de abrir o XP Life e manter sua sequência.</small>
+        </div>
+        <select id="dailyReminderSelect" class="setting-select" onchange="updateReminderSettings()">
+          <option value="0">Desligado</option>
+          <option value="8">08:00</option>
+          <option value="9">09:00</option>
+          <option value="12">12:00</option>
+          <option value="18">18:00</option>
+          <option value="20">20:00</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="pwa-card">
+      <strong>💾 Backup do progresso</strong>
+      <p>Exporte seus dados para guardar uma cópia ou transferir o progresso para outro aparelho.</p>
+      <button onclick="exportBackup()">⬇️ Exportar backup</button>
+      <input id="backupFile" type="file" accept="application/json" style="display:none" onchange="importBackup(event)">
+      <button onclick="document.getElementById('backupFile').click()">⬆️ Importar backup</button>
+    </div>
+
+    <div class="pwa-card">
+      <strong>🌐 Offline</strong>
+      <p id="offlineStatus">O app salva o progresso no aparelho e prepara os arquivos principais para funcionar sem internet após a primeira abertura.</p>
+    </div>
+  </div>
+
+  <!-- TAREFAS -->
+  <div id="tasks" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button>
+    <h2>📋 Tarefas Diárias</h2>
+    
+    <div class="form-card">
+      <h3>➕ Criar hábito/tarefa</h3>
+      <input id="customTaskName" maxlength="60" placeholder="Ex.: Estudar inglês">
+      <select id="customTaskCategory"><option>Personalizado</option><option>Estudo/Trabalho</option><option>Saúde</option><option>Autocuidado</option><option>Casa</option></select>
+      <input id="customTaskXP" type="number" min="5" max="100" value="20" placeholder="XP">
+      <div class="weekday-row" id="customTaskDays">
+        <label><input type="checkbox" value="0" checked> Dom</label><label><input type="checkbox" value="1" checked> Seg</label><label><input type="checkbox" value="2" checked> Ter</label><label><input type="checkbox" value="3" checked> Qua</label><label><input type="checkbox" value="4" checked> Qui</label><label><input type="checkbox" value="5" checked> Sex</label><label><input type="checkbox" value="6" checked> Sáb</label>
+      </div>
+      <button class="success-btn" onclick="addCustomTask()">＋ Adicionar tarefa</button>
+    </div>
+    <div id="tasksList"></div>
+  </div>
+
+  <!-- DESAFIO DIÁRIO -->
+  <div id="dailyChallenge" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button>
+    <h2>🎲 Desafios Diários</h2>
+    
+    <div class="stats" style="margin-bottom: 20px;">
+      <div class="stat-row">
+        <strong>🎯 Desafios Hoje</strong>
+        <span id="todayChallengesCount">0/3</span>
+      </div>
+    </div>
+
+    <h3>⚡ Desafios de Hoje</h3>
+
+    <!-- Desafio 1 -->
+    <div style="background: linear-gradient(135deg, rgba(240, 147, 251, 0.2), rgba(245, 87, 108, 0.2)); border: 2px solid rgba(240, 147, 251, 0.5); border-radius: 15px; padding: 20px; margin: 15px 0; text-align: center;" id="challenge1-card">
+      <div style="font-size: 36px; margin-bottom: 10px;">🎯</div>
+      <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; margin-bottom: 12px;">
+        <div style="font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 3px;" id="challenge1Category">Categoria</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.6);" id="challenge1Difficulty">Dificuldade</div>
+      </div>
+      <p id="challenge1Description" style="font-size: 16px; line-height: 1.5; margin-bottom: 15px;"></p>
+      <button id="challenge1Btn" class="primary-btn" onclick="completeDailyChallenge(0)" style="font-size: 14px; padding: 12px 24px;">Completar (+100 XP)</button>
+    </div>
+
+    <!-- Desafio 2 -->
+    <div style="background: linear-gradient(135deg, rgba(147, 197, 253, 0.2), rgba(59, 130, 246, 0.2)); border: 2px solid rgba(59, 130, 246, 0.5); border-radius: 15px; padding: 20px; margin: 15px 0; text-align: center;" id="challenge2-card">
+      <div style="font-size: 36px; margin-bottom: 10px;">🎯</div>
+      <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; margin-bottom: 12px;">
+        <div style="font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 3px;" id="challenge2Category">Categoria</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.6);" id="challenge2Difficulty">Dificuldade</div>
+      </div>
+      <p id="challenge2Description" style="font-size: 16px; line-height: 1.5; margin-bottom: 15px;"></p>
+      <button id="challenge2Btn" class="primary-btn" onclick="completeDailyChallenge(1)" style="font-size: 14px; padding: 12px 24px;">Completar (+100 XP)</button>
+    </div>
+
+    <!-- Desafio 3 -->
+    <div style="background: linear-gradient(135deg, rgba(167, 243, 208, 0.2), rgba(52, 211, 153, 0.2)); border: 2px solid rgba(52, 211, 153, 0.5); border-radius: 15px; padding: 20px; margin: 15px 0; text-align: center;" id="challenge3-card">
+      <div style="font-size: 36px; margin-bottom: 10px;">🎯</div>
+      <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 8px; margin-bottom: 12px;">
+        <div style="font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 3px;" id="challenge3Category">Categoria</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.6);" id="challenge3Difficulty">Dificuldade</div>
+      </div>
+      <p id="challenge3Description" style="font-size: 16px; line-height: 1.5; margin-bottom: 15px;"></p>
+      <button id="challenge3Btn" class="primary-btn" onclick="completeDailyChallenge(2)" style="font-size: 14px; padding: 12px 24px;">Completar (+100 XP)</button>
+    </div>
+    
+    <div class="stats">
+      <div class="stat-row">
+        <strong>🏆 Total Completados</strong>
+        <span id="totalChallenges">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>🔥 Streak Atual</strong>
+        <span id="currentChallengeStreak">0 dias</span>
+      </div>
+      <div class="stat-row">
+        <strong>💪 Melhor Streak</strong>
+        <span id="challengeStreak">0 dias</span>
+      </div>
+      <div class="stat-row">
+        <strong>⭐ Taxa de Conclusão</strong>
+        <span id="challengeCompletionRate">0%</span>
+      </div>
+    </div>
+
+    <h3>📊 Desafios por Categoria</h3>
+    <div class="stats">
+      <div class="stat-row">
+        <strong>🏋️ Fitness</strong>
+        <span id="challengesFitness">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>🧠 Mental</strong>
+        <span id="challengesMental">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>💚 Saúde</strong>
+        <span id="challengesHealth">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>🎨 Criativo</strong>
+        <span id="challengesCreative">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>🌟 Bem-estar</strong>
+        <span id="challengesWellness">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TREINOS -->
+  <div id="workouts" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button>
+    <h2>💪 Registro de Treinos</h2>
+    
+    <div class="stats">
+      <div class="stat-row">
+        <strong>📊 Treinos Hoje</strong>
+        <span id="workoutsToday">0/10</span>
+      </div>
+      <div class="stat-row">
+        <strong>🔥 Streak de Treinos</strong>
+        <span id="workoutStreak">0 dias</span>
+      </div>
+      <div class="stat-row">
+        <strong>💯 Total de Treinos</strong>
+        <span id="totalWorkouts">0</span>
+      </div>
+    </div>
+
+    <h3>⏰ Horário do Treino</h3>
+    
+    <div class="workout-item" id="workout-morning" onclick="toggleWorkout('morning')">
+      <div class="workout-header">
+        <span class="workout-icon">🌅</span>
+        <span class="workout-title">Manhã</span>
+      </div>
+      <div class="workout-desc">Treino matinal (+30 XP)</div>
+    </div>
+
+    <div class="workout-item" id="workout-afternoon" onclick="toggleWorkout('afternoon')">
+      <div class="workout-header">
+        <span class="workout-icon">☀️</span>
+        <span class="workout-title">Tarde</span>
+      </div>
+      <div class="workout-desc">Treino vespertino (+30 XP)</div>
+    </div>
+
+    <div class="workout-item" id="workout-evening" onclick="toggleWorkout('evening')">
+      <div class="workout-header">
+        <span class="workout-icon">🌙</span>
+        <span class="workout-title">Noite</span>
+      </div>
+      <div class="workout-desc">Treino noturno (+30 XP)</div>
+    </div>
+
+    <h3>🏋️ Tipo de Treino</h3>
+    
+    <div class="workout-item" id="workout-cardio" onclick="toggleWorkout('cardio')">
+      <div class="workout-header">
+        <span class="workout-icon">🏃</span>
+        <span class="workout-title">Cardio</span>
+      </div>
+      <div class="workout-desc">Corrida, bike, pular corda (+35 XP)</div>
+    </div>
+
+    <div class="workout-item" id="workout-strength" onclick="toggleWorkout('strength')">
+      <div class="workout-header">
+        <span class="workout-icon">🏋️</span>
+        <span class="workout-title">Musculação</span>
+      </div>
+      <div class="workout-desc">Treino de força e hipertrofia (+40 XP)</div>
+    </div>
+
+    <div class="workout-item" id="workout-bodyweight" onclick="toggleWorkout('bodyweight')">
+      <div class="workout-header">
+        <span class="workout-icon">💪</span>
+        <span class="workout-title">Calistenia</span>
+      </div>
+      <div class="workout-desc">Flexões, abdominais, barras (+35 XP)</div>
+    </div>
+
+    <div class="workout-item" id="workout-yoga" onclick="toggleWorkout('yoga')">
+      <div class="workout-header">
+        <span class="workout-icon">🧘</span>
+        <span class="workout-title">Yoga/Pilates</span>
+      </div>
+      <div class="workout-desc">Flexibilidade e equilíbrio (+30 XP)</div>
+    </div>
+
+    <div class="workout-item" id="workout-sports" onclick="toggleWorkout('sports')">
+      <div class="workout-header">
+        <span class="workout-icon">⚽</span>
+        <span class="workout-title">Esportes</span>
+      </div>
+      <div class="workout-desc">Futebol, basquete, vôlei, etc (+35 XP)</div>
+    </div>
+
+    <div class="workout-item" id="workout-stretching" onclick="toggleWorkout('stretching')">
+      <div class="workout-header">
+        <span class="workout-icon">🤸</span>
+        <span class="workout-title">Alongamento</span>
+      </div>
+      <div class="workout-desc">Mobilidade e recuperação (+20 XP)</div>
+    </div>
+
+    <div class="workout-item" id="workout-swimming" onclick="toggleWorkout('swimming')">
+      <div class="workout-header">
+        <span class="workout-icon">🏊</span>
+        <span class="workout-title">Natação</span>
+      </div>
+      <div class="workout-desc">Treino completo na água (+40 XP)</div>
+    </div>
+  </div>
+
+  <!-- HIDRATAÇÃO -->
+  <div id="water" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button>
+    <h2>💧 Hidratação</h2>
+    
+    <div class="stats">
+      <div class="stat-row">
+        <strong>💧 Hoje</strong>
+        <span><span id="waterToday">0</span>ml / <span id="waterGoalDisplay">2400</span>ml</span>
+      </div>
+      <div class="stat-row">
+        <strong>📊 Progresso</strong>
+        <span id="waterProgress">0%</span>
+      </div>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-bar" id="waterProgressBar" style="width: 0%"></div>
+      <div class="progress-text" id="waterProgressText">0%</div>
+    </div>
+
+    <h3>Adicionar Água</h3>
+    <div class="water-buttons">
+      <button class="water-btn" onclick="addWater(200)" style="padding-top: 35px;">200ml</button>
+      <button class="water-btn" onclick="addWater(300)" style="padding-top: 35px;">300ml</button>
+      <button class="water-btn" onclick="addWater(500)" style="padding-top: 35px;">500ml</button>
+    </div>
+
+    <h3>Meta Diária</h3>
+    <div class="water-goal-input">
+      <input type="number" id="waterGoalInput" min="500" max="5000" step="100" placeholder="Meta em ml">
+      <button onclick="updateWaterGoal()">Atualizar</button>
+    </div>
+
+    <div class="stats" style="margin-top: 25px;">
+      <div class="stat-row">
+        <strong>🔥 Streak Atual</strong>
+        <span id="waterStreakDisplay">0 dias</span>
+      </div>
+      <div class="stat-row">
+        <strong>🏆 Melhor Streak</strong>
+        <span id="waterBestStreakDisplay">0 dias</span>
+      </div>
+      <div class="stat-row">
+        <strong>📅 Dias Completados</strong>
+        <span id="waterDaysDisplay">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>🌊 Total Bebido</strong>
+        <span id="waterTotalDisplay">0 L</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONQUISTAS -->
+  <div id="achievements" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button>
+    <h2>🏆 Conquistas</h2>
+    <div id="achievementsList" class="badges-grid"></div>
+  </div>
+
+  <!-- RANKING -->
+  <div id="ranking" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button>
+    <h2>📊 Estatísticas</h2>
+    
+    <div class="stats">
+      <div class="stat-row">
+        <strong>⭐ XP Total</strong>
+        <span id="totalXPRank">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>🔥 Melhor Streak</strong>
+        <span id="bestStreakDisplay">0 dias</span>
+      </div>
+      <div class="stat-row">
+        <strong>✅ Total de Tarefas</strong>
+        <span id="totalTasksDisplay">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>📅 Dias Jogados</strong>
+        <span id="daysPlayedDisplay">0</span>
+      </div>
+      <div class="stat-row">
+        <strong>🎯 Nível Máximo</strong>
+        <span id="maxLevelDisplay">1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO -->
+
+  <div id="rpgProgress" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button><h2>⚔️ Progresso RPG</h2>
+    <div class="stats"><div class="stat-row"><strong>🪙 Life Coins</strong><span id="coinsDisplay">0</span></div><div class="stat-row"><strong>🏷️ Título</strong><span id="titleDisplay">Iniciante</span></div></div>
+    <div id="attributesGrid" class="rpg-grid"></div>
+    <div class="form-card"><h3>🎁 Recompensas pessoais</h3><input id="rewardName" placeholder="Ex.: Noite de filme"><input id="rewardCost" type="number" min="10" value="100" placeholder="Custo em moedas"><button onclick="addPersonalReward()">＋ Criar recompensa</button><div id="rewardsList"></div></div>
+  </div>
+
+  <div id="weeklyMissions" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button><h2>🗓️ Missões Semanais</h2><p class="small-note">Reiniciam a cada semana. As recompensas só podem ser coletadas uma vez.</p><div id="weeklyMissionList"></div>
+  </div>
+
+  <div id="statistics" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button><h2>📈 Estatísticas</h2>
+    <div class="stats"><div class="stat-row"><strong>✅ Taxa de conclusão</strong><span id="completionRate">0%</span></div><div class="stat-row"><strong>⭐ Melhor dia</strong><span id="bestDayStat">—</span></div><div class="stat-row"><strong>🔥 Melhor sequência</strong><span id="bestStreakStat">0 dias</span></div></div>
+    <h3>XP dos últimos 7 dias</h3><div id="xpWeekChart" class="stats-bars"></div>
+  </div>
+
+  <div id="history" class="screen hidden">
+    <button class="back-btn" onclick="openScreen('menu')">← Voltar</button>
+    <h2>📅 Últimos 30 Dias</h2>
+    <div id="historyGrid" class="history-grid"></div>
+  </div>
+</div>
+
+<script>
+// ======================
+// VARIÁVEIS GLOBAIS
+// ======================
+let player = {
+  gender: null,
+  level: 1,
+  xp: 0,
+  totalXP: 0,
+  currentStreak: 0,
+  bestStreak: 0,
+  tasksToday: 0,
+  totalTasks: 0,
+  daysPlayed: 0,
+  maxLevel: 1,
+  lastDate: null,
+  achievements: [],
+  taskStreaks: {},
+  taskHistory: {},
+  completedToday: [],
+  workoutCompleted: {},
+  totalWorkouts: 0,
+  dailyChallengesCompleted: [false, false, false],
+  challengesByCategory: {
+    fitness: 0,
+    mental: 0,
+    health: 0,
+    creative: 0,
+    wellness: 0
+  },
+  waterToday: 0,
+  waterGoal: 2400,
+  waterStreak: 0,
+  waterBestStreak: 0,
+  waterDaysCompleted: 0,
+  waterTotalDrunk: 0,
+  waterHistory: [],
+  xpToday: 0,
+  playedDates: [],
+  taskStreakMeta: {},
+  coins: 0,
+  attributes: { strength: 0, intelligence: 0, health: 0, discipline: 0, balance: 0, consistency: 0 },
+  customTasks: [],
+  personalRewards: [],
+  workoutHistory: [],
+  waterAddsToday: [],
+  weeklyClaims: {},
+  history: []
+};
+
+const playerEmojis = {
+  male: ["👨", "👨‍💼", "👨‍🎓", "👨‍🏫", "👨‍⚕️", "👨‍🚀", "👨‍🎨", "🧙‍♂️", "🦸‍♂️", "🥷"],
+  female: ["👩", "👩‍💼", "👩‍🎓", "👩‍🏫", "👩‍⚕️", "👩‍🚀", "👩‍🎨", "🧙‍♀️", "🦸‍♀️", "🥷"]
+};
+
+const tasksList = [
+  // MANHÃ
+  { id: 'acordar_cedo', name: 'Acordar Cedo (antes das 7h)', xp: 20, category: 'Manhã' },
+  { id: 'cafe', name: 'Café da Manhã Saudável', xp: 15, category: 'Manhã' },
+  { id: 'cama', name: 'Arrumar a Cama', xp: 10, category: 'Manhã' },
+  
+  // ESTUDO/TRABALHO
+  { id: 'estudo_1h', name: 'Estudar 1 hora', xp: 30, category: 'Estudo/Trabalho' },
+  { id: 'trabalho_foco', name: 'Trabalhar com foco (2h)', xp: 40, category: 'Estudo/Trabalho' },
+  { id: 'leitura', name: 'Ler 30 minutos', xp: 25, category: 'Estudo/Trabalho' },
+  
+  // SAÚDE
+  { id: 'exercicio', name: 'Fazer Exercício (30 min)', xp: 35, category: 'Saúde' },
+  { id: 'alongamento', name: 'Alongamento', xp: 15, category: 'Saúde' },
+  { id: 'agua', name: 'Beber 2L de Água', xp: 20, category: 'Saúde' },
+  { id: 'frutas', name: 'Comer 3 Frutas', xp: 20, category: 'Saúde' },
+  { id: 'vegetais', name: 'Comer Salada/Vegetais', xp: 20, category: 'Saúde' },
+  { id: 'suplementos', name: 'Tomar Vitaminas/Suplementos', xp: 15, category: 'Saúde' },
+  { id: 'postura', name: 'Manter Boa Postura', xp: 15, category: 'Saúde' },
+  { id: 'caminhada', name: 'Caminhar 30 minutos', xp: 25, category: 'Saúde' },
+  { id: 'evitar_fastfood', name: 'Zero Fast Food/Frituras', xp: 25, category: 'Saúde' },
+  { id: 'proteina', name: 'Consumir Proteína Adequada', xp: 20, category: 'Saúde' },
+  
+  // AUTOCUIDADO
+  { id: 'meditacao', name: 'Meditar 10 minutos', xp: 25, category: 'Autocuidado' },
+  { id: 'sem_redes', name: 'Sem Redes Sociais (3h)', xp: 30, category: 'Autocuidado' },
+  { id: 'dormir_cedo', name: 'Dormir antes das 23h', xp: 25, category: 'Autocuidado' },
+  { id: 'banho_frio', name: 'Banho Frio', xp: 20, category: 'Autocuidado' }
+];
+
+const achievementsList = [
+  { id: 'first_task', name: 'Primeira Tarefa', desc: 'Complete sua primeira tarefa', icon: '🎯' },
+  { id: 'streak_7', name: 'Uma Semana', desc: '7 dias consecutivos', icon: '🔥' },
+  { id: 'streak_30', name: 'Um Mês', desc: '30 dias consecutivos', icon: '💪' },
+  { id: 'level_5', name: 'Nível 5', desc: 'Alcance o nível 5', icon: '⭐' },
+  { id: 'level_10', name: 'Nível 10', desc: 'Alcance o nível 10', icon: '🌟' },
+  { id: 'tasks_100', name: 'Centenário', desc: 'Complete 100 tarefas', icon: '💯' },
+  { id: 'tasks_500', name: 'Dedicado', desc: 'Complete 500 tarefas', icon: '🏆' },
+  { id: 'early_bird', name: 'Madrugador', desc: 'Acorde cedo 10 vezes', icon: '🌅' },
+  { id: 'gym_rat', name: 'Fitness', desc: 'Exercite-se 20 vezes', icon: '💪' },
+  { id: 'bookworm', name: 'Leitor', desc: 'Leia 15 vezes', icon: '📚' },
+  { id: 'hydrated', name: 'Hidratado', desc: 'Meta de água 10 dias', icon: '💧' },
+  { id: 'zen_master', name: 'Zen Master', desc: 'Medite 15 vezes', icon: '🧘' }
+];
+
+const dailyChallenges = [
+  // FITNESS
+  { text: "Faça 50 flexões", category: "🏋️ Fitness", difficulty: "⭐ Médio" },
+  { text: "Faça 100 agachamentos", category: "🏋️ Fitness", difficulty: "⭐⭐ Difícil" },
+  { text: "Faça 30 burpees", category: "🏋️ Fitness", difficulty: "⭐⭐ Difícil" },
+  { text: "Corra 5km", category: "🏋️ Fitness", difficulty: "⭐⭐⭐ Muito Difícil" },
+  { text: "Faça 200 abdominais", category: "🏋️ Fitness", difficulty: "⭐⭐⭐ Muito Difícil" },
+  { text: "Prancha por 3 minutos", category: "🏋️ Fitness", difficulty: "⭐⭐ Difícil" },
+  { text: "Faça 20 pull-ups", category: "🏋️ Fitness", difficulty: "⭐⭐⭐ Muito Difícil" },
+  { text: "Caminhe 10.000 passos", category: "🏋️ Fitness", difficulty: "⭐ Médio" },
+  { text: "Faça 100 jumping jacks", category: "🏋️ Fitness", difficulty: "⭐ Médio" },
+  { text: "Treino de 45 minutos", category: "🏋️ Fitness", difficulty: "⭐⭐ Difícil" },
+  
+  // MENTAL
+  { text: "Leia 20 páginas de um livro", category: "🧠 Mental", difficulty: "⭐ Médio" },
+  { text: "Aprenda 10 palavras em outro idioma", category: "🧠 Mental", difficulty: "⭐ Médio" },
+  { text: "Assista uma aula online", category: "🧠 Mental", difficulty: "⭐ Médio" },
+  { text: "Escreva 500 palavras", category: "🧠 Mental", difficulty: "⭐⭐ Difícil" },
+  { text: "Resolva 10 problemas de lógica", category: "🧠 Mental", difficulty: "⭐⭐ Difícil" },
+  { text: "Leia um artigo científico completo", category: "🧠 Mental", difficulty: "⭐⭐ Difícil" },
+  { text: "Estude algo novo por 1 hora", category: "🧠 Mental", difficulty: "⭐ Médio" },
+  { text: "Faça um curso online completo", category: "🧠 Mental", difficulty: "⭐⭐⭐ Muito Difícil" },
+  { text: "Memorize 20 itens de uma lista", category: "🧠 Mental", difficulty: "⭐⭐ Difícil" },
+  { text: "Leia 50 páginas sem parar", category: "🧠 Mental", difficulty: "⭐⭐⭐ Muito Difícil" },
+  
+  // SAÚDE
+  { text: "Beba 3L de água hoje", category: "💚 Saúde", difficulty: "⭐ Médio" },
+  { text: "Zero açúcar o dia todo", category: "💚 Saúde", difficulty: "⭐⭐ Difícil" },
+  { text: "Coma 5 porções de vegetais", category: "💚 Saúde", difficulty: "⭐ Médio" },
+  { text: "Durma 8 horas esta noite", category: "💚 Saúde", difficulty: "⭐ Médio" },
+  { text: "Zero refrigerante/bebidas açucaradas", category: "💚 Saúde", difficulty: "⭐ Médio" },
+  { text: "Faça todas as refeições sem telas", category: "💚 Saúde", difficulty: "⭐⭐ Difícil" },
+  { text: "Tome sol por 20 minutos", category: "💚 Saúde", difficulty: "Fácil" },
+  { text: "Zero fast food o dia inteiro", category: "💚 Saúde", difficulty: "⭐ Médio" },
+  { text: "Coma apenas comida caseira", category: "💚 Saúde", difficulty: "⭐⭐ Difícil" },
+  { text: "Prepare 3 refeições saudáveis", category: "💚 Saúde", difficulty: "⭐⭐ Difícil" },
+  
+  // CRIATIVO
+  { text: "Desenhe algo por 30 minutos", category: "🎨 Criativo", difficulty: "⭐ Médio" },
+  { text: "Pratique um instrumento por 30 min", category: "🎨 Criativo", difficulty: "⭐ Médio" },
+  { text: "Escreva uma história curta", category: "🎨 Criativo", difficulty: "⭐⭐ Difícil" },
+  { text: "Tire 50 fotos criativas", category: "🎨 Criativo", difficulty: "⭐ Médio" },
+  { text: "Crie algo novo com as próprias mãos", category: "🎨 Criativo", difficulty: "⭐⭐ Difícil" },
+  { text: "Aprenda uma nova receita", category: "🎨 Criativo", difficulty: "⭐ Médio" },
+  { text: "Faça um projeto DIY", category: "🎨 Criativo", difficulty: "⭐⭐⭐ Muito Difícil" },
+  { text: "Componha uma música simples", category: "🎨 Criativo", difficulty: "⭐⭐⭐ Muito Difícil" },
+  { text: "Escreva um poema", category: "🎨 Criativo", difficulty: "⭐ Médio" },
+  { text: "Edite um vídeo criativo", category: "🎨 Criativo", difficulty: "⭐⭐ Difícil" },
+  
+  // BEM-ESTAR
+  { text: "Medite por 20 minutos", category: "🌟 Bem-estar", difficulty: "⭐ Médio" },
+  { text: "Fique 6 horas sem celular", category: "🌟 Bem-estar", difficulty: "⭐⭐⭐ Muito Difícil" },
+  { text: "Faça alongamento completo", category: "🌟 Bem-estar", difficulty: "⭐ Médio" },
+  { text: "Pratique gratidão - liste 10 coisas", category: "🌟 Bem-estar", difficulty: "Fácil" },
+  { text: "Organize sua mesa de trabalho", category: "🌟 Bem-estar", difficulty: "⭐ Médio" },
+  { text: "Ligue para um amigo/familiar", category: "🌟 Bem-estar", difficulty: "Fácil" },
+  { text: "Faça uma boa ação para alguém", category: "🌟 Bem-estar", difficulty: "⭐ Médio" },
+  { text: "Zero redes sociais o dia todo", category: "🌟 Bem-estar", difficulty: "⭐⭐⭐ Muito Difícil" },
+  { text: "Tome um banho frio", category: "🌟 Bem-estar", difficulty: "⭐⭐ Difícil" },
+  { text: "Pratique respiração profunda 10min", category: "🌟 Bem-estar", difficulty: "⭐ Médio" },
+  { text: "Arrume todo seu quarto", category: "🌟 Bem-estar", difficulty: "⭐⭐ Difícil" },
+  { text: "Passe 1 hora na natureza", category: "🌟 Bem-estar", difficulty: "⭐ Médio" },
+  { text: "Pratique yoga por 30 minutos", category: "🌟 Bem-estar", difficulty: "⭐⭐ Difícil" },
+  { text: "Journal - escreva seus pensamentos", category: "🌟 Bem-estar", difficulty: "⭐ Médio" },
+  { text: "Acorde antes das 6h", category: "🌟 Bem-estar", difficulty: "⭐⭐ Difícil" }
+];
+
+// ======================
+// SISTEMA DE SONS - NOVO!
+// ======================
+const audioContext = typeof AudioContext !== 'undefined' ? new AudioContext() : null;
+let soundEnabled = true;
+
+// Função para criar sons procedurais
+function playSound(type) {
+  if (!soundEnabled || !audioContext) return;
+  
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  const now = audioContext.currentTime;
+  
+  switch(type) {
+    case 'taskComplete':
+      // Som de conclusão de tarefa - bip ascendente
+      oscillator.frequency.setValueAtTime(523.25, now); // C5
+      oscillator.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+      gainNode.gain.setValueAtTime(0.3, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      oscillator.start(now);
+      oscillator.stop(now + 0.15);
+      break;
+      
+    case 'levelUp':
+      // Som de subida de nível - fanfarra
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(261.63, now); // C4
+      oscillator.frequency.setValueAtTime(329.63, now + 0.1); // E4
+      oscillator.frequency.setValueAtTime(392.00, now + 0.2); // G4
+      oscillator.frequency.setValueAtTime(523.25, now + 0.3); // C5
+      gainNode.gain.setValueAtTime(0.4, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+      oscillator.start(now);
+      oscillator.stop(now + 0.5);
+      break;
+      
+    case 'xpGain':
+      // Som de ganho de XP - som suave
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(440, now); // A4
+      oscillator.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+      gainNode.gain.setValueAtTime(0.2, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      oscillator.start(now);
+      oscillator.stop(now + 0.1);
+      break;
+      
+    case 'achievement':
+      // Som de conquista - acorde triunfante
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(392.00, now); // G4
+      oscillator.frequency.setValueAtTime(493.88, now + 0.15); // B4
+      oscillator.frequency.setValueAtTime(659.25, now + 0.3); // E5
+      gainNode.gain.setValueAtTime(0.3, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+      oscillator.start(now);
+      oscillator.stop(now + 0.5);
+      break;
+      
+    case 'click':
+      // Som de clique - bip curto
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(800, now);
+      gainNode.gain.setValueAtTime(0.1, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+      oscillator.start(now);
+      oscillator.stop(now + 0.05);
+      break;
+      
+    case 'water':
+      // Som de água - frequência baixa ondulante
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(200, now);
+      oscillator.frequency.setValueAtTime(250, now + 0.05);
+      oscillator.frequency.setValueAtTime(200, now + 0.1);
+      gainNode.gain.setValueAtTime(0.15, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+      oscillator.start(now);
+      oscillator.stop(now + 0.12);
+      break;
+      
+    case 'challenge':
+      // Som de desafio - dramático
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.setValueAtTime(220, now); // A3
+      oscillator.frequency.exponentialRampToValueAtTime(440, now + 0.2); // A4
+      gainNode.gain.setValueAtTime(0.25, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+      oscillator.start(now);
+      oscillator.stop(now + 0.25);
+      break;
+      
+    case 'workout':
+      // Som de treino - energia
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(330, now); // E4
+      oscillator.frequency.setValueAtTime(440, now + 0.08); // A4
+      gainNode.gain.setValueAtTime(0.2, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      oscillator.start(now);
+      oscillator.stop(now + 0.15);
+      break;
+      
+    case 'error':
+      // Som de erro - bip baixo descendente
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(300, now);
+      oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.2);
+      gainNode.gain.setValueAtTime(0.2, now);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      oscillator.start(now);
+      oscillator.stop(now + 0.2);
+      break;
+  }
+}
+
+// Função para alternar sons
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const soundBtn = document.getElementById('soundToggle');
+  if (soundBtn) {
+    soundBtn.innerText = soundEnabled ? '🔊 Som: ON' : '🔇 Som: OFF';
+  }
+  localStorage.setItem('soundEnabled', soundEnabled);
+  
+  if (soundEnabled) {
+    playSound('click');
+    showNotification('🔊 Sons ativados!', 'success');
+  } else {
+    showNotification('🔇 Sons desativados', 'info');
+  }
+}
+
+// Carregar preferência de som
+function loadSoundPreference() {
+  const saved = localStorage.getItem('soundEnabled');
+  if (saved !== null) {
+    soundEnabled = saved === 'true';
+  }
+  const soundBtn = document.getElementById('soundToggle');
+  if (soundBtn) {
+    soundBtn.innerText = soundEnabled ? '🔊 Som: ON' : '🔇 Som: OFF';
+  }
+}
+
+// ======================
+// FEEDBACK TÁTIL (VIBRAÇÃO) - NOVO!
+// ======================
+function vibrate(pattern) {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(pattern);
+  }
+}
+
+// Padrões de vibração
+const VIBRATE_PATTERNS = {
+  light: 10,
+  medium: 30,
+  strong: 50,
+  success: [30, 50, 30],
+  levelUp: [50, 100, 50, 100, 50],
+  error: [100, 50, 100]
+};
+
+// ======================
+// CONFETES AO SUBIR DE NÍVEL - NOVO!
+// ======================
+function createConfetti() {
+  const colors = ['#ff6b6b', '#ffd93d', '#4ecdc4', '#a78bfa', '#f093fb'];
+  const confettiCount = 50;
+  
+  for (let i = 0; i < confettiCount; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+    confetti.style.animation = 'confetti-fall ' + (Math.random() * 2 + 2) + 's ease-out forwards';
+    
+    document.body.appendChild(confetti);
+    
+    setTimeout(() => confetti.remove(), 4000);
+  }
+}
+
+// ======================
+// NOTIFICAÇÕES ELEGANTES - MELHORADO!
+// ======================
+function showNotification(message, type = 'default') {
+  const notif = document.getElementById('notification');
+  if (!notif) return;
+  
+  // Remover classes anteriores
+  notif.className = '';
+  notif.classList.add('show');
+  
+  // Adicionar tipo
+  if (type === 'success') {
+    notif.classList.add('success');
+    vibrate(VIBRATE_PATTERNS.success);
+  } else if (type === 'warning') {
+    notif.classList.add('warning');
+    vibrate(VIBRATE_PATTERNS.medium);
+  } else if (type === 'error') {
+    notif.classList.add('error');
+    vibrate(VIBRATE_PATTERNS.error);
+  } else {
+    vibrate(VIBRATE_PATTERNS.light);
+  }
+  
+  notif.innerText = message;
+  
+  setTimeout(() => {
+    notif.classList.remove('show');
+  }, 3000);
+}
+
+
+// ======================
+// PWA, INSTALAÇÃO E NOTIFICAÇÕES DO SISTEMA
+// ======================
+let deferredInstallPrompt = null;
+let reminderTimer = null;
+
+function isStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function getReminderSettings() {
+  let raw = {};
+  try { raw = JSON.parse(localStorage.getItem('xpLifeReminderSettings') || '{}'); } catch (_) {}
+  return {
+    waterMinutes: Number(raw.waterMinutes || 0),
+    dailyHour: Number(raw.dailyHour || 0),
+    lastWaterReminder: Number(raw.lastWaterReminder || 0),
+    lastDailyReminderDate: raw.lastDailyReminderDate || ''
+  };
+}
+
+function saveReminderSettings(settings) {
+  localStorage.setItem('xpLifeReminderSettings', JSON.stringify(settings));
+}
+
+function updateReminderSettings() {
+  const settings = getReminderSettings();
+  const water = document.getElementById('waterReminderSelect');
+  const daily = document.getElementById('dailyReminderSelect');
+  if (water) settings.waterMinutes = Number(water.value);
+  if (daily) settings.dailyHour = Number(daily.value);
+  settings.lastWaterReminder = Date.now();
+  saveReminderSettings(settings);
+  updateAppSettingsUI();
+  startReminderEngine();
+  showNotification('⚙️ Lembretes atualizados!', 'success');
+}
+
+async function showSystemNotification(title, options = {}) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+  const data = { url: './index.html', ...(options.data || {}) };
+  try {
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(title, {
+        icon: './icon-192.png',
+        badge: './icon-192.png',
+        tag: options.tag || 'xp-life',
+        renotify: false,
+        ...options,
+        data
+      });
+    } else {
+      new Notification(title, { ...options, data });
+    }
+    return true;
+  } catch (err) {
+    console.warn('Falha ao mostrar notificação:', err);
+    return false;
+  }
+}
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    showNotification('❌ Este navegador não suporta notificações.', 'error');
+    return;
+  }
+  try {
+    const permission = await Notification.requestPermission();
+    updateAppSettingsUI();
+    if (permission === 'granted') {
+      showNotification('🔔 Notificações ativadas!', 'success');
+      await showSystemNotification('XP Life ativado! 🎮', {
+        body: 'Seus lembretes estão prontos. Continue ganhando XP!',
+        tag: 'xp-life-welcome'
+      });
+      startReminderEngine();
+    } else if (permission === 'denied') {
+      showNotification('🔕 Permissão negada. Você pode reativar nas configurações do navegador.', 'warning');
+    }
+  } catch (err) {
+    console.warn(err);
+    showNotification('❌ Não foi possível ativar notificações.', 'error');
+  }
+}
+
+async function sendTestNotification() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') {
+    await requestNotificationPermission();
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  }
+  const ok = await showSystemNotification('XP Life • Teste 🔔', {
+    body: 'Funcionou! As notificações do XP Life estão ativas.',
+    tag: 'xp-life-test'
+  });
+  if (ok) showNotification('✅ Notificação de teste enviada!', 'success');
+}
+
+function checkReminders() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (document.visibilityState !== 'visible' && !isStandaloneMode()) return;
+
+  const settings = getReminderSettings();
+  const now = new Date();
+
+  if (settings.waterMinutes > 0 && player && player.waterToday < player.waterGoal) {
+    const elapsed = Date.now() - settings.lastWaterReminder;
+    if (elapsed >= settings.waterMinutes * 60 * 1000) {
+      const remaining = Math.max(0, player.waterGoal - player.waterToday);
+      showSystemNotification('Hora de beber água 💧', {
+        body: `Faltam ${remaining} ml para sua meta de hoje.`,
+        tag: 'xp-life-water'
+      });
+      settings.lastWaterReminder = Date.now();
+    }
+  }
+
+  if (settings.dailyHour > 0 && now.getHours() >= settings.dailyHour) {
+    const dateKey = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+    if (settings.lastDailyReminderDate !== dateKey && player && player.tasksToday === 0) {
+      showSystemNotification('Seu XP de hoje está esperando 🎯', {
+        body: 'Complete uma tarefa e mantenha sua sequência viva.',
+        tag: 'xp-life-daily'
+      });
+      settings.lastDailyReminderDate = dateKey;
+    }
+  }
+  saveReminderSettings(settings);
+}
+
+function startReminderEngine() {
+  if (reminderTimer) clearInterval(reminderTimer);
+  checkReminders();
+  reminderTimer = setInterval(checkReminders, 60 * 1000);
+}
+
+function updateAppSettingsUI() {
+  const installStatus = document.getElementById('installStatus');
+  const installBtn = document.getElementById('settingsInstallBtn');
+  const menuInstallBtn = document.getElementById('installAppBtn');
+  const notifStatus = document.getElementById('notificationStatus');
+  const notifBtn = document.getElementById('notificationPermissionBtn');
+  const water = document.getElementById('waterReminderSelect');
+  const daily = document.getElementById('dailyReminderSelect');
+  const offline = document.getElementById('offlineStatus');
+  const settings = getReminderSettings();
+
+  if (water) water.value = String(settings.waterMinutes);
+  if (daily) daily.value = String(settings.dailyHour);
+
+  if (isStandaloneMode()) {
+    if (installStatus) installStatus.textContent = '✅ XP Life já está instalado';
+    if (installBtn) installBtn.hidden = true;
+    if (menuInstallBtn) menuInstallBtn.hidden = true;
+  } else {
+    if (installStatus) installStatus.textContent = deferredInstallPrompt ? '📲 Pronto para instalar' : '🌐 Aberto no navegador';
+    if (installBtn) installBtn.hidden = false;
+    if (menuInstallBtn) menuInstallBtn.hidden = !deferredInstallPrompt;
+  }
+
+  if (!('Notification' in window)) {
+    if (notifStatus) notifStatus.textContent = '❌ Não suportado neste navegador';
+    if (notifBtn) notifBtn.disabled = true;
+  } else {
+    const labels = { granted: '✅ Permitidas', denied: '⛔ Bloqueadas', default: '⚪ Ainda não ativadas' };
+    if (notifStatus) notifStatus.textContent = labels[Notification.permission] || Notification.permission;
+    if (notifBtn) {
+      notifBtn.disabled = Notification.permission === 'denied';
+      notifBtn.textContent = Notification.permission === 'granted' ? '✅ Notificações ativadas' : '🔔 Ativar notificações';
+    }
+  }
+
+  if (offline) offline.textContent = navigator.onLine
+    ? '✅ Online agora. O XP Life mantém os arquivos essenciais em cache para uso offline.'
+    : '📴 Você está offline. O XP Life continua usando os arquivos salvos no aparelho.';
+}
+
+async function installApp() {
+  if (isStandaloneMode()) {
+    showNotification('✅ O XP Life já está instalado!', 'success');
+    return;
+  }
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    updateAppSettingsUI();
+    if (choice.outcome === 'accepted') showNotification('📲 Instalação iniciada!', 'success');
+    return;
+  }
+  const isiOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isiOS) {
+    showNotification('📲 No iPhone/iPad: Compartilhar → Adicionar à Tela de Início.', 'warning');
+  } else {
+    showNotification('📲 Use o menu do navegador → Instalar app / Adicionar à tela inicial.', 'warning');
+  }
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  updateAppSettingsUI();
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  updateAppSettingsUI();
+  showNotification('🎉 XP Life instalado com sucesso!', 'success');
+});
+window.addEventListener('online', updateAppSettingsUI);
+window.addEventListener('offline', updateAppSettingsUI);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') checkReminders();
+});
+
+
+// ======================
+// PARTÍCULAS DE FUNDO
+// ======================
+function createParticles() {
+  const particleCount = 20;
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.animationDelay = Math.random() * 20 + 's';
+    document.body.appendChild(particle);
+  }
+}
+
+// ======================
+// NAVEGAÇÃO COM TRANSIÇÕES SUAVES - MELHORADO!
+// ======================
+let currentScreen = '';
+
+function openScreen(screen) {
+  // Vibração ao navegar
+  vibrate(VIBRATE_PATTERNS.light);
+  
+  const screens = ['setup', 'menu', 'tasks', 'achievements', 'ranking', 'history', 'dailyChallenge', 'workouts', 'water', 'appSettings', 'rpgProgress', 'weeklyMissions', 'statistics'];
+  
+  // Fade out da tela atual
+  if (currentScreen) {
+    const oldScreen = document.getElementById(currentScreen);
+    if (oldScreen) {
+      oldScreen.classList.add('fade-out');
+      setTimeout(() => {
+        oldScreen.classList.add('hidden');
+        oldScreen.classList.remove('fade-out');
+      }, 300);
+    }
+  }
+  
+  // Fade in da nova tela
+  setTimeout(() => {
+    screens.forEach(s => {
+      const el = document.getElementById(s);
+      if (el) {
+        if (s === screen) {
+          el.classList.remove('hidden');
+          el.classList.add('screen');
+        } else {
+          el.classList.add('hidden');
+        }
+      }
+    });
+    
+    currentScreen = screen;
+    
+    // Atualizar conteúdo específico
+    if (screen === 'menu') updateUI();
+    if (screen === 'tasks') renderTasks();
+    if (screen === 'achievements') renderAchievements();
+    if (screen === 'ranking') renderRanking();
+    if (screen === 'history') renderHistory();
+    if (screen === 'rpgProgress') renderRPGProgress();
+    if (screen === 'weeklyMissions') renderWeeklyMissions();
+    if (screen === 'statistics') renderStatistics();
+    if (screen === 'dailyChallenge') renderDailyChallenge();
+    if (screen === 'workouts') renderWorkoutTracker();
+    if (screen === 'water') updateWaterUI();
+    if (screen === 'appSettings') updateAppSettingsUI();
+  }, currentScreen ? 300 : 0);
+}
+
+// ======================
+// UTILITÁRIOS XP LIFE 2.0
+// ======================
+function localDateKey(date = new Date()) { const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+function daysBetweenKeys(a,b){ if(!a||!b)return 999; const A=new Date(a+'T12:00:00'),B=new Date(b+'T12:00:00'); return Math.round((B-A)/86400000); }
+function getAvatarTitle(){ const l=player.level; return l>=30?'Lenda':l>=20?'Mestre':l>=15?'Elite':l>=10?'Veterano':l>=6?'Guerreiro':l>=3?'Aprendiz':'Iniciante'; }
+function totalAttributePower(){ return Object.values(player.attributes||{}).reduce((a,b)=>a+(Number(b)||0),0); }
+function gainAttribute(key, amount=1){ if(!player.attributes) player.attributes={strength:0,intelligence:0,health:0,discipline:0,balance:0,consistency:0}; player.attributes[key]=(player.attributes[key]||0)+amount; }
+function attributeForCategory(category,id=''){ if(id==='exercicio'||id==='caminhada')return 'strength'; if(id==='leitura'||String(category).includes('Estudo'))return 'intelligence'; if(String(category).includes('Saúde')||id==='agua')return 'health'; if(id==='meditacao'||String(category).includes('Autocuidado'))return 'balance'; return 'discipline'; }
+function awardCoins(amount){ player.coins=(player.coins||0)+Math.max(0,Math.floor(amount)); }
+function visibleTasks(){ const dow=new Date().getDay(); return tasksList.concat(player.customTasks||[]).filter(t=>!t.days||t.days.includes(dow)); }
+function currentWeekKey(){ const d=new Date(); const day=(d.getDay()+6)%7; const monday=new Date(d); monday.setDate(d.getDate()-day); return localDateKey(monday); }
+
+// ======================
+// SISTEMA DE XP E NÍVEL
+// ======================
+function getXPForLevel(level) {
+  return Math.floor(100 * Math.pow(1.5, level - 1));
+}
+
+function addXP(amount) {
+  player.xp += amount;
+  player.totalXP += amount;
+  player.xpToday = (player.xpToday || 0) + amount;
+  
+  const xpNeeded = getXPForLevel(player.level);
+  
+  if (player.xp >= xpNeeded) {
+    levelUp();
+  } else {
+    playSound('xpGain');
+  }
+  
+  save();
+  updateUI();
+}
+
+function levelUp() {
+  player.xp -= getXPForLevel(player.level);
+  player.level++;
+  
+  if (player.level > player.maxLevel) {
+    player.maxLevel = player.level;
+  }
+  
+  // SOM DE LEVEL UP
+  playSound('levelUp');
+  
+  // VIBRAÇÃO FORTE AO SUBIR DE NÍVEL
+  vibrate(VIBRATE_PATTERNS.levelUp);
+  
+  // CONFETES! 🎊
+  createConfetti();
+  
+  // Animação do player
+  const playerEl = document.getElementById('player');
+  if (playerEl) {
+    playerEl.classList.add('player-pulse');
+    setTimeout(() => playerEl.classList.remove('player-pulse'), 800);
+  }
+  
+  // Animação do badge
+  const badgeEl = document.getElementById('levelBadge');
+  if (badgeEl) {
+    badgeEl.classList.add('level-up');
+    setTimeout(() => badgeEl.classList.remove('level-up'), 800);
+  }
+  
+  updatePlayerEmoji();
+  checkAchievements();
+  showNotification(`🎉 LEVEL UP! Agora você é Level ${player.level}!`, 'success');
+  
+  if (player.xp >= getXPForLevel(player.level)) {
+    levelUp();
+  }
+}
+
+function updatePlayerEmoji() {
+  const playerEl = document.getElementById('player');
+  if (!playerEl || !player.gender) return;
+  
+  const emojis = playerEmojis[player.gender];
+  const index = Math.min(Math.floor(player.level / 2), emojis.length - 1);
+  playerEl.innerText = emojis[index];
+}
+
+function updateUI() {
+  const levelBadge = document.getElementById('levelBadge');
+  const xpBar = document.getElementById('xpBar');
+  const xpText = document.getElementById('xpText');
+  const currentStreakEl = document.getElementById('currentStreak');
+  const totalXPEl = document.getElementById('totalXP');
+  const tasksTodayEl = document.getElementById('tasksToday');
+  
+  if (levelBadge) levelBadge.innerText = `Level ${player.level}`;
+  
+  const xpNeeded = getXPForLevel(player.level);
+  const xpPercent = Math.min(100, (player.xp / xpNeeded) * 100);
+  
+  if (xpBar) {
+    xpBar.style.width = xpPercent + '%';
+  }
+  
+  if (xpText) xpText.innerText = `${player.xp} / ${xpNeeded} XP`;
+  if (currentStreakEl) currentStreakEl.innerText = `${player.currentStreak} dias`;
+  if (totalXPEl) totalXPEl.innerText = player.totalXP;
+  if (tasksTodayEl) tasksTodayEl.innerText = player.tasksToday;
+  const dashWater=document.getElementById('dashWater'); if(dashWater) dashWater.innerText=`${player.waterToday||0} / ${player.waterGoal||2400} ml`;
+  const dashCoins=document.getElementById('dashCoins'); if(dashCoins) dashCoins.innerText=player.coins||0;
+  const dashPower=document.getElementById('dashPower'); if(dashPower) dashPower.innerText=totalAttributePower();
+  const dashXP=document.getElementById('dashXPToday'); if(dashXP) dashXP.innerText=player.xpToday||0;
+  const avatarTitle=document.getElementById('avatarTitle'); if(avatarTitle) avatarTitle.innerText=getAvatarTitle();
+  
+  updatePlayerEmoji();
+}
+
+// ======================
+// RESET DIÁRIO
+// ======================
+function dailyReset() {
+  const todayKey = localDateKey();
+  const previousKey = player.lastDateKey || (player.lastDate ? localDateKey(new Date(player.lastDate)) : null);
+  if (previousKey !== todayKey) {
+    if (previousKey) {
+      const gap=daysBetweenKeys(previousKey,todayKey);
+      if ((player.tasksToday||0)>0) player.currentStreak = gap===1 ? (player.currentStreak||0)+1 : 1;
+      else player.currentStreak=0;
+      player.bestStreak=Math.max(player.bestStreak||0,player.currentStreak||0);
+      const challengesCompleted=Array.isArray(player.dailyChallengesCompleted)?player.dailyChallengesCompleted.filter(Boolean).length:0;
+      const hadWorkout=Object.values(player.workoutCompleted||{}).some(Boolean);
+      player.history.push({date:previousKey,xp:player.xpToday||0,tasks:player.tasksToday||0,level:player.level,challengesCompleted,challengeCompleted:challengesCompleted>0,water:player.waterToday||0,workout:hadWorkout});
+      player.history=player.history.slice(-180);
+      if((player.waterToday||0)>=(player.waterGoal||2400)){player.waterDaysCompleted=(player.waterDaysCompleted||0)+1;player.waterStreak=gap===1?(player.waterStreak||0)+1:1;player.waterBestStreak=Math.max(player.waterBestStreak||0,player.waterStreak);}else player.waterStreak=0;
+      player.waterHistory.push({date:previousKey,amount:player.waterToday||0}); player.waterHistory=player.waterHistory.slice(-90);
+      if(hadWorkout){player.workoutHistory=player.workoutHistory||[]; if(!player.workoutHistory.includes(previousKey))player.workoutHistory.push(previousKey); player.workoutHistory=player.workoutHistory.slice(-180);}
+    }
+    player.lastDate=todayKey; player.lastDateKey=todayKey;
+    player.tasksToday=0; player.completedToday=[]; player.workoutCompleted={}; player.dailyChallengesCompleted=[false,false,false]; player.waterToday=0; player.waterAddsToday=[]; player.xpToday=0;
+  }
+  player.playedDates=Array.isArray(player.playedDates)?player.playedDates:[];
+  if(!player.playedDates.includes(todayKey)) player.playedDates.push(todayKey);
+  player.daysPlayed=player.playedDates.length;
+  save();
+}
+
+// ======================
+// CONQUISTAS
+// ======================
+function checkAchievements() {
+  const newAchievements = [];
+  
+  if (!player.achievements.includes('first_task') && player.totalTasks >= 1) {
+    player.achievements.push('first_task');
+    newAchievements.push('🎯 Primeira Tarefa');
+  }
+  
+  if (!player.achievements.includes('streak_7') && player.bestStreak >= 7) {
+    player.achievements.push('streak_7');
+    newAchievements.push('🔥 Uma Semana');
+  }
+  
+  if (!player.achievements.includes('streak_30') && player.bestStreak >= 30) {
+    player.achievements.push('streak_30');
+    newAchievements.push('💪 Um Mês');
+  }
+  
+  if (!player.achievements.includes('level_5') && player.level >= 5) {
+    player.achievements.push('level_5');
+    newAchievements.push('⭐ Nível 5');
+  }
+  
+  if (!player.achievements.includes('level_10') && player.level >= 10) {
+    player.achievements.push('level_10');
+    newAchievements.push('🌟 Nível 10');
+  }
+  
+  if (!player.achievements.includes('tasks_100') && player.totalTasks >= 100) {
+    player.achievements.push('tasks_100');
+    newAchievements.push('💯 Centenário');
+  }
+  
+  if (!player.achievements.includes('tasks_500') && player.totalTasks >= 500) {
+    player.achievements.push('tasks_500');
+    newAchievements.push('🏆 Dedicado');
+  }
+  
+  // Conquistas específicas
+  const earlyBirdCount = player.taskHistory['acordar_cedo'] || 0;
+  if (!player.achievements.includes('early_bird') && earlyBirdCount >= 10) {
+    player.achievements.push('early_bird');
+    newAchievements.push('🌅 Madrugador');
+  }
+  
+  const gymCount = player.taskHistory['exercicio'] || 0;
+  if (!player.achievements.includes('gym_rat') && gymCount >= 20) {
+    player.achievements.push('gym_rat');
+    newAchievements.push('💪 Fitness');
+  }
+  
+  const readCount = player.taskHistory['leitura'] || 0;
+  if (!player.achievements.includes('bookworm') && readCount >= 15) {
+    player.achievements.push('bookworm');
+    newAchievements.push('📚 Leitor');
+  }
+  
+  if (!player.achievements.includes('hydrated') && player.waterDaysCompleted >= 10) {
+    player.achievements.push('hydrated');
+    newAchievements.push('💧 Hidratado');
+  }
+  
+  const meditationCount = player.taskHistory['meditacao'] || 0;
+  if (!player.achievements.includes('zen_master') && meditationCount >= 15) {
+    player.achievements.push('zen_master');
+    newAchievements.push('🧘 Zen Master');
+  }
+  
+  if (newAchievements.length > 0) {
+    vibrate(VIBRATE_PATTERNS.success);
+    showNotification(`🏆 Nova Conquista: ${newAchievements.join(', ')}`, 'success');
+  }
+}
+
+// ======================
+// TAREFAS
+// ======================
+function completeTask(taskId, xp, taskName) {
+  if (player.completedToday.includes(taskId)) {
+    playSound('error');
+    showNotification("✓ Tarefa já concluída hoje!", 'warning');
+    return;
+  }
+  
+  player.completedToday.push(taskId);
+  player.tasksToday++;
+  player.totalTasks++;
+  
+  // Streak real: somente dias consecutivos
+  const todayKey = localDateKey();
+  if (!player.taskStreakMeta) player.taskStreakMeta = {};
+  const meta = player.taskStreakMeta[taskId] || { current: 0, best: 0, lastDate: null };
+  const gap = meta.lastDate ? daysBetweenKeys(meta.lastDate, todayKey) : 999;
+  meta.current = gap === 1 ? meta.current + 1 : 1;
+  meta.best = Math.max(meta.best || 0, meta.current);
+  meta.lastDate = todayKey;
+  player.taskStreakMeta[taskId] = meta;
+  player.taskStreaks[taskId] = meta.current;
+  gainAttribute(attributeForCategory((visibleTasks().find(t=>t.id===taskId)||{}).category, taskId), 1);
+  awardCoins(Math.max(1, Math.round(xp / 5)));
+  
+  // Histórico da tarefa
+  if (!player.taskHistory[taskId]) player.taskHistory[taskId] = 0;
+  player.taskHistory[taskId]++;
+  
+  // Bônus de streak
+  let bonus = 0;
+  if (player.taskStreaks[taskId] >= 7) bonus = 10;
+  if (player.taskStreaks[taskId] >= 30) bonus = 30;
+  
+  const totalXP = xp + bonus;
+  addXP(totalXP);
+  
+  let message = `✅ ${taskName} +${totalXP} XP`;
+  if (bonus > 0) {
+    message += ` (${player.taskStreaks[taskId]} dias de streak!)`;
+  }
+  
+  playSound('taskComplete');
+  showNotification(message, 'success');
+  checkAchievements();
+  save();
+  renderTasks();
+}
+
+function renderTasks() {
+  const div = document.getElementById("tasksList");
+  if (!div) return;
+  
+  div.innerHTML = "";
+  
+  const categories = {};
+  visibleTasks().forEach(t => {
+    if (!categories[t.category]) categories[t.category] = [];
+    categories[t.category].push(t);
+  });
+  
+  Object.keys(categories).forEach(cat => {
+    const section = document.createElement("div");
+    section.className = "section";
+    
+    const h3 = document.createElement("h3");
+    h3.innerText = cat;
+    section.appendChild(h3);
+    
+    categories[cat].forEach(t => {
+      const btn = document.createElement("button");
+      
+      if (player.completedToday.includes(t.id)) {
+        btn.classList.add("completed");
+        btn.innerText = `${t.name} ✓`;
+        btn.disabled = true;
+      } else {
+        btn.onclick = () => completeTask(t.id, t.xp, t.name);
+        btn.innerText = `${t.name} (+${t.xp} XP)`;
+      }
+      section.appendChild(btn);
+      if (t.custom) { const del=document.createElement('button'); del.className='danger-btn'; del.style.marginTop='-6px'; del.innerText='🗑️ Remover'; del.onclick=()=>removeCustomTask(t.id); section.appendChild(del); }
+    });
+    
+    div.appendChild(section);
+  });
+}
+
+function addCustomTask(){
+  const name=document.getElementById('customTaskName').value.trim(); const xp=Math.max(5,Math.min(100,parseInt(document.getElementById('customTaskXP').value)||20));
+  const category=document.getElementById('customTaskCategory').value; const days=[...document.querySelectorAll('#customTaskDays input:checked')].map(x=>Number(x.value));
+  if(!name||!days.length){showNotification('Informe o nome e pelo menos um dia.','warning');return;}
+  player.customTasks=player.customTasks||[]; player.customTasks.push({id:'custom_'+Date.now(),name,xp,category,days,custom:true}); save(); renderTasks(); showNotification('✅ Tarefa personalizada criada!','success'); document.getElementById('customTaskName').value='';
+}
+function removeCustomTask(id){ if(!confirm('Remover esta tarefa personalizada?'))return; player.customTasks=(player.customTasks||[]).filter(t=>t.id!==id); save(); renderTasks(); }
+
+// ======================
+// CONQUISTAS
+// ======================
+function renderAchievements() {
+  const div = document.getElementById("achievementsList");
+  if (!div) return;
+  
+  div.innerHTML = "";
+  
+  achievementsList.forEach(ach => {
+    const unlocked = player.achievements.includes(ach.id);
+    const badge = document.createElement("div");
+    badge.className = unlocked ? "badge" : "badge locked";
+    badge.innerHTML = `
+      <div style="font-size: 32px; margin-bottom: 5px;">${ach.icon}</div>
+      <strong>${ach.name}</strong><br>
+      <small style="opacity: 0.8;">${ach.desc}</small>
+    `;
+    div.appendChild(badge);
+  });
+}
+
+// ======================
+// RANKING
+// ======================
+function renderRanking() {
+  const totalXPRankEl = document.getElementById("totalXPRank");
+  const bestStreakEl = document.getElementById("bestStreakDisplay");
+  const totalTasksEl = document.getElementById("totalTasksDisplay");
+  const daysPlayedEl = document.getElementById("daysPlayedDisplay");
+  const maxLevelEl = document.getElementById("maxLevelDisplay");
+  
+  if (totalXPRankEl) totalXPRankEl.innerText = player.totalXP;
+  if (bestStreakEl) bestStreakEl.innerText = `${player.bestStreak} dias`;
+  if (totalTasksEl) totalTasksEl.innerText = player.totalTasks;
+  if (daysPlayedEl) daysPlayedEl.innerText = player.daysPlayed;
+  if (maxLevelEl) maxLevelEl.innerText = player.maxLevel;
+}
+
+// ======================
+// DESAFIO DIÁRIO
+// ======================
+function getDailyChallenges() {
+  const today = new Date();
+  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+  
+  // Gerar 3 desafios diferentes baseados no dia
+  const challenges = [];
+  const usedIndices = new Set();
+  
+  for (let i = 0; i < 3; i++) {
+    let index = (dayOfYear + i * 17) % dailyChallenges.length; // Multiplicador para garantir variedade
+    
+    // Garantir que não repetimos desafios
+    while (usedIndices.has(index)) {
+      index = (index + 1) % dailyChallenges.length;
+    }
+    
+    usedIndices.add(index);
+    challenges.push(dailyChallenges[index]);
+  }
+  
+  return challenges;
+}
+
+function renderDailyChallenge() {
+  const challenges = getDailyChallenges();
+  
+  // Garantir compatibilidade com dados antigos
+  if (!Array.isArray(player.dailyChallengesCompleted)) {
+    player.dailyChallengesCompleted = [false, false, false];
+  }
+  
+  // Renderizar cada desafio
+  for (let i = 0; i < 3; i++) {
+    const challenge = challenges[i];
+    const num = i + 1;
+    
+    const descEl = document.getElementById(`challenge${num}Description`);
+    const categoryEl = document.getElementById(`challenge${num}Category`);
+    const difficultyEl = document.getElementById(`challenge${num}Difficulty`);
+    const btnEl = document.getElementById(`challenge${num}Btn`);
+    
+    if (descEl) descEl.innerText = challenge.text;
+    if (categoryEl) categoryEl.innerText = challenge.category;
+    if (difficultyEl) difficultyEl.innerText = challenge.difficulty;
+    
+    if (btnEl) {
+      if (player.dailyChallengesCompleted[i]) {
+        btnEl.innerText = "Completado ✓";
+        btnEl.disabled = true;
+        btnEl.classList.add("completed");
+      } else {
+        btnEl.innerText = "Completar (+100 XP)";
+        btnEl.disabled = false;
+        btnEl.classList.remove("completed");
+      }
+    }
+  }
+  
+  // Contador de desafios hoje
+  const completedToday = player.dailyChallengesCompleted.filter(c => c).length;
+  const todayCountEl = document.getElementById('todayChallengesCount');
+  if (todayCountEl) todayCountEl.innerText = `${completedToday}/3`;
+  
+  // Estatísticas de desafios (agora conta todos os desafios, não apenas dias)
+  let totalChallengesCompleted = 0;
+  player.history.forEach(h => {
+    if (h.challengesCompleted) {
+      totalChallengesCompleted += h.challengesCompleted;
+    } else if (h.challengeCompleted) {
+      // Compatibilidade com dados antigos
+      totalChallengesCompleted += 1;
+    }
+  });
+  
+  const totalChallengesEl = document.getElementById('totalChallenges');
+  if (totalChallengesEl) totalChallengesEl.innerText = totalChallengesCompleted;
+  
+  // Streak atual de desafios (dias com pelo menos 1 desafio completo)
+  let currentChallengeStreak = 0;
+  for (let i = player.history.length - 1; i >= 0; i--) {
+    const day = player.history[i];
+    if ((day.challengesCompleted && day.challengesCompleted > 0) || day.challengeCompleted) {
+      currentChallengeStreak++;
+    } else {
+      break;
+    }
+  }
+  const currentChallengeStreakEl = document.getElementById('currentChallengeStreak');
+  if (currentChallengeStreakEl) currentChallengeStreakEl.innerText = `${currentChallengeStreak} dias`;
+  
+  // Melhor streak de desafios
+  let maxStreak = 0;
+  let currentStreak = 0;
+  player.history.forEach(h => {
+    if ((h.challengesCompleted && h.challengesCompleted > 0) || h.challengeCompleted) {
+      currentStreak++;
+      if (currentStreak > maxStreak) maxStreak = currentStreak;
+    } else {
+      currentStreak = 0;
+    }
+  });
+  const challengeStreakEl = document.getElementById('challengeStreak');
+  if (challengeStreakEl) challengeStreakEl.innerText = `${maxStreak} dias`;
+  
+  // Taxa de conclusão (média de desafios por dia)
+  const totalDays = player.daysPlayed > 0 ? player.daysPlayed : 1;
+  const completionRate = Math.round((totalChallengesCompleted / (totalDays * 3)) * 100);
+  const completionRateEl = document.getElementById('challengeCompletionRate');
+  if (completionRateEl) completionRateEl.innerText = `${completionRate}%`;
+  
+  // Estatísticas por categoria
+  if (!player.challengesByCategory) {
+    player.challengesByCategory = {
+      fitness: 0,
+      mental: 0,
+      health: 0,
+      creative: 0,
+      wellness: 0
+    };
+  }
+  
+  const fitnessEl = document.getElementById('challengesFitness');
+  const mentalEl = document.getElementById('challengesMental');
+  const healthEl = document.getElementById('challengesHealth');
+  const creativeEl = document.getElementById('challengesCreative');
+  const wellnessEl = document.getElementById('challengesWellness');
+  
+  if (fitnessEl) fitnessEl.innerText = player.challengesByCategory.fitness || 0;
+  if (mentalEl) mentalEl.innerText = player.challengesByCategory.mental || 0;
+  if (healthEl) healthEl.innerText = player.challengesByCategory.health || 0;
+  if (creativeEl) creativeEl.innerText = player.challengesByCategory.creative || 0;
+  if (wellnessEl) wellnessEl.innerText = player.challengesByCategory.wellness || 0;
+}
+
+function completeDailyChallenge(challengeIndex) {
+  // Garantir compatibilidade
+  if (!Array.isArray(player.dailyChallengesCompleted)) {
+    player.dailyChallengesCompleted = [false, false, false];
+  }
+  
+  if (player.dailyChallengesCompleted[challengeIndex]) {
+    showNotification("✓ Desafio já concluído hoje!", 'warning');
+    return;
+  }
+  
+  const challenges = getDailyChallenges();
+  const challenge = challenges[challengeIndex];
+  
+  // Inicializar categorias se não existir
+  if (!player.challengesByCategory) {
+    player.challengesByCategory = {
+      fitness: 0,
+      mental: 0,
+      health: 0,
+      creative: 0,
+      wellness: 0
+    };
+  }
+  
+  // Registrar categoria
+  const categoryMap = {
+    "🏋️ Fitness": "fitness",
+    "🧠 Mental": "mental",
+    "💚 Saúde": "health",
+    "🎨 Criativo": "creative",
+    "🌟 Bem-estar": "wellness"
+  };
+  
+  const categoryKey = categoryMap[challenge.category];
+  if (categoryKey && player.challengesByCategory[categoryKey] !== undefined) {
+    player.challengesByCategory[categoryKey]++;
+  }
+  
+  player.dailyChallengesCompleted[challengeIndex] = true;
+  addXP(100);
+  playSound('challenge');
+  vibrate(VIBRATE_PATTERNS.success);
+  showNotification("🎲 Desafio Concluído! +100 XP", 'success');
+  save();
+  renderDailyChallenge();
+}
+
+// ======================
+// TREINOS
+// ======================
+function renderWorkoutTracker() {
+  const workouts = ['morning', 'afternoon', 'evening', 'cardio', 'strength', 'bodyweight', 'yoga', 'sports', 'stretching', 'swimming'];
+  let completedCount = 0;
+  
+  workouts.forEach(type => {
+    const itemEl = document.getElementById(`workout-${type}`);
+    if (itemEl) {
+      if (player.workoutCompleted[type]) {
+        itemEl.classList.add('completed');
+        completedCount++;
+      } else {
+        itemEl.classList.remove('completed');
+      }
+    }
+  });
+  
+  const todayEl = document.getElementById('workoutsToday');
+  if (todayEl) todayEl.innerText = `${completedCount}/10`;
+  
+  // Calcular total de treinos
+  if (!player.totalWorkouts) player.totalWorkouts = 0;
+  const totalWorkoutsEl = document.getElementById('totalWorkouts');
+  if (totalWorkoutsEl) totalWorkoutsEl.innerText = player.totalWorkouts;
+  
+  // Calcular streak de treinos por dias realmente treinados
+  let workoutStreak = 0; const dates=[...(player.workoutHistory||[])]; if(Object.values(player.workoutCompleted||{}).some(Boolean)) dates.push(localDateKey());
+  dates.sort(); let cursor=localDateKey(); for(let i=dates.length-1;i>=0;i--){ const gap=daysBetweenKeys(dates[i],cursor); if(gap===0||gap===1){workoutStreak++;cursor=dates[i];}else break; }
+  
+  const streakEl = document.getElementById('workoutStreak');
+  if (streakEl) streakEl.innerText = `${workoutStreak} dias`;
+}
+
+function toggleWorkout(type) {
+  if (player.workoutCompleted[type]) {
+    playSound('error');
+    showNotification("✓ Treino já registrado!", 'warning');
+    return;
+  }
+  
+  // XP baseado no tipo de treino
+  const xpValues = {
+    'morning': 30,
+    'afternoon': 30,
+    'evening': 30,
+    'cardio': 35,
+    'strength': 40,
+    'bodyweight': 35,
+    'yoga': 30,
+    'sports': 35,
+    'stretching': 20,
+    'swimming': 40
+  };
+  
+  const xp = xpValues[type] || 30;
+  
+  player.workoutCompleted[type] = true;
+  
+  // Incrementar total de treinos
+  if (!player.totalWorkouts) player.totalWorkouts = 0;
+  player.totalWorkouts++;
+  gainAttribute('strength', 2); gainAttribute('health', 1); awardCoins(Math.max(2,Math.round(xp/5)));
+  
+  addXP(xp);
+  playSound('workout');
+  vibrate(VIBRATE_PATTERNS.medium);
+  showNotification(`💪 Treino registrado! +${xp} XP`, 'success');
+  save();
+  renderWorkoutTracker();
+}
+
+// ======================
+// HIDRATAÇÃO COM PROGRESS BAR ANIMADA - NOVO!
+// ======================
+function updateWaterUI() {
+  const waterTodayEl = document.getElementById('waterToday');
+  const waterGoalEl = document.getElementById('waterGoalDisplay');
+  const waterProgressEl = document.getElementById('waterProgress');
+  const waterStreakEl = document.getElementById('waterStreakDisplay');
+  const waterBestStreakEl = document.getElementById('waterBestStreakDisplay');
+  const waterDaysEl = document.getElementById('waterDaysDisplay');
+  const waterTotalEl = document.getElementById('waterTotalDisplay');
+  const waterGoalInput = document.getElementById('waterGoalInput');
+  
+  if (waterTodayEl) waterTodayEl.innerText = player.waterToday;
+  if (waterGoalEl) waterGoalEl.innerText = player.waterGoal;
+  
+  const progress = Math.min(100, Math.round((player.waterToday / player.waterGoal) * 100));
+  if (waterProgressEl) waterProgressEl.innerText = `${progress}%`;
+  
+  // PROGRESS BAR ANIMADA
+  const progressBar = document.getElementById('waterProgressBar');
+  const progressText = document.getElementById('waterProgressText');
+  if (progressBar) {
+    progressBar.style.width = progress + '%';
+  }
+  if (progressText) {
+    progressText.innerText = `${progress}%`;
+  }
+  
+  if (waterStreakEl) waterStreakEl.innerText = `${player.waterStreak} dias`;
+  if (waterBestStreakEl) waterBestStreakEl.innerText = `${player.waterBestStreak} dias`;
+  if (waterDaysEl) waterDaysEl.innerText = player.waterDaysCompleted;
+  
+  const totalLiters = (player.waterTotalDrunk / 1000).toFixed(1);
+  if (waterTotalEl) waterTotalEl.innerText = `${totalLiters} L`;
+  
+  if (waterGoalInput) waterGoalInput.value = player.waterGoal;
+}
+
+function addWater(amount) {
+  player.waterToday += amount;
+  player.waterTotalDrunk += amount;
+  player.waterAddsToday=player.waterAddsToday||[]; player.waterAddsToday.push(amount);
+  
+  if (player.waterToday >= player.waterGoal) {
+    const firstTime = player.waterToday - amount < player.waterGoal;
+    if (firstTime) {
+      gainAttribute('health',2); awardCoins(10); addXP(50);
+      playSound('achievement');
+      vibrate(VIBRATE_PATTERNS.success);
+      showNotification("💧 Meta de hidratação atingida! +50 XP", 'success');
+    } else {
+      playSound('water');
+      vibrate(VIBRATE_PATTERNS.light);
+      showNotification(`💧 +${amount}ml adicionados!`);
+    }
+  } else {
+    playSound('water');
+    vibrate(VIBRATE_PATTERNS.light);
+    showNotification(`💧 +${amount}ml adicionados!`);
+  }
+  
+  save();
+  updateWaterUI();
+}
+
+function undoWater(){ const arr=player.waterAddsToday||[]; if(!arr.length){showNotification('Nada para desfazer hoje.','warning');return;} const amount=arr.pop(); player.waterToday=Math.max(0,(player.waterToday||0)-amount); player.waterTotalDrunk=Math.max(0,(player.waterTotalDrunk||0)-amount); save(); updateWaterUI(); showNotification(`↩️ ${amount}ml removidos.`,'info'); }
+
+function updateWaterGoal() {
+  const input = document.getElementById('waterGoalInput');
+  if (!input) return;
+  
+  const newGoal = parseInt(input.value);
+  if (newGoal >= 500 && newGoal <= 5000) {
+    player.waterGoal = newGoal;
+    save();
+    updateWaterUI();
+    vibrate(VIBRATE_PATTERNS.light);
+    showNotification("⚙️ Meta de hidratação atualizada!", 'success');
+  } else {
+    vibrate(VIBRATE_PATTERNS.error);
+    showNotification("❌ Meta deve estar entre 500ml e 5000ml", 'error');
+  }
+}
+
+function renderRPGProgress(){
+ const names={strength:'💪 Força',intelligence:'🧠 Inteligência',health:'❤️ Saúde',discipline:'⚡ Disciplina',balance:'🧘 Equilíbrio',consistency:'🔥 Consistência'}; const g=document.getElementById('attributesGrid'); if(!g)return; g.innerHTML='';
+ Object.entries(names).forEach(([k,n])=>{const v=player.attributes?.[k]||0;g.innerHTML+=`<div class="rpg-attr"><strong>${n}</strong><div>${v} pts</div><div class="mini-bar"><i style="width:${Math.min(100,v)}%"></i></div></div>`});
+ document.getElementById('coinsDisplay').innerText=player.coins||0; document.getElementById('titleDisplay').innerText=getAvatarTitle(); renderRewards();
+}
+function addPersonalReward(){ const name=document.getElementById('rewardName').value.trim(),cost=Math.max(10,parseInt(document.getElementById('rewardCost').value)||100); if(!name)return; player.personalRewards=player.personalRewards||[];player.personalRewards.push({id:Date.now(),name,cost});save();renderRewards();document.getElementById('rewardName').value=''; }
+function renderRewards(){const d=document.getElementById('rewardsList');if(!d)return;d.innerHTML=(player.personalRewards||[]).map(r=>`<div class="mission-card"><div class="mission-head"><strong>🎁 ${r.name}</strong><span>${r.cost} 🪙</span></div><button onclick="redeemReward(${r.id})">Resgatar</button></div>`).join('')||'<p class="small-note">Nenhuma recompensa criada.</p>';}
+function redeemReward(id){const r=(player.personalRewards||[]).find(x=>x.id===id);if(!r)return;if((player.coins||0)<r.cost){showNotification('🪙 Moedas insuficientes.','warning');return;}player.coins-=r.cost;save();renderRPGProgress();showNotification(`🎁 Recompensa liberada: ${r.name}`,'success');}
+function weeklyMissionsData(){return [{id:'tasks25',name:'Completar 25 tarefas',target:25,value:()=>player.history.filter(h=>isThisWeek(h.date)).reduce((a,h)=>a+(h.tasks||0),0)+(player.tasksToday||0),xp:250,coins:50},{id:'water5',name:'Bater meta de água 5 dias',target:5,value:()=>player.waterHistory.filter(h=>isThisWeek(h.date)&&h.amount>=player.waterGoal).length+((player.waterToday>=player.waterGoal)?1:0),xp:200,coins:50},{id:'workout3',name:'Treinar em 3 dias',target:3,value:()=>new Set((player.workoutHistory||[]).filter(isThisWeek).concat(Object.values(player.workoutCompleted||{}).some(Boolean)?[localDateKey()]:[])).size,xp:250,coins:60}];}
+function isThisWeek(date){return date>=currentWeekKey()&&date<=localDateKey();}
+function renderWeeklyMissions(){const week=currentWeekKey(),d=document.getElementById('weeklyMissionList');player.weeklyClaims=player.weeklyClaims||{};d.innerHTML=weeklyMissionsData().map(m=>{const v=Math.min(m.target,m.value()),done=v>=m.target,claimed=player.weeklyClaims[week+'_'+m.id];return `<div class="mission-card"><div class="mission-head"><strong>${done?'✅':'🎯'} ${m.name}</strong><span>${v}/${m.target}</span></div><div class="mini-bar"><i style="width:${v/m.target*100}%"></i></div><p>+${m.xp} XP · +${m.coins} 🪙</p><button ${!done||claimed?'disabled':''} onclick="claimWeekly('${m.id}')">${claimed?'Coletado':'Coletar'}</button></div>`}).join('');}
+function claimWeekly(id){const m=weeklyMissionsData().find(x=>x.id===id),key=currentWeekKey()+'_'+id;if(!m||m.value()<m.target||player.weeklyClaims[key])return;player.weeklyClaims[key]=true;awardCoins(m.coins);gainAttribute('consistency',3);addXP(m.xp);save();renderWeeklyMissions();showNotification('🏆 Missão semanal coletada!','success');}
+function renderStatistics(){const hist=[...player.history,{date:localDateKey(),xp:player.xpToday||0,tasks:player.tasksToday||0}];const totalTasks=hist.reduce((a,h)=>a+(h.tasks||0),0),days=Math.max(1,hist.filter(h=>(h.tasks||0)>0).length);document.getElementById('completionRate').innerText=Math.min(100,Math.round(totalTasks/(days*visibleTasks().length)*100))+'%';const best=hist.reduce((a,b)=>(b.xp||0)>(a.xp||0)?b:a,{xp:0,date:'—'});document.getElementById('bestDayStat').innerText=best.date==='—'?'—':`${best.date} · ${best.xp} XP`;document.getElementById('bestStreakStat').innerText=(player.bestStreak||0)+' dias';const chart=document.getElementById('xpWeekChart');const days7=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const key=localDateKey(d),rec=hist.find(h=>h.date===key);days7.push({key,xp:rec?.xp||0,label:d.toLocaleDateString('pt-BR',{weekday:'short'}).slice(0,3)});}const max=Math.max(1,...days7.map(x=>x.xp));chart.innerHTML=days7.map(x=>`<div class="stats-col"><div class="bar" style="height:${Math.max(2,x.xp/max*130)}px" title="${x.xp} XP"></div><b>${x.label}</b><span>${x.xp}</span></div>`).join('');}
+function exportBackup(){const blob=new Blob([JSON.stringify({app:'XP Life',version:2,data:player},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`xp-life-backup-${localDateKey()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function importBackup(event){const f=event.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const obj=JSON.parse(r.result);const data=obj.data||obj;if(!data||typeof data!=='object')throw 0;player=data;save();location.reload();}catch(e){showNotification('❌ Backup inválido.','error')}};r.readAsText(f);}
+
+// ======================
+// HISTÓRICO
+// ======================
+function renderHistory() {
+  const grid = document.getElementById('historyGrid');
+  if (!grid) return;
+  
+  grid.innerHTML = '';
+  
+  const last30Days = player.history.slice(-30);
+  
+  if (last30Days.length === 0) {
+    grid.innerHTML = '<p style="text-align: center; opacity: 0.6; padding: 40px;">Nenhum histórico ainda. Comece a completar tarefas!</p>';
+    return;
+  }
+  
+  last30Days.forEach(day => {
+    const dayEl = document.createElement('div');
+    dayEl.className = day.tasks > 0 ? 'history-day active' : 'history-day';
+    
+    const date = new Date(String(day.date).length===10 ? day.date + 'T12:00:00' : day.date);
+    const dateStr = `${date.getDate()}/${date.getMonth() + 1}`;
+    
+    dayEl.innerHTML = `
+      <div class="history-date">${dateStr}</div>
+      <div class="history-xp">${day.xp} XP</div>
+      <div class="history-tasks">${day.tasks} tarefas</div>
+    `;
+    
+    grid.appendChild(dayEl);
+  });
+}
+
+// ======================
+// SETUP
+// ======================
+function selectGender(gender) {
+  player.gender = gender;
+  vibrate(VIBRATE_PATTERNS.medium);
+  save();
+  openScreen('menu');
+  updateUI();
+}
+
+function resetProgress() {
+  if (confirm("Tem certeza que deseja resetar todo o progresso? Esta ação não pode ser desfeita!")) {
+    try {
+      vibrate(VIBRATE_PATTERNS.strong);
+      localStorage.removeItem("disciplinaRPG_v10");
+      localStorage.removeItem("disciplinaRPG_v9");
+      localStorage.removeItem("disciplinaRPG_v8");
+      localStorage.removeItem("disciplinaRPG_v7");
+      location.reload();
+    } catch (e) {
+      showNotification("Erro ao resetar. Tente novamente.", 'error');
+    }
+  }
+}
+
+// ======================
+// SAVE / LOAD
+// ======================
+function save() {
+  try {
+    localStorage.setItem("disciplinaRPG_v10", JSON.stringify(player));
+  } catch (e) {
+    console.error("Erro ao salvar:", e);
+    showNotification("⚠️ Erro ao salvar progresso", 'error');
+  }
+}
+
+function load() {
+  try {
+    let data = localStorage.getItem("disciplinaRPG_v10");
+    if (!data) data = localStorage.getItem("disciplinaRPG_v9");
+    if (!data) {
+      data = localStorage.getItem("disciplinaRPG_v8");
+    }
+    if (!data) {
+      data = localStorage.getItem("disciplinaRPG_v7");
+    }
+    
+    if (data) {
+      player = JSON.parse(data);
+      
+      // Garantir retrocompatibilidade
+      if (!player.taskStreaks) player.taskStreaks = {};
+      if (!player.taskHistory) player.taskHistory = {};
+      if (!player.workoutCompleted) player.workoutCompleted = {};
+      if (player.totalWorkouts === undefined) player.totalWorkouts = 0;
+      
+      // Migrar de dailyChallengeCompleted para dailyChallengesCompleted
+      if (!Array.isArray(player.dailyChallengesCompleted)) {
+        player.dailyChallengesCompleted = [false, false, false];
+      }
+      
+      if (player.currentStreak === undefined) player.currentStreak = 0;
+      if (player.bestStreak === undefined) player.bestStreak = 0;
+      if (!player.challengesByCategory) {
+        player.challengesByCategory = {
+          fitness: 0,
+          mental: 0,
+          health: 0,
+          creative: 0,
+          wellness: 0
+        };
+      }
+      
+      if (player.waterToday === undefined) player.waterToday = 0;
+      if (player.waterGoal === undefined) player.waterGoal = 2400;
+      if (player.waterStreak === undefined) player.waterStreak = 0;
+      if (player.waterBestStreak === undefined) player.waterBestStreak = 0;
+      if (player.waterDaysCompleted === undefined) player.waterDaysCompleted = 0;
+      if (player.waterTotalDrunk === undefined) player.waterTotalDrunk = 0;
+      if (!player.waterHistory) player.waterHistory = [];
+      if (player.xpToday === undefined) player.xpToday = 0;
+      if (!Array.isArray(player.playedDates)) player.playedDates = [];
+      if (player.playedDates.length === 0 && Array.isArray(player.history)) {
+        player.playedDates = [...new Set(player.history.filter(h => (h.tasks||0)>0 || (h.xp||0)>0).map(h => String(h.date).slice(0,10)))];
+        const oldLast = player.lastDate ? String(player.lastDate).slice(0,10) : null; if (oldLast && !player.playedDates.includes(oldLast)) player.playedDates.push(oldLast);
+      }
+      if (!player.taskStreakMeta) player.taskStreakMeta = {};
+      if (player.coins === undefined) player.coins = 0;
+      if (!player.attributes) player.attributes = { strength:0,intelligence:0,health:0,discipline:0,balance:0,consistency:0 };
+      if (!Array.isArray(player.customTasks)) player.customTasks = [];
+      if (!Array.isArray(player.personalRewards)) player.personalRewards = [];
+      if (!Array.isArray(player.workoutHistory)) player.workoutHistory = [];
+      if (!Array.isArray(player.waterAddsToday)) player.waterAddsToday = [];
+      if (!player.weeklyClaims) player.weeklyClaims = {};
+      // Migração do histórico antigo: total acumulado -> XP aproximado por dia
+      if (player.history && player.history.some((d,i,a)=>i>0 && (d.xp||0) >= (a[i-1].xp||0) && (d.xp||0)>1000)) { let prev=0; player.history=player.history.map(d=>{const total=d.xp||0; const copy={...d,xp:Math.max(0,total-prev)}; prev=total; return copy;}); }
+      
+      if (player.history && player.history.length > 0) {
+        player.history = player.history.map(day => {
+          if (day.challengeCompleted === undefined) {
+            day.challengeCompleted = false;
+          }
+          return day;
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao carregar:", e);
+    showNotification("⚠️ Erro ao carregar progresso", 'error');
+  }
+  
+  dailyReset();
+  
+  if (!player.gender) {
+    openScreen('setup');
+  } else {
+    openScreen('menu');
+  }
+}
+
+// ======================
+// INICIALIZAR
+// ======================
+try {
+  createParticles();
+  load();
+  loadSoundPreference();
+  updateAppSettingsUI();
+  startReminderEngine();
+} catch (e) {
+  console.error("Erro ao inicializar:", e);
+  document.body.innerHTML = `
+    <div style="text-align: center; padding: 40px; color: white;">
+      <h1>⚠️ Erro ao Carregar</h1>
+      <p>Ocorreu um erro ao inicializar o aplicativo.</p>
+      <button onclick="location.reload()" style="margin-top: 20px; padding: 15px 30px; font-size: 16px; background: #667eea; color: white; border: none; border-radius: 10px; cursor: pointer;">
+        Tentar Novamente
+      </button>
+    </div>
+  `;
+}
+
+// Registrar Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(registration => {
+        console.log('Service Worker registrado com sucesso:', registration.scope);
+      })
+      .catch(error => {
+        console.log('Falha ao registrar Service Worker:', error);
+      });
+  });
+}
+</script>
+
+</body>
+</html>
