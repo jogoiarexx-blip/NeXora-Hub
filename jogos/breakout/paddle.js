@@ -85,9 +85,10 @@ class Paddle {
             if (Game.state !== 'PLAYING') return;
             
             const rect = Game.canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
+            const scaleX = Game.canvas.width / rect.width;
+            const mouseX = (e.clientX - rect.left) * scaleX;
             
-            // Move paddle suavemente em direção ao mouse
+            // Move paddle suavemente em direção ao mouse, mesmo com canvas escalado
             const targetX = mouseX - this.width / 2;
             const diff = targetX - this.x;
             
@@ -100,6 +101,11 @@ class Paddle {
         window.addEventListener('keydown', this.keyDownHandler);
         window.addEventListener('keyup', this.keyUpHandler);
         Game.canvas.addEventListener('mousemove', this.mouseHandler);
+        this.mouseDownHandler = (e) => {
+            if (Game.state !== 'PLAYING' || e.button !== 0) return;
+            if (Game.ball && !Game.ball.active) Game.ball.launch();
+        };
+        Game.canvas.addEventListener('mousedown', this.mouseDownHandler);
         
         // ✅ MOBILE: Touch controls
         this.setupTouchControls();
@@ -166,6 +172,9 @@ class Paddle {
         }
         if (this.mouseHandler) {
             Game.canvas.removeEventListener('mousemove', this.mouseHandler);
+        }
+        if (this.mouseDownHandler) {
+            Game.canvas.removeEventListener('mousedown', this.mouseDownHandler);
         }
         // ✅ MOBILE: Remove touch handlers
         if (this.touchStartHandler) {

@@ -328,6 +328,10 @@ function clearScreen() {
 }
 
 function renderCurrentState() {
+    // Cursor visível nos menus e oculto somente durante a partida.
+    const desiredCursor = Game.state === 'PLAYING' ? 'none' : 'pointer';
+    if (Game.canvas.style.cursor !== desiredCursor) Game.canvas.style.cursor = desiredCursor;
+
     switch (Game.state) {
         case 'MENU':
             renderMenu();

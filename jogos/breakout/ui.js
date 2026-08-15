@@ -9,6 +9,7 @@ class UI {
         // Armazena handler para cleanup
         this.keyHandler = null;
         this.setupInput();
+        this.setupPointerInput();
     }
 
     setupInput() {
@@ -40,6 +41,48 @@ class UI {
         };
         
         window.addEventListener('keydown', this.keyHandler);
+    }
+
+
+    setupPointerInput() {
+        this.pointerHandler = (e) => {
+            if (!Game.canvas) return;
+            const rect = Game.canvas.getBoundingClientRect();
+            const scaleX = Game.canvas.width / rect.width;
+            const scaleY = Game.canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            if (Game.state === 'MENU') {
+                const startY = 225;
+                const spacing = 42;
+                const index = Math.round((y - startY) / spacing);
+                if (index >= 0 && index < 7 && Math.abs(y - (startY + index * spacing)) <= 24 &&
+                    x >= Game.width / 2 - 190 && x <= Game.width / 2 + 190) {
+                    this.menuOption = index;
+                    this.selectMenuOption();
+                }
+            } else if (Game.state === 'SHOP') {
+                const upgrades = Object.keys(Game.economy?.upgrades || {});
+                const startY = 130;
+                const itemHeight = 90;
+                const index = Math.floor((y - startY + 10) / itemHeight);
+                if (index >= 0 && index < upgrades.length && x >= 40 && x <= Game.width - 40) {
+                    this.shopOption = index;
+                    this.buyUpgrade(upgrades[index]);
+                } else if (y > Game.height - 65) {
+                    Game.state = 'MENU';
+                }
+            } else if (Game.state === 'ACHIEVEMENTS' || Game.state === 'LEADERBOARD' || Game.state === 'STATISTICS') {
+                // Em telas informativas, toque/clique no rodapé volta ao menu.
+                if (y > Game.height - 90) Game.state = 'MENU';
+            } else if (Game.state === 'PAUSED') {
+                Game.state = 'PLAYING';
+            } else if (Game.state === 'GAME_OVER') {
+                if (y > Game.height * 0.5) this.startGame();
+            }
+        };
+        Game.canvas.addEventListener('pointerdown', this.pointerHandler);
     }
 
     handleMenuInput(e) {
@@ -245,23 +288,23 @@ class UI {
 
         // Título com efeito
         ctx.textAlign = 'center';
-        ctx.font = 'bold 72px Arial';
+        ctx.font = 'bold 64px Arial';
         
         // Sombra do título
         ctx.fillStyle = 'rgba(0, 210, 255, 0.3)';
-        ctx.fillText('BREAKOUT', Game.width / 2 + 4, 154);
+        ctx.fillText('BREAKOUT', Game.width / 2 + 4, 112);
         
         // Título principal
         ctx.fillStyle = '#00d2ff';
         ctx.shadowBlur = 20;
         ctx.shadowColor = '#00d2ff';
-        ctx.fillText('BREAKOUT', Game.width / 2, 150);
+        ctx.fillText('BREAKOUT', Game.width / 2, 108);
         ctx.shadowBlur = 0;
 
         // Subtítulo
         ctx.font = '20px Arial';
         ctx.fillStyle = '#888';
-        ctx.fillText('Modern Edition', Game.width / 2, 190);
+        ctx.fillText('Modern Edition', Game.width / 2, 145);
 
         // Opções do menu
         const options = [
@@ -274,8 +317,8 @@ class UI {
             { text: 'ℹ️ CRÉDITOS', icon: '📜' }
         ];
         
-        const startY = 280;
-        const spacing = 70;
+        const startY = 225;
+        const spacing = 42;
         
         options.forEach((opt, i) => {
             const y = startY + i * spacing;
@@ -284,11 +327,11 @@ class UI {
             // Background da opção selecionada
             if (isSelected) {
                 ctx.fillStyle = 'rgba(0, 210, 255, 0.2)';
-                const boxWidth = 300;
-                const boxHeight = 50;
+                const boxWidth = 380;
+                const boxHeight = 36;
                 ctx.fillRect(
                     Game.width / 2 - boxWidth / 2,
-                    y - 35,
+                    y - 27,
                     boxWidth,
                     boxHeight
                 );
@@ -298,7 +341,7 @@ class UI {
                 ctx.lineWidth = 2;
                 ctx.strokeRect(
                     Game.width / 2 - boxWidth / 2,
-                    y - 35,
+                    y - 27,
                     boxWidth,
                     boxHeight
                 );
@@ -306,7 +349,7 @@ class UI {
             
             // Texto da opção
             ctx.fillStyle = isSelected ? '#FFD700' : '#ccc';
-            ctx.font = isSelected ? 'bold 32px Arial' : '28px Arial';
+            ctx.font = isSelected ? 'bold 25px Arial' : '22px Arial';
             
             if (isSelected) {
                 ctx.shadowBlur = 15;
@@ -352,7 +395,7 @@ class UI {
         // Controles
         ctx.fillStyle = '#666';
         ctx.font = '14px Arial';
-        ctx.fillText('↑↓ Navegar | ENTER Selecionar', Game.width / 2, y + 60);
+        ctx.fillText('↑↓/WASD Navegar • ENTER Selecionar • Toque/Clique também funciona', Game.width / 2, y + 60);
     }
 
     drawShop() {
@@ -511,6 +554,9 @@ class UI {
     destroy() {
         if (this.keyHandler) {
             window.removeEventListener('keydown', this.keyHandler);
+        }
+        if (this.pointerHandler && Game.canvas) {
+            Game.canvas.removeEventListener('pointerdown', this.pointerHandler);
         }
     }
 }

@@ -69,6 +69,9 @@
 
         canvas {
             border: 4px solid transparent;
+            width: min(94vw, 1067px);
+            height: auto;
+            aspect-ratio: 4 / 3;
             background: 
                 linear-gradient(#0a0a0f, #0a0a0f) padding-box,
                 linear-gradient(45deg, #00d2ff, #ff00ff, #00ff7f, #ffd700) border-box;
@@ -185,8 +188,9 @@
             
             canvas {
                 max-width: 100%;
-                width: 100vw !important;
-                height: auto;
+                width: min(96vw, calc(92vh * 4 / 3)) !important;
+                height: auto !important;
+                aspect-ratio: 4 / 3;
                 touch-action: none;
             }
             
@@ -205,9 +209,10 @@
             }
             
             canvas {
-                width: 100vw !important;
-                height: 75vh !important;
-                max-height: 600px;
+                width: min(98vw, calc(88vh * 4 / 3)) !important;
+                height: auto !important;
+                max-height: 88vh;
+                aspect-ratio: 4 / 3;
             }
             
             .loading-title {
@@ -221,8 +226,10 @@
             }
             
             canvas {
-                height: 90vh !important;
+                height: 94vh !important;
                 width: auto !important;
+                max-width: 98vw;
+                aspect-ratio: 4 / 3;
             }
         }
 
@@ -289,6 +296,11 @@
         const ctx = Game.ctx;
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
+
+        // Ajuste automático de desempenho para celulares sem sacrificar a jogabilidade.
+        if (window.matchMedia('(max-width: 600px)').matches) {
+            CONFIG.PARTICLES.MAX_PARTICLES = Math.min(CONFIG.PARTICLES.MAX_PARTICLES, 180);
+        }
         
         console.log('✅ Canvas Premium inicializado');
     </script>
