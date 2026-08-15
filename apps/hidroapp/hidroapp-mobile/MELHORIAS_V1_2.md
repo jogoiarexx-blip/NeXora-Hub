@@ -1,0 +1,12 @@
+# HidroApp 1.2
+- Persistência migrada para estado versionado v2, com cópia de recuperação automática.
+- Migração transparente das chaves antigas do AsyncStorage.
+- Virada de dia mais segura e arquivamento automático do dia anterior.
+- Tema claro/escuro agora é configurável e persistente.
+- Home redesenhada com hierarquia visual, progresso, sequência e média de 7 dias.
+- Assistente de ritmo calcula atraso/adiantamento e sugere doses distribuídas pelo tempo restante.
+- Correção da navegação do calendário em janeiro/dezembro e bloqueio de meses futuros.
+- Correções de validação de atividade, sincronização do formulário após carregamento e uso de Alert nativo.
+- Ícones das abas corrigidos para hidratação, histórico e configurações.
+- Root layout simplificado: removida dependência runtime de TRPC/React Query para o funcionamento local do app.
+- Removido log de debug do ThemeProvider.
