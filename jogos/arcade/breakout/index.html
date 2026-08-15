@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Modern Breakout - Premium Edition com Gráficos Avançados">
+    <title>Modern Breakout v4.0 - Premium Edition</title>
+    
+    <!-- Google Fonts Premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Russo+One&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            color: #fff;
+            position: relative;
+        }
+        
+        /* Animação de fundo com partículas */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(2px 2px at 20% 30%, rgba(0, 210, 255, 0.3), transparent),
+                radial-gradient(2px 2px at 60% 70%, rgba(255, 0, 255, 0.2), transparent),
+                radial-gradient(1px 1px at 50% 50%, rgba(255, 215, 0, 0.2), transparent),
+                radial-gradient(1px 1px at 80% 10%, rgba(0, 255, 127, 0.2), transparent);
+            background-size: 200% 200%, 300% 300%, 250% 250%, 280% 280%;
+            animation: particles 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes particles {
+            0%, 100% { background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%; }
+            25% { background-position: 100% 0%, 0% 100%, 100% 100%, 0% 0%; }
+            50% { background-position: 100% 100%, 100% 0%, 0% 100%, 100% 0%; }
+            75% { background-position: 0% 100%, 100% 100%, 100% 0%, 100% 100%; }
+        }
+
+        #gameContainer {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 1;
+        }
+
+        canvas {
+            border: 4px solid transparent;
+            background: 
+                linear-gradient(#0a0a0f, #0a0a0f) padding-box,
+                linear-gradient(45deg, #00d2ff, #ff00ff, #00ff7f, #ffd700) border-box;
+            box-shadow: 
+                0 0 30px rgba(0, 210, 255, 0.4),
+                0 0 60px rgba(255, 0, 255, 0.3),
+                0 15px 80px rgba(0, 0, 0, 0.7),
+                inset 0 0 50px rgba(0, 210, 255, 0.1);
+            border-radius: 12px;
+            cursor: none;
+            animation: borderGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes borderGlow {
+            0%, 100% { filter: brightness(1) saturate(1); }
+            50% { filter: brightness(1.2) saturate(1.3); }
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00d2ff, #ff00ff, #00ff7f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+        }
+
+        .loader {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .loader::before,
+        .loader::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .loader::before {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(0, 210, 255, 0.2);
+            border-top: 4px solid #00d2ff;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loader::after {
+            width: 60px;
+            height: 60px;
+            top: 10px;
+            left: 10px;
+            border: 4px solid rgba(255, 0, 255, 0.2);
+            border-top: 4px solid #ff00ff;
+            animation: spin 1.5s linear infinite reverse;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 40px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 18px;
+            color: #888;
+            letter-spacing: 3px;
+            animation: loadingDots 1.5s infinite;
+        }
+        
+        @keyframes loadingDots {
+            0%, 20% { content: 'CARREGANDO'; }
+            40% { content: 'CARREGANDO.'; }
+            60% { content: 'CARREGANDO..'; }
+            80%, 100% { content: 'CARREGANDO...'; }
+        }
+
+        /* Responsive */
+        @media (max-width: 850px) {
+            body {
+                padding: 10px;
+            }
+            
+            canvas {
+                max-width: 100%;
+                width: 100vw !important;
+                height: auto;
+                touch-action: none;
+            }
+            
+            #gameContainer {
+                width: 100%;
+            }
+            
+            .loading-title {
+                font-size: 36px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            
+            canvas {
+                width: 100vw !important;
+                height: 75vh !important;
+                max-height: 600px;
+            }
+            
+            .loading-title {
+                font-size: 28px;
+            }
+        }
+        
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 5px;
+            }
+            
+            canvas {
+                height: 90vh !important;
+                width: auto !important;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: radial-gradient(ellipse at center, #0f0f1a 0%, #000000 100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen Premium -->
+    <div id="loading">
+        <div class="loading-title">BREAKOUT PREMIUM</div>
+        <div class="loader"></div>
+        <div class="loading-text">CARREGANDO...</div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Scripts -->
+    <!-- 1. Configuração -->
+    <script src="config.js"></script>
+
+    <!-- 2. Namespace Global -->
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        canvas.width = CONFIG.SCREEN.WIDTH;
+        canvas.height = CONFIG.SCREEN.HEIGHT;
+
+        // Namespace Global Centralizado com novas funcionalidades
+        window.Game = {
+            ctx: canvas.getContext('2d'),
+            canvas: canvas,
+            width: CONFIG.SCREEN.WIDTH,
+            height: CONFIG.SCREEN.HEIGHT,
+            state: 'MENU',
+            initialized: false,
+            data: {
+                score: 0,
+                coins: 0,
+                level: 1,
+                lives: 3,
+                maxLives: 3,
+                highScore: 0,
+                selectedSkin: 'default' // ✨ NOVO: Sistema de skins
+            },
+            
+            // Componentes
+            economy: null,
+            particles: null,
+            brickManager: null,
+            paddle: null,
+            ball: null,
+            ui: null,
+            hud: null,
+            skinManager: null // ✨ NOVO: Gerenciador de skins
+        };
+
+        // Configurações do canvas
+        const ctx = Game.ctx;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        console.log('✅ Canvas Premium inicializado');
+    </script>
+
+    <!-- 3. Classes Premium (Ordem é importante!) -->
+    <script src="audio.js"></script>
+    <script src="stats.js"></script>
+    <script src="achievements.js"></script>
+    <script src="leaderboard.js"></script>
+    <script src="levelgen.js"></script>
+    <script src="economy.js"></script>
+    <script src="particles.js"></script>
+    <script src="powerups.js"></script>
+    <script src="skins_manager.js"></script> <!-- ✨ NOVO -->
+    <script src="paddle.js"></script>
+    <script src="ball.js"></script>
+    <script src="bricks.js"></script>
+    <script src="hud.js"></script>
+    <script src="ui.js"></script>
+
+    <!-- 4. Loop Principal -->
+    <script src="loop.js"></script>
+
+    <!-- 5. Inicialização Final -->
+    <script>
+        // Remove loading screen após carregar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+                console.log('🎮 Breakout Premium pronto!');
+            }, 1000);
+        });
+
+        // Previne zoom em mobile
+        document.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
+        });
+
+        // Previne context menu no canvas
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
+        // Foco no canvas para receber inputs
+        canvas.tabIndex = 1;
+        canvas.focus();
+
+        // Performance monitoring
+        if (CONFIG.SYSTEM.DEBUG) {
+            console.log('%c🔧 DEBUG MODE ATIVADO', 'color: #ff0; font-weight: bold');
+            
+            setInterval(() => {
+                const memory = performance.memory;
+                if (memory) {
+                    console.log('📊 Memória:', {
+                        used: `${(memory.usedJSHeapSize / 1048576).toFixed(2)} MB`,
+                        total: `${(memory.totalJSHeapSize / 1048576).toFixed(2)} MB`
+                    });
+                }
+            }, 10000);
+        }
+    </script>
+</body>
+</html>
