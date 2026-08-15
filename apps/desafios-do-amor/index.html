@@ -1730,7 +1730,7 @@
 <link rel="manifest" href="manifest.json">
 <script>
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js").then(reg => {
+  Promise.resolve(null).then(reg => {
     if (reg.waiting) { waitingWorker = reg.waiting; document.getElementById('updateBanner').hidden = false; }
     reg.addEventListener('updatefound', () => {
       const worker = reg.installing;
@@ -1742,5 +1742,21 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
+
+<script>
+// NeXora integration: this app runs under the Hub PWA. Remove legacy nested service workers
+// so they cannot take control of the app folder or delete the Hub/offline caches.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      const here = new URL('./', location.href).href;
+      for (const reg of regs) {
+        if (reg.scope === here || reg.scope.startsWith(here)) await reg.unregister();
+      }
+    } catch (_) {}
+  });
+}
+</script>
 </body>
 </html>

@@ -1431,7 +1431,23 @@ loadAll().then(() => {
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('service-worker.js').then(reg=>{reg.update(); reg.addEventListener('updatefound',()=>{const w=reg.installing; if(w)w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller) showToast('🔄 Nova versão disponível. Reabra o app para atualizar.');});});});
+    Promise.resolve(null).then(reg=>{reg.update(); reg.addEventListener('updatefound',()=>{const w=reg.installing; if(w)w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller) showToast('🔄 Nova versão disponível. Reabra o app para atualizar.');});});});
+  });
+}
+</script>
+
+<script>
+// NeXora integration: this app runs under the Hub PWA. Remove legacy nested service workers
+// so they cannot take control of the app folder or delete the Hub/offline caches.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      const here = new URL('./', location.href).href;
+      for (const reg of regs) {
+        if (reg.scope === here || reg.scope.startsWith(here)) await reg.unregister();
+      }
+    } catch (_) {}
   });
 }
 </script>
