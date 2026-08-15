@@ -6,6 +6,15 @@ const TYPES = {
   app:   { label: 'apps',   action: 'abrir', icon: '📱' }
 };
 const TYPE_ORDER = ['livro', 'jogo', 'app'];
+const GAME_CATEGORIES = {
+  arcade: {label:'Arcade', icon:'🕹️', order:1},
+  corrida: {label:'Corrida', icon:'🏁', order:2},
+  survival: {label:'Survival', icon:'☣️', order:3},
+  cartas: {label:'Cartas', icon:'🃏', order:4},
+  rpg: {label:'RPG & Aventura', icon:'⚔️', order:5},
+  'simulação': {label:'Simulação', icon:'🔧', order:6},
+  outros: {label:'Outros', icon:'🎮', order:99}
+};
 const ITEMS = [...LIVROS, ...JOGOS, ...APPS].filter(item => item.id !== 'exemplo');
 const FAVORITES_KEY = 'nexora.favorites';
 const READER_PREFIX = 'nexora.reader.';
@@ -73,7 +82,24 @@ function renderItems(list){
   const grid = document.getElementById('games');
   const empty = document.getElementById('emptyState');
   const meta = document.getElementById('resultsMeta');
-  grid.innerHTML = list.map(cardHTML).join('');
+  if(activeType === 'jogo'){
+    const groups = new Map();
+    list.forEach(item => {
+      const key = item.category || 'outros';
+      if(!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(item);
+    });
+    const ordered = [...groups.entries()].sort((a,b) => (GAME_CATEGORIES[a[0]]?.order||99)-(GAME_CATEGORIES[b[0]]?.order||99));
+    grid.innerHTML = ordered.map(([key,items]) => {
+      const c = GAME_CATEGORIES[key] || GAME_CATEGORIES.outros;
+      return `<section class="game-category" data-category="${escapeHTML(key)}">
+        <div class="game-category-head"><div><span class="game-category-icon">${c.icon}</span><h2>${escapeHTML(c.label)}</h2></div><span>${items.length} ${items.length===1?'jogo':'jogos'}</span></div>
+        <div class="game-category-grid">${items.map(cardHTML).join('')}</div>
+      </section>`;
+    }).join('');
+  } else {
+    grid.innerHTML = `<div class="main-grid">${list.map(cardHTML).join('')}</div>`;
+  }
   empty.style.display = list.length ? 'none' : 'block';
   meta.textContent = list.length ? `${list.length} ${list.length === 1 ? 'item encontrado' : 'itens encontrados'}` : '';
 }
@@ -88,6 +114,15 @@ function renderTypeTabs(){
 }
 function renderGenreFilters(){
   const pool = activeType === 'todos' ? ITEMS : ITEMS.filter(i => i.type === activeType);
+  if(activeType === 'jogo'){
+    const categories = [...new Set(pool.map(i => i.category || 'outros'))]
+      .sort((a,b)=>(GAME_CATEGORIES[a]?.order||99)-(GAME_CATEGORIES[b]?.order||99));
+    document.getElementById('filters').innerHTML = ['todos', ...categories].map((g,i) => {
+      const c = g === 'todos' ? {label:'Todos os jogos',icon:'🎮'} : (GAME_CATEGORIES[g] || GAME_CATEGORIES.outros);
+      return `<button class="filter-btn${i===0?' active':''}" data-genre="${escapeHTML(g)}" type="button">${c.icon} ${escapeHTML(c.label)}</button>`;
+    }).join('');
+    return;
+  }
   const genres = ['todos', ...new Set(pool.map(i => i.genre))];
   document.getElementById('filters').innerHTML = genres.map((g,i) =>
     `<button class="filter-btn${i===0?' active':''}" data-genre="${escapeHTML(g)}" type="button">${escapeHTML(g)}</button>`
@@ -109,9 +144,9 @@ function applyFilters(){
   const activeBtn = document.querySelector('.filter-btn.active');
   const genre = activeBtn ? activeBtn.dataset.genre : 'todos';
   const filtered = ITEMS.filter(i => {
-    const searchable = normalize([i.title, i.desc, i.genre, i.type, TYPES[i.type]?.label].join(' '));
+    const searchable = normalize([i.title, i.desc, i.genre, i.category, i.type, TYPES[i.type]?.label, GAME_CATEGORIES[i.category]?.label].join(' '));
     return (activeType === 'todos' || i.type === activeType)
-      && (genre === 'todos' || i.genre === genre)
+      && (genre === 'todos' || (activeType === 'jogo' ? (i.category || 'outros') === genre : i.genre === genre))
       && (!term || searchable.includes(term));
   });
   renderItems(sortByTypeOrder(filtered));
@@ -162,7 +197,7 @@ if('serviceWorker' in navigator){
     try {
       // limpa caches da versão que causou o problema no GitHub Pages
       const names = await caches.keys();
-      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-shell-v8' && n !== 'nexora-content-v8').map(n => caches.delete(n)));
+      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-shell-v11' && n !== 'nexora-content-v11').map(n => caches.delete(n)));
       await navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'});
     } catch(err){ console.warn('PWA:', err); }
   });

@@ -66,3 +66,7 @@ Também em `js/app.js`, no objeto `BANNER` no topo: troque `image`, `link` e
 Definidas em `css/style.css` no `:root`: `--red`, `--purple`, `--teal`,
 `--amber`, `--gold`, `--steel`, `--fire`.
 Pode usar uma dessas no campo `accent` ou passar um hex direto.
+
+
+## Organização física dos jogos — v13
+Os jogos agora ficam em `jogos/<categoria>/<jogo>/`. Categorias: arcade, shoot-em-up, plataforma, survival, cartas, simulacao, corrida, rpg e outros.
