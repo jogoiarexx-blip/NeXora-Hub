@@ -76,6 +76,7 @@ const JOGOS = [
     genre: 'sobrevivência',
     category: 'survival',
     accent: 'var(--red)',
+    thumb: 'assets/thumbs/last-campfire.webp',
     desc: 'Jogo de sobrevivência com controles, áudio, sistema de salvamento e interface própria.',
     path: 'jogos/survival/last-campfire/index.html'
   },

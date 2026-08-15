@@ -75,7 +75,10 @@ function cardHTML(item){
         ${progressHTML}
         <span class="play">▶ ${progress ? 'continuar' : meta.action}</span>
       </a>
-      ${OFFLINE_ASSETS[item.id] ? `<button class="download-btn${localStorage.getItem(OFFLINE_KEY+item.id)==='1'?' downloaded':''}" type="button" data-download="${escapeHTML(item.id)}">${localStorage.getItem(OFFLINE_KEY+item.id)==='1'?'✓ offline':'⬇ baixar'}</button>` : ''}
+      <div class="card-extra-actions">
+        ${item.type === 'app' ? `<a class="install-subapp-btn" href="${escapeHTML(item.path)}?install=1">📲 instalar</a>` : ''}
+        ${OFFLINE_ASSETS[item.id] ? `<button class="download-btn${localStorage.getItem(OFFLINE_KEY+item.id)==='1'?' downloaded':''}" type="button" data-download="${escapeHTML(item.id)}">${localStorage.getItem(OFFLINE_KEY+item.id)==='1'?'✓ offline':'⬇ baixar'}</button>` : ''}
+      </div>
     </article>`;
 }
 function renderItems(list){
@@ -197,7 +200,7 @@ if('serviceWorker' in navigator){
     try {
       // limpa caches da versão que causou o problema no GitHub Pages
       const names = await caches.keys();
-      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-shell-v11' && n !== 'nexora-content-v11').map(n => caches.delete(n)));
+      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-hub-v18' && n !== 'nexora-hub-v18-content').map(n => caches.delete(n)));
       await navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'});
     } catch(err){ console.warn('PWA:', err); }
   });
