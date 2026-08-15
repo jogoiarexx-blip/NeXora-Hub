@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08080f">
 <title>Nexora Hub</title>
 <meta name="description" content="Nexora Hub — livros, apps e jogos num só lugar.">
 <link rel="stylesheet" href="css/style.css">
@@ -18,20 +19,40 @@
   <img class="brand-logo" src="assets/logo.png" alt="Nexora Hub — livros, apps e jogos" width="1254" height="1254">
 </header>
 
-<section id="banner">
-  <a id="merchLink" href="https://example.com" target="_blank" rel="noopener">
-    <span class="banner-tag" id="bannerTag">promo</span>
-    <img id="merchImg" src="assets/banner-placeholder.png" alt="Banner promocional">
+<section id="banner" aria-label="Destaque">
+  <a id="featuredLink" class="featured-banner" href="#">
+    <div class="featured-copy">
+      <span class="banner-tag">em destaque</span>
+      <h1 id="featuredTitle">Nexora Hub</h1>
+      <p id="featuredDesc">Livros, jogos e apps em um só lugar.</p>
+      <span id="featuredAction" class="featured-action">abrir agora →</span>
+    </div>
+    <img id="featuredImg" alt="" loading="eager">
   </a>
 </section>
 
-<div class="type-tabs" id="typeTabs"></div>
+<section id="continueSection" class="continue-section" hidden>
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow">sua leitura</span>
+      <h2>Continuar lendo</h2>
+    </div>
+    <button id="clearProgress" class="text-btn" type="button">limpar progresso</button>
+  </div>
+  <div id="continueGrid" class="continue-grid"></div>
+</section>
+
+<div class="type-tabs" id="typeTabs" aria-label="Tipos de conteúdo"></div>
 
 <div class="controls">
-  <input id="search" placeholder="buscar...">
+  <label class="search-wrap" for="search">
+    <span aria-hidden="true">⌕</span>
+    <input id="search" type="search" autocomplete="off" placeholder="buscar por título, gênero ou descrição..." aria-label="Buscar conteúdo">
+  </label>
   <div class="filters" id="filters"></div>
 </div>
 
+<div id="resultsMeta" class="results-meta" aria-live="polite"></div>
 <div id="games"></div>
 <p id="emptyState">nada encontrado com esse filtro.</p>
 

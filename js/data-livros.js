@@ -6,6 +6,26 @@
 
 const LIVROS = [
   {
+    id: 'joao-e-crist-sea-of-liars',
+    type: 'livro',
+    title: 'As Aventuras de João e Crist — Sea of Liars',
+    genre: 'aventura',
+    accent: 'var(--amber)',
+    thumb: 'assets/thumbs/joao-e-crist-sea-of-liars.jpg',
+    desc: 'Uma nova aventura de João e Crist, agora em Sea of Liars.',
+    path: 'livros/joao-e-crist-sea-of-liars/index.html'
+  },
+  {
+    id: 'joao-e-crist-vol4',
+    type: 'livro',
+    title: 'As Aventuras de João e Crist — Vol. 4',
+    genre: 'comédia',
+    accent: 'var(--amber)',
+    thumb: 'assets/thumbs/joao-e-crist-vol4.jpg',
+    desc: 'Uma Brasília velha, Carnaval no interior e uma fazenda mal-assombrada colocam João e Crist em mais uma sequência de confusões.',
+    path: 'livros/joao-e-crist-vol4/index.html'
+  },
+  {
     id: 'joao-e-crist',
     type: 'livro',
     title: 'As Aventuras de João e Crist — Vol. 2',
