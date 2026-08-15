@@ -1,6 +1,8 @@
 // ================= CONFIGURAÇÕES GLOBAIS =================
 const CONFIG = {
   SAVE_KEY: "hungry_like_save_v2",
+  VERSION: "4.0",
+  GRAPHICS_QUALITY: "auto",
   
   // Canvas
   MAX_DPR: 2,

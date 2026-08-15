@@ -393,6 +393,7 @@ function startGame() {
   combo = 0;
   comboTimer = 0;
   comboMultiplier = 1;
+  if (typeof V4 !== 'undefined') V4.resetRun();
   missionStats = { fishEaten: 0, enemiesDefeated: 0, comboReached: 0 };
 
   if (typeof camera !== 'undefined' && camera) {

@@ -155,6 +155,11 @@ class Player {
       this.y = Math.max(this.r, Math.min(canvas.height/dpr - this.r, this.y));
     }
 
+    // V4: crescimento visual progressivo. O raio cresce de forma limitada para
+    // deixar a evolução perceptível sem quebrar colisões ou o desenho.
+    const targetRadius = Math.min(38, CONFIG.PLAYER_INITIAL_RADIUS + Math.max(0, level - 1) * 0.72);
+    this.r += (targetRadius - this.r) * Math.min(1, dt * 2.2);
+
     // Atualizar stats baseado em upgrades
     this.maxHunger = 100 + upgrades.maxHunger * 25;
     this.speed = CONFIG.PLAYER_INITIAL_SPEED + upgrades.speed * 30;
@@ -486,527 +491,223 @@ class Player {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
-    
-    // Flash de dano
+
+    // Flash de dano sem deformar o desenho.
     if (this.damageFlash > 0) {
-      ctx.globalAlpha = 1 - this.damageFlash * 0.3;
-      ctx.filter = `hue-rotate(${this.damageFlash * 30}deg)`;
+      ctx.globalAlpha = Math.max(0.55, 1 - this.damageFlash * 0.25);
     }
-    
-    const bodyLength = this.r * 3.2;
-    const bodyWidth = this.r * 1.6;
-    const tailOffset = Math.sin(this.tailPhase) * this.r * 0.4;
-    const bodyFlex = Math.sin(this.bodyFlexPhase) * this.r * 0.15;
-    
-    // Obter cores do sistema visual (skins/transformações/evolução)
-    const colors = typeof getPlayerColors === 'function' ? 
-                   getPlayerColors() : 
-                   { 
-                     primary: '#4A5568', 
-                     secondary: '#718096', 
-                     belly: '#CBD5E0',
-                     accent: '#2D3748',
-                     eye: '#1A202C'
-                   };
-    
-    // ========== SOMBRA PROJETADA ==========
+
+    // Paleta robusta: skins antigas nem sempre possuem accent/eye.
+    const rawColors = typeof getPlayerColors === 'function' ? getPlayerColors() : {};
+    const colors = {
+      primary: rawColors.primary || '#64748B',
+      secondary: rawColors.secondary || '#94A3B8',
+      belly: rawColors.belly || '#E2E8F0',
+      accent: rawColors.accent || rawColors.primary || '#334155',
+      eye: rawColors.eye || '#0F172A'
+    };
+
+    // Proporções compactas e estáveis. Antes as nadadeiras usavam múltiplos
+    // do bodyWidth e podiam ficar muito maiores que o corpo.
+    const L = this.r * 3.55;
+    const H = this.r * 1.12;
+    const tailWave = Math.sin(this.tailPhase) * this.r * 0.22;
+    const finWave = Math.sin(this.finPhase) * this.r * 0.055;
+    const bodyFlex = Math.sin(this.bodyFlexPhase) * this.r * 0.055;
+
+    // Sombra suave sob o tubarão.
     ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-    ctx.shadowBlur = 20;
-    ctx.shadowOffsetX = 6;
-    ctx.shadowOffsetY = 6;
-    
-    // ========== CORPO PRINCIPAL COM ILUMINAÇÃO 3D ==========
-    const bodyGradient = ctx.createLinearGradient(
-      -bodyLength*0.5, -bodyWidth*0.7, 
-      bodyLength*0.7, bodyWidth*0.7
-    );
-    bodyGradient.addColorStop(0, colors.accent);
-    bodyGradient.addColorStop(0.2, colors.primary);
-    bodyGradient.addColorStop(0.45, colors.secondary);
-    bodyGradient.addColorStop(0.6, colors.belly);
-    bodyGradient.addColorStop(0.8, colors.secondary);
-    bodyGradient.addColorStop(1, colors.primary);
-    
-    ctx.fillStyle = bodyGradient;
+    ctx.globalAlpha *= 0.22;
+    ctx.fillStyle = '#020617';
     ctx.beginPath();
-    
-    // Nariz/focinho afiado
-    ctx.moveTo(bodyLength * 0.75, 0);
-    
-    // Parte superior do corpo com curvatura realista
-    ctx.bezierCurveTo(
-      bodyLength * 0.65, -bodyWidth * 0.3,
-      bodyLength * 0.45, -bodyWidth * 0.5,
-      bodyLength * 0.2, -bodyWidth * 0.55
-    );
-    ctx.bezierCurveTo(
-      bodyLength * 0.05, -bodyWidth * 0.56,
-      -bodyLength * 0.1, -bodyWidth * 0.54,
-      -bodyLength * 0.25, -bodyWidth * 0.5
-    );
-    
-    // Costas com flexão de natação
-    ctx.bezierCurveTo(
-      -bodyLength * 0.35, -bodyWidth * 0.45 + bodyFlex,
-      -bodyLength * 0.5, -bodyWidth * 0.3 + bodyFlex * 1.5,
-      -bodyLength * 0.65, -bodyWidth * 0.15 + bodyFlex * 0.8
-    );
-    
-    // Base da cauda
-    ctx.lineTo(-bodyLength * 0.7, 0);
-    
-    // Parte inferior do corpo
-    ctx.bezierCurveTo(
-      -bodyLength * 0.5, bodyWidth * 0.3 - bodyFlex * 0.8,
-      -bodyLength * 0.35, bodyWidth * 0.45 - bodyFlex,
-      -bodyLength * 0.25, bodyWidth * 0.5
-    );
-    ctx.bezierCurveTo(
-      -bodyLength * 0.1, bodyWidth * 0.54,
-      bodyLength * 0.05, bodyWidth * 0.56,
-      bodyLength * 0.2, bodyWidth * 0.55
-    );
-    
-    // Barriga e retorno ao focinho
-    ctx.bezierCurveTo(
-      bodyLength * 0.45, bodyWidth * 0.5,
-      bodyLength * 0.65, bodyWidth * 0.3,
-      bodyLength * 0.75, 0
-    );
+    ctx.ellipse(-this.r * 0.1, this.r * 0.32, L * 0.56, H * 0.62, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // ===== NADADEIRAS DE FUNDO =====
+    const finGrad = ctx.createLinearGradient(0, -H, 0, H);
+    finGrad.addColorStop(0, adjustColorBrightness(colors.primary, -8));
+    finGrad.addColorStop(1, colors.secondary);
+    ctx.fillStyle = finGrad;
+
+    // Dorsal: triangular-curva, altura limitada.
+    ctx.beginPath();
+    ctx.moveTo(-L * 0.16, -H * 0.70);
+    ctx.quadraticCurveTo(-L * 0.02, -H * 1.55 + finWave, L * 0.15, -H * 0.79);
+    ctx.quadraticCurveTo(L * 0.04, -H * 0.68, -L * 0.16, -H * 0.70);
+    ctx.closePath();
+    ctx.fill();
+
+    // Peitoral de trás: curta e inclinada, nunca atravessa a tela.
+    ctx.save();
+    ctx.globalAlpha *= 0.78;
+    ctx.beginPath();
+    ctx.moveTo(L * 0.05, -H * 0.18);
+    ctx.quadraticCurveTo(-L * 0.02, -H * 0.85 + finWave, L * 0.23, -H * 1.02 + finWave);
+    ctx.quadraticCurveTo(L * 0.18, -H * 0.48, L * 0.05, -H * 0.18);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
-    
-    // ========== BARRIGA CLARA COM GRADIENTE SUAVE ==========
-    const bellyGradient = ctx.createRadialGradient(0, bodyWidth * 0.2, 0, 0, bodyWidth * 0.2, bodyLength * 0.5);
-    bellyGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-    bellyGradient.addColorStop(0.6, 'rgba(203, 213, 224, 0.5)');
-    bellyGradient.addColorStop(1, 'rgba(203, 213, 224, 0)');
-    
-    ctx.fillStyle = bellyGradient;
+
+    // ===== CAUDA =====
+    const tailRootX = -L * 0.53;
+    const tailTipX = -L * 0.88;
+    ctx.fillStyle = adjustColorBrightness(colors.primary, -5);
     ctx.beginPath();
-    ctx.ellipse(bodyLength * 0.1, bodyWidth * 0.2, bodyLength * 0.45, bodyWidth * 0.35, 0, 0, Math.PI * 2);
+    ctx.moveTo(tailRootX, -H * 0.23 + bodyFlex);
+    ctx.quadraticCurveTo(-L * 0.70, -H * 0.16 + tailWave, tailTipX, tailWave);
+    ctx.quadraticCurveTo(-L * 1.02, -H * 0.78 + tailWave, -L * 0.91, -H * 0.92 + tailWave);
+    ctx.quadraticCurveTo(-L * 0.73, -H * 0.38 + tailWave, tailTipX, tailWave);
+    ctx.quadraticCurveTo(-L * 1.02, H * 0.72 + tailWave, -L * 0.90, H * 0.88 + tailWave);
+    ctx.quadraticCurveTo(-L * 0.71, H * 0.32 + tailWave, tailRootX, H * 0.23 - bodyFlex);
+    ctx.closePath();
     ctx.fill();
-    
-    // ========== TEXTURA DE ESCAMAS ==========
+
+    // ===== CORPO =====
+    const bodyGradient = ctx.createLinearGradient(0, -H, 0, H);
+    bodyGradient.addColorStop(0, adjustColorBrightness(colors.accent, -8));
+    bodyGradient.addColorStop(0.35, colors.primary);
+    bodyGradient.addColorStop(0.70, colors.secondary);
+    bodyGradient.addColorStop(1, colors.belly);
+    ctx.fillStyle = bodyGradient;
+    ctx.beginPath();
+    ctx.moveTo(L * 0.58, -H * 0.02); // focinho
+    ctx.bezierCurveTo(L * 0.48, -H * 0.48, L * 0.20, -H * 0.66, -L * 0.15, -H * 0.62);
+    ctx.bezierCurveTo(-L * 0.35, -H * 0.58 + bodyFlex, -L * 0.50, -H * 0.36 + bodyFlex, tailRootX, -H * 0.23 + bodyFlex);
+    ctx.lineTo(tailRootX, H * 0.23 - bodyFlex);
+    ctx.bezierCurveTo(-L * 0.38, H * 0.51 - bodyFlex, -L * 0.08, H * 0.61, L * 0.22, H * 0.52);
+    ctx.bezierCurveTo(L * 0.43, H * 0.43, L * 0.58, H * 0.20, L * 0.58, -H * 0.02);
+    ctx.closePath();
+    ctx.fill();
+
+    // Barriga clara integrada ao corpo.
     ctx.save();
-    ctx.globalAlpha = 0.12;
-    ctx.strokeStyle = colors.accent;
-    ctx.lineWidth = 0.8;
-    
-    // Padrão de escamas em arco
-    for (let i = -4; i <= 4; i++) {
-      for (let j = -2; j <= 2; j++) {
-        const scaleX = bodyLength * 0.05 + i * this.r * 0.35;
-        const scaleY = j * bodyWidth * 0.3;
-        const scaleSize = this.r * 0.18;
-        
+    ctx.globalAlpha *= 0.55;
+    const bellyGrad = ctx.createRadialGradient(L * 0.10, H * 0.24, 0, L * 0.10, H * 0.24, L * 0.50);
+    bellyGrad.addColorStop(0, '#FFFFFF');
+    bellyGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = bellyGrad;
+    ctx.beginPath();
+    ctx.ellipse(L * 0.08, H * 0.23, L * 0.39, H * 0.26, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Peitoral da frente, desenhada por cima do corpo e com movimento discreto.
+    ctx.save();
+    ctx.globalAlpha *= 0.88;
+    ctx.fillStyle = adjustColorBrightness(colors.secondary, -5);
+    ctx.beginPath();
+    ctx.moveTo(-L * 0.02, H * 0.18);
+    ctx.quadraticCurveTo(L * 0.02, H * 0.78 - finWave, L * 0.25, H * 0.94 - finWave);
+    ctx.quadraticCurveTo(L * 0.19, H * 0.44, -L * 0.02, H * 0.18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Brânquias discretas.
+    ctx.save();
+    ctx.strokeStyle = adjustColorBrightness(colors.accent, -22);
+    ctx.lineWidth = Math.max(1, this.r * 0.055);
+    ctx.globalAlpha *= 0.48;
+    for (let i = 0; i < 3; i++) {
+      const gx = -L * 0.03 + i * this.r * 0.18;
+      ctx.beginPath();
+      ctx.arc(gx, -H * 0.03, this.r * 0.22, -0.75, 0.75);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Olho compacto e expressivo.
+    const eyeX = L * 0.37;
+    const eyeY = -H * 0.23;
+    const eyeR = this.r * 0.16;
+    ctx.fillStyle = '#EAFBFF';
+    ctx.beginPath();
+    ctx.arc(eyeX, eyeY, eyeR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#38BDF8';
+    ctx.beginPath();
+    ctx.arc(eyeX + eyeR * 0.12, eyeY, eyeR * 0.60, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = colors.eye;
+    ctx.beginPath();
+    ctx.arc(eyeX + eyeR * 0.22, eyeY, eyeR * 0.31, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(eyeX + eyeR * 0.43, eyeY - eyeR * 0.30, eyeR * 0.19, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Boca: os dentes ficam DENTRO da abertura, sem efeito de serra externo.
+    const bite = Math.max(0, Math.min(1, this.mouthOpenness));
+    const mouthX1 = L * 0.34;
+    const mouthX2 = L * 0.57;
+    const mouthY = H * 0.12;
+    const open = this.r * (0.035 + bite * 0.16);
+    ctx.save();
+    ctx.strokeStyle = '#1F2937';
+    ctx.lineWidth = Math.max(1.4, this.r * 0.07);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(mouthX1, mouthY);
+    ctx.quadraticCurveTo(L * 0.48, mouthY + open, mouthX2, mouthY - open * 0.10);
+    ctx.stroke();
+
+    if (bite > 0.12) {
+      ctx.fillStyle = '#F8FAFC';
+      const teeth = 5;
+      for (let i = 0; i < teeth; i++) {
+        const t = (i + 0.5) / teeth;
+        const tx = mouthX1 + (mouthX2 - mouthX1) * t;
+        const ty = mouthY + open * (0.25 + 0.35 * Math.sin(t * Math.PI));
+        const th = this.r * (0.07 + bite * 0.035);
         ctx.beginPath();
-        ctx.arc(scaleX, scaleY, scaleSize, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        // Linhas de detalhe nas escamas
-        ctx.beginPath();
-        ctx.moveTo(scaleX - scaleSize * 0.5, scaleY);
-        ctx.lineTo(scaleX + scaleSize * 0.5, scaleY);
-        ctx.stroke();
+        ctx.moveTo(tx - th * 0.40, ty);
+        ctx.lineTo(tx + th * 0.40, ty);
+        ctx.lineTo(tx, ty + th);
+        ctx.closePath();
+        ctx.fill();
       }
     }
     ctx.restore();
-    
-    // ========== BARBATANA DORSAL PRINCIPAL ==========
-    const finWave = Math.sin(this.finPhase) * this.r * 0.2;
-    
-    const dorsalGradient = ctx.createLinearGradient(
-      0, -bodyWidth * 0.55, 
-      bodyLength * 0.2, -bodyWidth * 1.4
-    );
-    dorsalGradient.addColorStop(0, colors.primary);
-    dorsalGradient.addColorStop(0.4, colors.secondary);
-    dorsalGradient.addColorStop(0.7, adjustColorBrightness(colors.secondary, 20));
-    dorsalGradient.addColorStop(1, adjustColorBrightness(colors.primary, -20));
-    
-    ctx.fillStyle = dorsalGradient;
-    ctx.beginPath();
-    ctx.moveTo(-bodyLength * 0.05, -bodyWidth * 0.55);
-    ctx.bezierCurveTo(
-      0, -bodyWidth * 0.85 + finWave * 0.5,
-      bodyLength * 0.08, -bodyWidth * 1.25 + finWave,
-      bodyLength * 0.18, -bodyWidth * 1.35 + finWave
-    );
-    ctx.bezierCurveTo(
-      bodyLength * 0.22, -bodyWidth * 1.25 + finWave * 0.8,
-      bodyLength * 0.32, -bodyWidth * 0.9 + finWave * 0.5,
-      bodyLength * 0.4, -bodyWidth * 0.65 + finWave * 0.3
-    );
-    ctx.bezierCurveTo(
-      bodyLength * 0.42, -bodyWidth * 0.58,
-      bodyLength * 0.35, -bodyWidth * 0.55,
-      bodyLength * 0.25, -bodyWidth * 0.55
-    );
-    ctx.closePath();
-    ctx.fill();
-    
-    // Detalhes da barbatana dorsal (raios)
+
+    // Pequeno brilho no dorso para dar volume, sem pesar.
     ctx.save();
-    ctx.strokeStyle = adjustColorBrightness(colors.primary, -30);
-    ctx.lineWidth = 1.2;
-    ctx.globalAlpha = 0.6;
-    
-    for (let i = 0; i < 6; i++) {
-      const t = i / 5;
-      const startX = -bodyLength * 0.05 + t * bodyLength * 0.3;
-      const startY = -bodyWidth * 0.55;
-      const endX = bodyLength * (0.08 + t * 0.1);
-      const endY = -bodyWidth * (0.9 + t * 0.4) + finWave * (1 - t * 0.5);
-      
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      ctx.stroke();
-    }
-    ctx.restore();
-    
-    // ========== BARBATANAS PEITORAIS (LATERAIS) ==========
-    const pectoralWave = Math.sin(this.finPhase * 1.2) * this.r * 0.15;
-    
-    // Barbatana peitoral superior (direita)
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-    const pectoralGradient1 = ctx.createLinearGradient(
-      bodyLength * 0.08, -bodyWidth * 0.45,
-      bodyLength * 0.35, -bodyWidth * 0.7
-    );
-    pectoralGradient1.addColorStop(0, colors.primary);
-    pectoralGradient1.addColorStop(0.6, colors.secondary);
-    pectoralGradient1.addColorStop(1, adjustColorBrightness(colors.secondary, -15));
-    
-    ctx.fillStyle = pectoralGradient1;
+    ctx.globalAlpha *= 0.18;
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = Math.max(1, this.r * 0.06);
     ctx.beginPath();
-    ctx.moveTo(bodyLength * 0.08, -bodyWidth * 0.45);
-    ctx.bezierCurveTo(
-      bodyLength * 0.15, -bodyWidth * 0.55 + pectoralWave,
-      bodyLength * 0.25, -bodyWidth * 0.65 + pectoralWave * 1.2,
-      bodyLength * 0.35, -bodyWidth * 0.7 + pectoralWave * 1.3
-    );
-    ctx.bezierCurveTo(
-      bodyLength * 0.32, -bodyWidth * 0.6 + pectoralWave,
-      bodyLength * 0.25, -bodyWidth * 0.5 + pectoralWave * 0.7,
-      bodyLength * 0.15, -bodyWidth * 0.42
-    );
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    
-    // Barbatana peitoral inferior (esquerda)
-    ctx.save();
-    ctx.globalAlpha = 0.85;
-    const pectoralGradient2 = ctx.createLinearGradient(
-      bodyLength * 0.08, bodyWidth * 0.45,
-      bodyLength * 0.35, bodyWidth * 0.7
-    );
-    pectoralGradient2.addColorStop(0, colors.primary);
-    pectoralGradient2.addColorStop(0.6, colors.secondary);
-    pectoralGradient2.addColorStop(1, adjustColorBrightness(colors.secondary, -15));
-    
-    ctx.fillStyle = pectoralGradient2;
-    ctx.beginPath();
-    ctx.moveTo(bodyLength * 0.08, bodyWidth * 0.45);
-    ctx.bezierCurveTo(
-      bodyLength * 0.15, bodyWidth * 0.55 - pectoralWave,
-      bodyLength * 0.25, bodyWidth * 0.65 - pectoralWave * 1.2,
-      bodyLength * 0.35, bodyWidth * 0.7 - pectoralWave * 1.3
-    );
-    ctx.bezierCurveTo(
-      bodyLength * 0.32, bodyWidth * 0.6 - pectoralWave,
-      bodyLength * 0.25, bodyWidth * 0.5 - pectoralWave * 0.7,
-      bodyLength * 0.15, bodyWidth * 0.42
-    );
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    
-    // ========== BARBATANA ANAL (INFERIOR TRASEIRA) ==========
-    ctx.save();
-    ctx.globalAlpha = 0.9;
-    const analFinGradient = ctx.createLinearGradient(
-      -bodyLength * 0.2, bodyWidth * 0.5,
-      -bodyLength * 0.1, bodyWidth * 0.8
-    );
-    analFinGradient.addColorStop(0, colors.primary);
-    analFinGradient.addColorStop(1, colors.secondary);
-    
-    ctx.fillStyle = analFinGradient;
-    ctx.beginPath();
-    ctx.moveTo(-bodyLength * 0.2, bodyWidth * 0.5);
-    ctx.bezierCurveTo(
-      -bodyLength * 0.18, bodyWidth * 0.65 - finWave * 0.5,
-      -bodyLength * 0.12, bodyWidth * 0.75 - finWave * 0.8,
-      -bodyLength * 0.08, bodyWidth * 0.78 - finWave
-    );
-    ctx.bezierCurveTo(
-      -bodyLength * 0.1, bodyWidth * 0.7,
-      -bodyLength * 0.15, bodyWidth * 0.58,
-      -bodyLength * 0.12, bodyWidth * 0.5
-    );
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    
-    // ========== CAUDA COMPLEXA COM MOVIMENTO FLUIDO ==========
-    const tailGradient = ctx.createLinearGradient(
-      -bodyLength * 0.7, 0, 
-      -bodyLength * 1.3, 0
-    );
-    tailGradient.addColorStop(0, colors.primary);
-    tailGradient.addColorStop(0.3, colors.secondary);
-    tailGradient.addColorStop(0.6, adjustColorBrightness(colors.secondary, 15));
-    tailGradient.addColorStop(1, adjustColorBrightness(colors.primary, -25));
-    
-    ctx.fillStyle = tailGradient;
-    ctx.beginPath();
-    ctx.moveTo(-bodyLength * 0.7, 0);
-    
-    // Lóbulo superior da cauda
-    ctx.bezierCurveTo(
-      -bodyLength * 0.82, -bodyWidth * 0.25 + tailOffset * 0.3,
-      -bodyLength * 1.0, -bodyWidth * 0.5 + tailOffset * 0.7,
-      -bodyLength * 1.2, -bodyWidth * 0.7 + tailOffset
-    );
-    
-    // Ponta superior afiada
-    ctx.bezierCurveTo(
-      -bodyLength * 1.28, -bodyWidth * 0.65 + tailOffset * 0.95,
-      -bodyLength * 1.32, -bodyWidth * 0.5 + tailOffset * 0.85,
-      -bodyLength * 1.25, -bodyWidth * 0.35 + tailOffset * 0.7
-    );
-    
-    // Meio da cauda (chanfro)
-    ctx.bezierCurveTo(
-      -bodyLength * 1.15, -bodyWidth * 0.15 + tailOffset * 0.4,
-      -bodyLength * 1.0, -bodyWidth * 0.05 + tailOffset * 0.2,
-      -bodyLength * 0.9, 0
-    );
-    
-    // Lóbulo inferior da cauda
-    ctx.bezierCurveTo(
-      -bodyLength * 1.0, bodyWidth * 0.05 - tailOffset * 0.2,
-      -bodyLength * 1.15, bodyWidth * 0.15 - tailOffset * 0.4,
-      -bodyLength * 1.25, bodyWidth * 0.35 - tailOffset * 0.7
-    );
-    
-    // Ponta inferior afiada
-    ctx.bezierCurveTo(
-      -bodyLength * 1.32, bodyWidth * 0.5 - tailOffset * 0.85,
-      -bodyLength * 1.28, bodyWidth * 0.65 - tailOffset * 0.95,
-      -bodyLength * 1.2, bodyWidth * 0.7 - tailOffset
-    );
-    
-    ctx.bezierCurveTo(
-      -bodyLength * 1.0, bodyWidth * 0.5 - tailOffset * 0.7,
-      -bodyLength * 0.82, bodyWidth * 0.25 - tailOffset * 0.3,
-      -bodyLength * 0.7, 0
-    );
-    ctx.closePath();
-    ctx.fill();
-    
-    // Detalhes da cauda (raios)
-    ctx.save();
-    ctx.strokeStyle = adjustColorBrightness(colors.primary, -35);
-    ctx.lineWidth = 1.5;
-    ctx.globalAlpha = 0.5;
-    
-    for (let i = 0; i < 7; i++) {
-      const offset = (i - 3) * bodyWidth * 0.15;
-      const tailMult = offset > 0 ? -0.8 : 0.8;
-      
-      ctx.beginPath();
-      ctx.moveTo(-bodyLength * 0.8, offset * 0.5);
-      ctx.lineTo(
-        -bodyLength * 1.15, 
-        offset * 1.6 + tailOffset * tailMult
-      );
-      ctx.stroke();
-    }
-    ctx.restore();
-    
-    // ========== BRÂNQUIAS (GILLS) COM ANIMAÇÃO ==========
-    const gillOpen = Math.abs(Math.sin(this.gillPhase)) * 0.3;
-    
-    ctx.save();
-    ctx.strokeStyle = adjustColorBrightness(colors.primary, -40);
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.globalAlpha = 0.6 + gillOpen;
-    
-    for (let i = 0; i < 4; i++) {
-      const gillX = -bodyLength * 0.15 + i * this.r * 0.25;
-      const gillY1 = -bodyWidth * 0.35;
-      const gillY2 = -bodyWidth * 0.2;
-      const gillCurve = this.r * 0.1 * (1 + gillOpen);
-      
-      ctx.beginPath();
-      ctx.moveTo(gillX, gillY1);
-      ctx.quadraticCurveTo(
-        gillX - gillCurve, (gillY1 + gillY2) / 2,
-        gillX, gillY2
-      );
-      ctx.stroke();
-    }
-    ctx.restore();
-    
-    // ========== OLHO ULTRA DETALHADO COM EXPRESSÃO ==========
-    const eyeX = bodyLength * 0.52;
-    const eyeY = -bodyWidth * 0.25;
-    const eyeSize = this.r * 0.28;
-    const blinkAmount = Math.max(0, this.eyeBlinkPhase);
-    
-    // Órbita do olho (sombra)
-    ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.beginPath();
-    ctx.ellipse(eyeX, eyeY, eyeSize * 1.15, eyeSize * 1.15 * (1 - blinkAmount * 0.8), 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    
-    // Branco do olho
-    ctx.fillStyle = '#FFFFFF';
-    ctx.beginPath();
-    ctx.ellipse(eyeX, eyeY, eyeSize, eyeSize * (1 - blinkAmount * 0.8), 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    if (blinkAmount < 0.5) { // Só desenhar detalhes se não estiver piscando
-      // Íris com gradiente
-      const irisGradient = ctx.createRadialGradient(
-        eyeX + eyeSize * 0.1, eyeY, 0,
-        eyeX + eyeSize * 0.1, eyeY, eyeSize * 0.7
-      );
-      irisGradient.addColorStop(0, '#2DD4BF');
-      irisGradient.addColorStop(0.4, '#14B8A6');
-      irisGradient.addColorStop(0.8, '#0D9488');
-      irisGradient.addColorStop(1, '#0F766E');
-      
-      ctx.fillStyle = irisGradient;
-      ctx.beginPath();
-      ctx.arc(eyeX + eyeSize * 0.1, eyeY, eyeSize * 0.7, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Pupila com brilho
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(eyeX + eyeSize * 0.15, eyeY, eyeSize * 0.4, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Brilho principal no olho
-      const highlightGradient = ctx.createRadialGradient(
-        eyeX + eyeSize * 0.35, eyeY - eyeSize * 0.25, 0,
-        eyeX + eyeSize * 0.35, eyeY - eyeSize * 0.25, eyeSize * 0.35
-      );
-      highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-      highlightGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.5)');
-      highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-      
-      ctx.fillStyle = highlightGradient;
-      ctx.beginPath();
-      ctx.arc(eyeX + eyeSize * 0.35, eyeY - eyeSize * 0.25, eyeSize * 0.35, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Brilho secundário
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-      ctx.beginPath();
-      ctx.arc(eyeX - eyeSize * 0.15, eyeY + eyeSize * 0.2, eyeSize * 0.15, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
-    // Pálpebra (quando pisca)
-    if (blinkAmount > 0) {
-      ctx.save();
-      ctx.fillStyle = colors.primary;
-      ctx.beginPath();
-      ctx.ellipse(eyeX, eyeY, eyeSize * 1.05, eyeSize * blinkAmount, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-    
-    // ========== BOCA ANIMADA ==========
-    const mouthX = bodyLength * 0.68;
-    const mouthY = bodyWidth * 0.05;
-    const mouthOpen = this.mouthOpenness * this.r * 0.25;
-    
-    // Contorno da boca
-    ctx.save();
-    ctx.strokeStyle = adjustColorBrightness(colors.primary, -50);
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    
-    ctx.beginPath();
-    ctx.moveTo(mouthX - this.r * 0.3, mouthY - mouthOpen);
-    ctx.quadraticCurveTo(
-      mouthX, mouthY + mouthOpen * 2,
-      mouthX + this.r * 0.1, mouthY - mouthOpen * 0.5
-    );
+    ctx.moveTo(-L * 0.28, -H * 0.42);
+    ctx.quadraticCurveTo(L * 0.05, -H * 0.60, L * 0.34, -H * 0.33);
     ctx.stroke();
     ctx.restore();
-    
-    // ========== DENTES ULTRA REALISTAS ==========
-    ctx.save();
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.fillStyle = '#F8F9FA';
-    ctx.lineWidth = 2.8;
-    ctx.lineCap = 'round';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 2;
-    
-    const teethCount = 9;
-    for (let i = 0; i < teethCount; i++) {
-      const tx = bodyLength * 0.58 + i * this.r * 0.18;
-      const toothLength = (i % 2 === 0) ? 12 : 9;
-      const toothAngle = (i % 2 === 0) ? -0.1 : 0.1;
-      const ty = i % 2 === 0 ? -4 : -2;
-      
-      // Dente como triângulo preenchido
-      ctx.beginPath();
-      ctx.moveTo(tx, ty);
-      ctx.lineTo(tx - 2 + Math.cos(toothAngle) * 2, ty + toothLength);
-      ctx.lineTo(tx + 2 + Math.cos(toothAngle) * 2, ty + toothLength);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    }
-    ctx.restore();
-    
-    // ========== CICATRIZES TEMPORÁRIAS DE COMBATE ==========
+
+    // Cicatrizes continuam compatíveis com o sistema existente.
     ctx.save();
     this.scars.forEach(scar => {
-      ctx.globalAlpha = scar.life * 0.7;
-      ctx.strokeStyle = '#8B0000';
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      
+      ctx.globalAlpha = Math.max(0, scar.life) * 0.6;
+      ctx.strokeStyle = '#7F1D1D';
+      ctx.lineWidth = Math.max(1.2, this.r * 0.05);
       ctx.beginPath();
       ctx.moveTo(scar.x1, scar.y1);
       ctx.lineTo(scar.x2, scar.y2);
       ctx.stroke();
     });
     ctx.restore();
-    
-    // ========== EFEITO DE BRILHO QUANDO SE MOVE RÁPIDO ==========
-    if (this.isMoving && this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y > 150 * 150) {
+
+    // Aura de velocidade só no dash/alta velocidade.
+    const speedSq = this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y;
+    if (this.dashActive || (this.isMoving && speedSq > 190 * 190)) {
       ctx.save();
-      ctx.globalAlpha = 0.15;
-      ctx.strokeStyle = '#60A5FA';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = '#3B82F6';
-      ctx.shadowBlur = 15;
-      
-      // Aura ao redor do tubarão
+      ctx.globalAlpha *= this.dashActive ? 0.24 : 0.10;
+      ctx.strokeStyle = '#7DD3FC';
+      ctx.lineWidth = Math.max(1.5, this.r * 0.06);
       ctx.beginPath();
-      ctx.ellipse(0, 0, bodyLength * 1.1, bodyWidth * 1.1, 0, 0, Math.PI * 2);
+      ctx.ellipse(-L * 0.08, 0, L * 0.73, H * 0.90, 0, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
-    
+
     ctx.restore();
   }
 

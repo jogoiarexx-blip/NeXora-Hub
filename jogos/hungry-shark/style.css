@@ -109,3 +109,7 @@ body::after {
   #joystick { width: 108px; height: 108px; }
   #joystick-handle { width: 44px; height: 44px; }
 }
+
+/* ===== V3.2 - CORREÇÃO DO MODELO DO TUBARÃO =====
+   O renderer foi redesenhado no player.js com proporções limitadas para
+   dorsal, peitorais, cauda e dentes. Mantido aqui apenas como marcador de versão. */

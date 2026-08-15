@@ -83,6 +83,22 @@ function updateFish(fish, dt) {
     fishAbilitySystem.updateExplosion(fish, dt);
   }
   
+  // V4: ecossistema reativo. Peixes menores percebem o tubarão e fogem,
+  // criando cardumes mais vivos sem adicionar centenas de entidades.
+  if (player && !fish.typeDef?.isBoss) {
+    const fdx = fish.x - player.x, fdy = fish.y - player.y;
+    const fdist2 = fdx * fdx + fdy * fdy;
+    const fearRange = 150 + player.r * 3;
+    if (fish.r < player.r * 1.15 && fdist2 < fearRange * fearRange && fdist2 > 1) {
+      const fleeAngle = Math.atan2(fdy, fdx);
+      let diff = fleeAngle - fish.angle;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      fish.angle += diff * Math.min(1, dt * 5);
+      fish._fearBoost = 1.45;
+    } else fish._fearBoost = 1;
+  } else fish._fearBoost = 1;
+
   // Comportamento de wandering suave (MANTIDO)
   fish.wanderTimer -= dt;
   if (fish.wanderTimer <= 0) {
@@ -95,8 +111,8 @@ function updateFish(fish, dt) {
   fish.angle += Math.sin(angleDiff) * dt * 2;
 
   // Movimento (MANTIDO)
-  fish.x += Math.cos(fish.angle) * fish.speed * dt;
-  fish.y += Math.sin(fish.angle) * fish.speed * dt;
+  fish.x += Math.cos(fish.angle) * fish.speed * (fish._fearBoost || 1) * dt;
+  fish.y += Math.sin(fish.angle) * fish.speed * (fish._fearBoost || 1) * dt;
 
   // Atualizar animação de natação (MANTIDO - mais dinâmica)
   fish.swimPhase += dt * 8;

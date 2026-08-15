@@ -364,6 +364,20 @@ function triggerShake(intensity, duration) {
 }
 
 function eatFish(f) {
+  // V4: mini-bosses realmente exigem múltiplas mordidas.
+  if (f && f.typeDef && f.typeDef.requiresMultipleHits) {
+    if (f._v4Health == null) f._v4Health = f.typeDef.health || f.health || 2;
+    f._v4Health--;
+    if (f._v4Health > 0) {
+      player.justAte = true; player.ateTimer = .22;
+      createParticles(f.x, f.y, '#fb7185', 18);
+      createScorePopup(f.x, f.y - f.r, `BOSS ${f._v4Health} HIT${f._v4Health>1?'S':''}`, 'red');
+      triggerShake(8, .18);
+      f.angle += Math.PI * .75;
+      f.speed *= 1.12;
+      return false;
+    }
+  }
   combo++;
   comboTimer = 2.5;
   const oldMultiplier = comboMultiplier;
@@ -470,6 +484,7 @@ function eatFish(f) {
   if (earnedCoins > 0) {
     createScorePopup(player.x, player.y - 20, `+${earnedCoins}💰`, 'gold');
   }
+  return true;
 }
 
 function checkLevelUp() {
@@ -556,8 +571,7 @@ function update(dt) {
     collisions.fishes.forEach(fish => {
       const index = fishes.indexOf(fish);
       if (index !== -1) {
-        eatFish(fish);
-        removeFish(fish); // CORRIGIDO: passar o objeto fish, não o índice
+        if (eatFish(fish) !== false) removeFish(fish); // CORRIGIDO: passar o objeto fish, não o índice
       }
     });
     
@@ -607,8 +621,7 @@ function update(dt) {
       const dy = player.y - f.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < player.r + f.r) {
-        eatFish(f);
-        removeFish(f); // CORRIGIDO: passar o objeto, não o índice
+        if (eatFish(f) !== false) removeFish(f); // CORRIGIDO: passar o objeto, não o índice
       }
     }
     
@@ -643,6 +656,8 @@ function update(dt) {
       }
     }
   }
+
+  if (typeof V4 !== 'undefined') V4.update(dt);
 
   // Atualizar entidades
   updateFishes(dt);
@@ -808,6 +823,7 @@ function draw() {
   // HUD e Menus (sem zoom)
   if (gameState === 'playing') {
     drawHUD();
+    if (typeof V4 !== 'undefined') V4.draw(ctx);
     drawMenus();
     
     // ✅ Desenhar notificações de conquistas (por cima de tudo)
