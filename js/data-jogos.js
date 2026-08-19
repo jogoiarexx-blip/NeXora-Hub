@@ -61,12 +61,12 @@ const JOGOS = [
   {
     id: 'zeco-ilha',
     type: 'jogo',
-    title: 'Zeco e a Ilha das Gemas',
+    title: 'Zeco e a Ilha das Gemas 4.7',
     genre: 'aventura',
     category: 'plataforma',
     accent: 'var(--fire)',
-    thumb: 'assets/thumbs/zeco-ilha.webp',
-    desc: 'Aventura pela ilha em busca de gemas, com fases, áudio, seleção de fases e suporte a celular.',
+    thumb: 'assets/thumbs/zeco-ilha-v47.webp',
+    desc: 'Versão 4.7 com Lina Cartógrafa, Mestre Tupi, história, fases, áudio e suporte a celular.',
     path: 'jogos/plataforma/zeco-lendas-da-ilha/index.html'
   },
   {
@@ -93,11 +93,12 @@ const JOGOS = [
   {
     id: 'hungry-shark',
     type: 'jogo',
-    title: 'Hungry Shark 4.0',
+    title: 'Hungry Shark 4.1',
     genre: 'ação',
     category: 'survival',
     accent: 'var(--fire)',
-    desc: 'Sobreviva no oceano, devore inimigos, evolua o tubarão, desbloqueie habilidades, pets, títulos e conquistas. Versão 4.0 Evolução.',
+    thumb: 'assets/thumbs/hungry-shark.webp',
+    desc: 'Sobreviva no oceano, devore inimigos, evolua o tubarão, desbloqueie habilidades, pets, títulos e conquistas. Versão 4.1 com correções mobile.',
     path: 'jogos/survival/hungry-shark/index.html'
   },
   {
@@ -129,6 +130,39 @@ const JOGOS = [
     accent: 'var(--amber)',
     desc: 'Defenda seu veículo contra ondas de inimigos, com visual atualizado e suporte para PC e celular. Versão 10.2.',
     path: 'jogos/survival/vehicle-defense/index.html'
+  },
+  {
+    id: 'joao-e-crist-game',
+    type: 'jogo',
+    title: 'João e Crist: Rumo a Vegas 5.5',
+    genre: 'ação',
+    category: 'acao',
+    accent: 'var(--fire)',
+    thumb: 'assets/thumbs/joao-e-crist-game.webp',
+    desc: 'Aventura de ação com João e Crist, combate, inimigos variados, chefes, história, controles configuráveis e correções gráficas da versão 5.5.',
+    path: 'jogos/acao/joao-e-crist/index.html'
+  },
+  {
+    id: 'guerra-de-bases',
+    type: 'jogo',
+    title: 'Guerra de Bases 5.9',
+    genre: 'estratégia',
+    category: 'estrategia',
+    accent: 'var(--amber)',
+    thumb: 'assets/thumbs/guerra-de-bases.webp',
+    desc: 'Estratégia de base contra base com unidades, tanques, chefes e recruta animado na versão 5.9.',
+    path: 'jogos/estrategia/guerra-de-bases/index.html'
+  },
+  {
+    id: 'pixel-rush',
+    type: 'jogo',
+    title: 'Pixel Rush',
+    genre: 'corrida',
+    category: 'corrida',
+    accent: 'var(--red)',
+    thumb: 'assets/thumbs/pixel-rush.webp',
+    desc: 'Jogo de corrida arcade com bloqueio real de pista e jogabilidade otimizada para navegador.',
+    path: 'jogos/corrida/pixel-rush/index.html'
   },
   {
     id: 'exemplo',

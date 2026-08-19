@@ -1,4 +1,4 @@
-# Nexora Hub
+# NeXora Hub 0.9
 
 Prateleira dos meus jogos, livros e apps, hospedada como site estático (GitHub Pages).
 

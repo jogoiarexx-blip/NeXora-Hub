@@ -8,11 +8,13 @@ const TYPES = {
 const TYPE_ORDER = ['livro', 'jogo', 'app'];
 const GAME_CATEGORIES = {
   arcade: {label:'Arcade', icon:'🕹️', order:1},
-  corrida: {label:'Corrida', icon:'🏁', order:2},
-  survival: {label:'Survival', icon:'☣️', order:3},
-  cartas: {label:'Cartas', icon:'🃏', order:4},
-  rpg: {label:'RPG & Aventura', icon:'⚔️', order:5},
-  'simulação': {label:'Simulação', icon:'🔧', order:6},
+  acao: {label:'Ação', icon:'💥', order:2},
+  corrida: {label:'Corrida', icon:'🏁', order:3},
+  estrategia: {label:'Estratégia', icon:'🛡️', order:4},
+  survival: {label:'Survival', icon:'☣️', order:5},
+  cartas: {label:'Cartas', icon:'🃏', order:6},
+  rpg: {label:'RPG & Aventura', icon:'⚔️', order:7},
+  'simulação': {label:'Simulação', icon:'🔧', order:8},
   outros: {label:'Outros', icon:'🎮', order:99}
 };
 const ITEMS = [...LIVROS, ...JOGOS, ...APPS].filter(item => item.id !== 'exemplo');
@@ -200,7 +202,7 @@ if('serviceWorker' in navigator){
     try {
       // limpa caches da versão que causou o problema no GitHub Pages
       const names = await caches.keys();
-      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-hub-v18' && n !== 'nexora-hub-v18-content').map(n => caches.delete(n)));
+      await Promise.all(names.filter(n => n.startsWith('nexora-') && n !== 'nexora-hub-0.9' && n !== 'nexora-hub-0.9-content').map(n => caches.delete(n)));
       await navigator.serviceWorker.register('./sw.js', {updateViaCache:'none'});
     } catch(err){ console.warn('PWA:', err); }
   });

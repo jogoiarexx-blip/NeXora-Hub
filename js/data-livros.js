@@ -6,6 +6,13 @@
 
 const LIVROS = [
   {
+    id: 'as-janelas-de-magnolia-lane', type: 'livro', title: 'As Janelas de Magnolia Lane',
+    genre: 'romance e suspense', accent: 'var(--amber)',
+    thumb: 'assets/thumbs/as-janelas-de-magnolia-lane.webp',
+    desc: 'Um romance contemporâneo de Suelen Januário sobre amor, segredos e onze minutos que ninguém conseguiu esquecer.',
+    path: 'livros/as-janelas-de-magnolia-lane/index.html'
+  },
+  {
     id: 'promessa-ao-amanhecer', type: 'livro', title: 'Promessa ao Amanhecer',
     genre: 'romance e fé', accent: 'var(--amber)',
     thumb: 'assets/thumbs/promessa-ao-amanhecer.jpg',

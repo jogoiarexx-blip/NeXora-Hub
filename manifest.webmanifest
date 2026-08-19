@@ -1,6 +1,6 @@
 {
-  "name": "NeXora Hub",
-  "short_name": "NeXora",
+  "name": "NeXora Hub 0.9",
+  "short_name": "NeXora 0.9",
   "description": "Livros, jogos e apps em um só lugar.",
   "start_url": "./",
   "scope": "./",

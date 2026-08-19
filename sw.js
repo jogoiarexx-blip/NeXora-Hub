@@ -1,10 +1,10 @@
-const SHELL = 'nexora-hub-v18';
-const CONTENT = 'nexora-hub-v18-content';
+const SHELL = 'nexora-hub-0.9';
+const CONTENT = 'nexora-hub-0.9-content';
 const SHELL_FILES = [
-  './', './index.html', './css/style.css?v=18', './js/data-livros.js?v=18',
-  './js/data-jogos.js?v=18', './js/data-apps.js?v=18', './js/offline-assets.js?v=18',
-  './js/app.js?v=18', './assets/favicon.png', './assets/logo.png',
-  './assets/icon-192.png', './assets/icon-512.png', './manifest.webmanifest?v=18'
+  './', './index.html', './css/style.css?v=19', './js/data-livros.js?v=19',
+  './js/data-jogos.js?v=19', './js/data-apps.js?v=19', './js/offline-assets.js?v=19',
+  './js/app.js?v=19', './assets/favicon.png', './assets/logo.png',
+  './assets/icon-192.png', './assets/icon-512.png', './manifest.webmanifest?v=19'
 ];
 self.addEventListener('install', event => {
   event.waitUntil((async()=>{
