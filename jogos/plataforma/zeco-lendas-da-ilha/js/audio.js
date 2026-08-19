@@ -5,11 +5,14 @@
 // =============================================================
 let audioCtx = null;
 let masterGain = null;
-let muted = localStorage.getItem('zeco_muted') === '1';
+let muted = (typeof safeStorageGet === 'function' ? safeStorageGet('zeco_muted', '0') : '0') === '1';
 let musicInterval = null;
 
 function initAudio() {
-  if (audioCtx) return;
+  if (audioCtx) {
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    return;
+  }
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   masterGain = audioCtx.createGain();
   masterGain.gain.value = muted ? 0 : 0.7;
@@ -44,6 +47,14 @@ function playCoin() {
   tone(880, t, 0.09, 'square', 0.13);
   tone(1320, t + 0.07, 0.14, 'square', 0.13);
 }
+
+function playAttack() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  tone(520, t, 0.07, 'sawtooth', 0.12, 180);
+  tone(180, t + 0.025, 0.06, 'triangle', 0.08, 90);
+}
+
 function playStomp() {
   if (!audioCtx) return;
   const t = audioCtx.currentTime;
@@ -101,6 +112,7 @@ function startMusic() {
   if (musicInterval) return;
   musicInterval = setInterval(() => {
     if (!audioCtx || muted) return;
+    if (typeof state !== 'undefined' && state.paused) return;
     const t = audioCtx.currentTime;
     const note = musicScale[musicStep % musicScale.length];
     tone(note / 2, t, 0.35, 'triangle', 0.05);
@@ -113,7 +125,7 @@ muteBtn.addEventListener('click', () => {
   muted = !muted;
   muteBtn.textContent = muted ? '🔇' : '🔊';
   if (masterGain) masterGain.gain.value = muted ? 0 : 0.7;
-  localStorage.setItem('zeco_muted', muted ? '1' : '0');
+  if (typeof safeStorageSet === 'function') safeStorageSet('zeco_muted', muted ? '1' : '0');
 });
 
 // Reflete o estado salvo de mudo no ícone assim que a página carrega,
