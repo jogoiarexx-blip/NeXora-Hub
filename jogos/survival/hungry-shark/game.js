@@ -15,6 +15,15 @@ let joystickActive = false;
 
 const joystick = document.getElementById('joystick');
 const joystickHandle = document.getElementById('joystick-handle');
+const uiButtonsEl = document.getElementById('ui-buttons');
+
+// ✅ CORREÇÃO MOBILE: largura de painel (loja/missões/upgrades/menu) responsiva.
+// Antes esses painéis tinham largura fixa (380-450px) que ultrapassava a tela
+// em celulares (ex: 360-414px de largura), cortando texto e botões nas bordas.
+function getOverlayWidth(desired, margin = 24) {
+  const availableWidth = canvas.width / dpr - margin * 2;
+  return Math.max(260, Math.min(desired, availableWidth));
+}
 
 canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
 canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
@@ -24,7 +33,15 @@ canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  
+  handleCanvasTap(x, y);
+});
+
+// ✅ CORREÇÃO MOBILE: lógica de clique extraída para uma função própria,
+// reaproveitada tanto pelo mouse ('click') quanto pelo toque (handleTouchEnd).
+// Antes, no celular, handleTouchStart chamava e.preventDefault() incondicionalmente,
+// o que impede o navegador de gerar o evento 'click' sintético após o toque —
+// ou seja, TODO botão do menu/loja/missões ficava impossível de tocar no celular.
+function handleCanvasTap(x, y) {
   // Cliques no menu
   if (gameState === 'menu' || gameState === 'gameover' || menuState !== 'main') {
     handleMenuClick(x, y);
@@ -32,20 +49,21 @@ canvas.addEventListener('click', (e) => {
   }
   
   if (missionsMenu) {
+    const menuWidth = getOverlayWidth(400);
+    const menuHeight = 400;
+    const menuX = canvas.width/(2*dpr) - menuWidth/2;
+    const menuY = canvas.height/(2*dpr) - menuHeight/2;
     dailyMissions.forEach((mission, i) => {
-      const centerX = canvas.width/(2*dpr);
-      const centerY = canvas.height/(2*dpr);
-      const yPos = centerY - 120 + i * 110;
-      
-      if (x >= centerX - 180 && x <= centerX + 180 &&
-         y >= yPos && y <= yPos + 90) {
+      const itemY = menuY + 80 + i * 100;
+      if (x >= menuX + 20 && x <= menuX + menuWidth - 20 &&
+         y >= itemY && y <= itemY + 80) {
         claimMissionReward(i);
       }
     });
   }
   
   if (shopMenu) {
-    const shopWidth = 450;
+    const shopWidth = getOverlayWidth(450);
     const shopHeight = 500;
     const shopX = canvas.width/(2*dpr) - shopWidth/2;
     const shopY = canvas.height/(2*dpr) - shopHeight/2;
@@ -61,12 +79,41 @@ canvas.addEventListener('click', (e) => {
       }
     });
   }
-});
+
+  if (upgradeMenu) {
+    const menuWidth = getOverlayWidth(380);
+    const menuHeight = 400;
+    const menuX = canvas.width/(2*dpr) - menuWidth/2;
+    const menuY = canvas.height/(2*dpr) - menuHeight/2;
+    const upgradeKeys = ['maxHunger', 'hungerDrain', 'xpBonus', 'speed', 'heal'];
+    upgradeKeys.forEach((key, i) => {
+      const itemY = menuY + 80 + i * 55;
+      if (x >= menuX + 20 && x <= menuX + menuWidth - 20 &&
+         y >= itemY - 5 && y <= itemY + 45) {
+        buyUpgrade(key);
+      }
+    });
+  }
+}
+
+// Toque: posição/tempo iniciais, para diferenciar "tap" (toque rápido e parado,
+// usado para clicar em botões) de "arrasto" (usado para mover o joystick).
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0, touchMoved = false;
+const TAP_MOVE_THRESHOLD = 12; // px
+const TAP_MAX_DURATION = 500;  // ms
 
 function handleTouchStart(e) {
   e.preventDefault();
   const touch = e.touches[0];
-  if (touch.clientX < window.innerWidth / 2) {
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+  touchStartTime = Date.now();
+  touchMoved = false;
+
+  // ✅ Joystick só é ativado durante o gameplay (não no menu/loja/etc,
+  // onde antes ele ficava sempre visível cobrindo os botões).
+  const menusAbertos = upgradeMenu || shopMenu || missionsMenu;
+  if (gameState === 'playing' && !menusAbertos && touch.clientX < window.innerWidth / 2) {
     joystickActive = true;
     joystick.style.display = 'block';
     joystick.style.left = (touch.clientX - 60) + 'px';
@@ -77,8 +124,12 @@ function handleTouchStart(e) {
 
 function handleTouchMove(e) {
   e.preventDefault();
-  if (!joystickActive) return;
   const touch = e.touches[0];
+  if (Math.abs(touch.clientX - touchStartX) > TAP_MOVE_THRESHOLD ||
+      Math.abs(touch.clientY - touchStartY) > TAP_MOVE_THRESHOLD) {
+    touchMoved = true;
+  }
+  if (!joystickActive) return;
   const dx = touch.clientX - joystickCenter.x;
   const dy = touch.clientY - joystickCenter.y;
   const distance = Math.sqrt(dx*dx + dy*dy);
@@ -99,12 +150,24 @@ function handleTouchMove(e) {
 
 function handleTouchEnd(e) {
   e.preventDefault();
+  const wasJoystickActive = joystickActive;
+  const duration = Date.now() - touchStartTime;
   joystickActive = false;
   touchInput.active = false;
   touchInput.x = 0;
   touchInput.y = 0;
   joystick.style.display = 'none';
   joystickHandle.style.transform = 'translate(-50%, -50%)';
+
+  // ✅ Se não foi um arrasto de joystick, trata como toque em botão
+  // (equivalente ao 'click' do mouse), já que preventDefault() acima
+  // impede o navegador de disparar o 'click' sozinho.
+  if (!wasJoystickActive && !touchMoved && duration < TAP_MAX_DURATION) {
+    const rect = canvas.getBoundingClientRect();
+    const x = touchStartX - rect.left;
+    const y = touchStartY - rect.top;
+    handleCanvasTap(x, y);
+  }
 }
 
 // Botões de UI mobile
@@ -856,6 +919,13 @@ function draw() {
 function loop(time) {
   const dt = Math.min((time - lastTime) / 1000, 0.1);
   lastTime = time;
+
+  // ✅ CORREÇÃO MOBILE: os botões (loja/missões/UP/DASH/PAUSA) ficavam sempre
+  // visíveis via CSS em telas de toque, cobrindo os cards do menu principal
+  // e da tela de game over. Agora só aparecem durante o gameplay.
+  if (uiButtonsEl) {
+    uiButtonsEl.style.display = (gameState === 'playing' || gameState === 'paused') ? '' : 'none';
+  }
 
   // Auto-save periódico (a cada 60 segundos durante gameplay)
   if (typeof autoSave === 'function') {

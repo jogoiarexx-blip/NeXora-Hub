@@ -415,6 +415,19 @@ function startGame() {
 
 // ================= DESENHO DOS MENUS (VERSÃO MELHORADA) =================
 
+// ✅ CORREÇÃO MOBILE: encolhe a fonte de um título até caber em maxWidth,
+// evitando que textos grandes ("HUNGRY SHARK", "GAME OVER", "PAUSADO")
+// sejam cortados nas bordas em telas estreitas de celular.
+function fitFontSize(text, maxWidth, startSize, minSize = 22, weight = 'bold') {
+  let size = startSize;
+  ctx.font = `${weight} ${size}px Arial`;
+  while (ctx.measureText(text).width > maxWidth && size > minSize) {
+    size -= 2;
+    ctx.font = `${weight} ${size}px Arial`;
+  }
+  return size;
+}
+
 function drawMainMenu() {
   menuAnimation += 0.016;
   
@@ -430,6 +443,7 @@ function drawMainMenu() {
   drawMenuParticles(ctx);
   
   const centerX = canvas.width/(2*dpr);
+  const screenWidth = canvas.width/dpr;
   
   // Logo do jogo com sombra e brilho
   ctx.save();
@@ -446,8 +460,12 @@ function drawMainMenu() {
   titleGradient.addColorStop(1, '#2563eb');
   
   ctx.fillStyle = titleGradient;
-  ctx.font = 'bold 64px Arial';
+  // ✅ CORREÇÃO MOBILE: fonte do título era fixa em 64px e "🦈 HUNGRY SHARK"
+  // ultrapassava a largura da tela em celulares, cortando o texto nas bordas.
+  // Agora o tamanho é reduzido dinamicamente até caber na tela.
   ctx.textAlign = 'center';
+  const titleFontSize = fitFontSize('🦈 HUNGRY SHARK', screenWidth - 30, 64, 26);
+  ctx.font = `bold ${titleFontSize}px Arial`;
   ctx.fillText('🦈 HUNGRY SHARK', centerX, titleY);
   ctx.restore();
   
@@ -459,8 +477,12 @@ function drawMainMenu() {
   // Opções do menu com cards
   const menuStartY = 260;
   const menuSpacing = 80;
-  const cardWidth = 380;
+  // ✅ CORREÇÃO MOBILE: cardWidth era fixo em 380px; em telas menores que isso
+  // (a maioria dos celulares) os cards ultrapassavam a borda da tela.
+  const cardWidth = getOverlayWidth(380, 12);
   const cardHeight = 65;
+  const optionFontSize = cardWidth < 340 ? 19 : 22;
+  const iconOffsetX = cardWidth < 340 ? 55 : 75;
   
   mainMenuOptions.forEach((option, i) => {
     const isSelected = i === selectedMenuOption;
@@ -519,8 +541,8 @@ function drawMainMenu() {
     
     // Texto
     ctx.fillStyle = isSelected ? 'white' : 'rgba(255, 255, 255, 0.8)';
-    ctx.font = isSelected ? 'bold 24px Arial' : '22px Arial';
-    ctx.fillText(option.text, cardX + 75, cardY + cardHeight/2 + 10 + hoverOffset);
+    ctx.font = (isSelected ? 'bold ' : '') + optionFontSize + 'px Arial';
+    ctx.fillText(option.text, cardX + iconOffsetX, cardY + cardHeight/2 + 10 + hoverOffset);
     
     // Indicador de seleção
     if (isSelected) {
@@ -898,8 +920,10 @@ function drawGameOver() {
   titleGradient.addColorStop(1, '#dc2626');
   
   ctx.fillStyle = titleGradient;
-  ctx.font = 'bold 76px Arial';
   ctx.textAlign = 'center';
+  // ✅ CORREÇÃO MOBILE: fonte responsiva (era fixa em 76px, cortava em telas pequenas)
+  const goTitleSize = fitFontSize('GAME OVER', canvas.width/dpr - 30, 76, 34);
+  ctx.font = `bold ${goTitleSize}px Arial`;
   ctx.fillText('GAME OVER', centerX, centerY - 80);
   ctx.restore();
   
@@ -910,12 +934,15 @@ function drawGameOver() {
     { label: 'Maior Combo', value: `x${missionStats.comboReached}`, icon: '🔥' }
   ];
   
+  // ✅ CORREÇÃO MOBILE: largura do card era fixa em 400px, ultrapassando telas estreitas
+  const statCardWidth = getOverlayWidth(400, 12);
+  
   stats.forEach((stat, i) => {
     const statY = centerY - 10 + i * 50;
     
     ctx.fillStyle = 'rgba(30, 58, 138, 0.4)';
     ctx.beginPath();
-    ctx.roundRect(centerX - 200, statY - 25, 400, 45, 8);
+    ctx.roundRect(centerX - statCardWidth/2, statY - 25, statCardWidth, 45, 8);
     ctx.fill();
     
     ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
@@ -925,23 +952,24 @@ function drawGameOver() {
     ctx.font = '22px Arial';
     ctx.fillStyle = '#93c5fd';
     ctx.textAlign = 'left';
-    ctx.fillText(`${stat.icon} ${stat.label}:`, centerX - 180, statY + 5);
+    ctx.fillText(`${stat.icon} ${stat.label}:`, centerX - statCardWidth/2 + 20, statY + 5);
     
     ctx.fillStyle = 'white';
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'right';
-    ctx.fillText(stat.value, centerX + 180, statY + 5);
+    ctx.fillText(stat.value, centerX + statCardWidth/2 - 20, statY + 5);
   });
   
   // Botão voltar
   const buttonY = centerY + 140;
+  const buttonWidth = getOverlayWidth(340, 12); // ✅ responsivo
   const buttonGradient = ctx.createLinearGradient(0, buttonY, 0, buttonY + 55);
   buttonGradient.addColorStop(0, '#3b82f6');
   buttonGradient.addColorStop(1, '#2563eb');
   
   ctx.fillStyle = buttonGradient;
   ctx.beginPath();
-  ctx.roundRect(centerX - 170, buttonY, 340, 55, 10);
+  ctx.roundRect(centerX - buttonWidth/2, buttonY, buttonWidth, 55, 10);
   ctx.fill();
   
   ctx.strokeStyle = '#60a5fa';
@@ -970,9 +998,11 @@ function drawPauseMenu() {
   ctx.shadowColor = 'rgba(59, 130, 246, 0.6)';
   ctx.shadowBlur = 15;
   
-  ctx.fillStyle = '#60a5fa';
-  ctx.font = 'bold 52px Arial';
   ctx.textAlign = 'center';
+  // ✅ CORREÇÃO MOBILE: fonte responsiva (era fixa em 52px)
+  const pauseTitleSize = fitFontSize('⏸️ PAUSADO', canvas.width/dpr - 30, 52, 28);
+  ctx.fillStyle = '#60a5fa';
+  ctx.font = `bold ${pauseTitleSize}px Arial`;
   ctx.fillText('⏸️ PAUSADO', centerX, centerY - 130);
   ctx.restore();
   
@@ -982,7 +1012,8 @@ function drawPauseMenu() {
     { text: 'Voltar ao Menu', key: 'M', icon: '🏠' }
   ];
   
-  const cardWidth = 480;
+  // ✅ CORREÇÃO MOBILE: largura responsiva (era fixa em 480px)
+  const cardWidth = getOverlayWidth(480, 12);
   const cardHeight = 60;
   
   pauseOptions.forEach((option, i) => {
@@ -1050,7 +1081,7 @@ function handleMenuClick(x, y) {
   if (gameState === 'menu' && menuState === 'main') {
     const menuStartY = 260;
     const menuSpacing = 80;
-    const cardWidth = 380;
+    const cardWidth = getOverlayWidth(380, 12); // ✅ mesma largura usada em drawMainMenu
     const cardHeight = 65;
     const centerX = canvas.width/(2*dpr);
     
@@ -1067,8 +1098,9 @@ function handleMenuClick(x, y) {
   } else if (gameState === 'gameover') {
     const centerX = canvas.width/(2*dpr);
     const centerY = canvas.height/(2*dpr);
+    const buttonWidth = getOverlayWidth(340, 12); // ✅ mesma largura usada em drawGameOver
     
-    if (x >= centerX - 170 && x <= centerX + 170 &&
+    if (x >= centerX - buttonWidth/2 && x <= centerX + buttonWidth/2 &&
         y >= centerY + 140 && y <= centerY + 195) {
       returnToMenu();
     }

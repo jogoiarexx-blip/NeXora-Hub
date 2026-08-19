@@ -1840,21 +1840,30 @@ class MapSystem {
    * Desenha minimap no canto da tela
    */
   drawMinimap(ctx, player, camera, size = 150) {
-    const padding = 20;
-    const x = padding;
-    const y = padding;
-    const scale = size / Math.max(this.width, this.height);
+    // ✅ CORREÇÃO: o minimapa era desenhado sempre no canto superior ESQUERDO,
+    // exatamente em cima do painel de status (LV/XP/moedas) desenhado por
+    // drawHUD() no mesmo canto — no celular isso ficava sobreposto e ilegível.
+    // Agora o minimapa fica no canto superior DIREITO e é menor em telas estreitas.
+    const screenW = (typeof canvas !== 'undefined' && dpr) ? canvas.width / dpr : 800;
+    const mobile = screenW < 760;
+    const actualSize = mobile ? Math.min(size, 110) : size;
+    const padding = mobile ? 12 : 20;
+    const x = screenW - actualSize - padding;
+    // No mobile, o indicador "DASH PRONTO" do HUD já ocupa a faixa superior
+    // direita — descemos o minimapa um pouco para não colidir com ele.
+    const y = mobile ? padding + 28 : padding;
+    const scale = actualSize / Math.max(this.width, this.height);
     
     ctx.save();
     
     // Background
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(x, y, size, size);
+    ctx.fillRect(x, y, actualSize, actualSize);
     
     // Borda
     ctx.strokeStyle = '#60A5FA';
     ctx.lineWidth = 2;
-    ctx.strokeRect(x, y, size, size);
+    ctx.strokeRect(x, y, actualSize, actualSize);
     
     // Desenhar zonas
     this.zones.forEach(zone => {

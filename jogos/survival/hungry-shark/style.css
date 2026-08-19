@@ -62,7 +62,8 @@ canvas {
   text-align: center;
 }
 @media (max-width: 768px) {
-  #joystick, #ui-buttons { display: flex; }
+  /* ✅ CORREÇÃO: idem acima — '#joystick' não é mais forçado aqui, fica 100% sob controle do JS */
+  #ui-buttons { display: flex; }
 }
 
 
@@ -100,7 +101,11 @@ body::after {
 #btn-dash { border-color: rgba(255,220,85,.75); box-shadow: 0 0 16px rgba(255,203,47,.18), inset 0 1px rgba(255,255,255,.15); }
 
 @media (pointer: coarse), (max-width: 900px) {
-  #joystick, #ui-buttons { display: flex; }
+  /* ✅ CORREÇÃO: '#joystick' foi removido daqui. O joystick agora é controlado
+     100% via JS (handleTouchStart/handleTouchEnd), aparecendo só durante o
+     toque no lado esquerdo da tela durante o jogo. Antes esta regra forçava
+     display:flex o tempo todo (até no menu principal), sobrepondo os botões. */
+  #ui-buttons { display: flex; }
   #joystick { left: max(14px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); }
 }
 @media (max-height: 520px) {

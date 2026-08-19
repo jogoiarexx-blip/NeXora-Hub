@@ -291,7 +291,8 @@ function drawHUD() {
 function drawMenus() {
   // Menu de Missões
   if (missionsMenu) {
-    const menuWidth = 400;
+    // ✅ CORREÇÃO MOBILE: largura responsiva (era fixa em 400px, estourava a tela)
+    const menuWidth = getOverlayWidth(400);
     const menuHeight = 400;
     const menuX = canvas.width/(2*dpr) - menuWidth/2;
     const menuY = canvas.height/(2*dpr) - menuHeight/2;
@@ -365,7 +366,8 @@ function drawMenus() {
   
   // Menu de Loja
   if (shopMenu) {
-    const menuWidth = 450;
+    // ✅ CORREÇÃO MOBILE: largura responsiva (era fixa em 450px, estourava a tela)
+    const menuWidth = getOverlayWidth(450);
     const menuHeight = 500;
     const menuX = canvas.width/(2*dpr) - menuWidth/2;
     const menuY = canvas.height/(2*dpr) - menuHeight/2;
@@ -471,7 +473,8 @@ function drawMenus() {
   
   // Menu de Upgrades
   if (upgradeMenu) {
-    const menuWidth = 380;
+    // ✅ CORREÇÃO MOBILE: largura responsiva (era fixa em 380px)
+    const menuWidth = getOverlayWidth(380);
     const menuHeight = 400;
     const menuX = canvas.width/(2*dpr) - menuWidth/2;
     const menuY = canvas.height/(2*dpr) - menuHeight/2;
