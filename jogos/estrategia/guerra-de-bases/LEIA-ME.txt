@@ -1,0 +1,34 @@
+GUERRA DE BASES V5.8 — ESTRUTURA SEPARADA
+
+COMO ABRIR
+1. Extraia a pasta inteira.
+2. Dê dois cliques em index.html.
+3. O jogo abre no navegador, sem instalar servidor.
+
+ESTRUTURA
+index.html          -> estrutura da página
+css/style.css       -> todo o visual e responsividade
+js/game.js          -> lógica, campanha, IA, combate e menus
+assets/sprites/     -> imagens das tropas, base e chefes
+
+IMPORTANTE
+Não mova index.html para fora da pasta sem levar junto as pastas css, js e assets.
+
+
+V5.8 - ANIMAÇÕES
+- respiração/parado
+- caminhada com balanço sem deformar arte
+- poeira nos passos/rodas
+- recuo e clarão de disparo
+- impacto ao receber dano
+- morte usando o próprio sprite
+- suspensão de veículos
+- hover do Falcão e pulsação dos bosses
+
+
+V5.9 — RECRUTA ANIMADO
+- Recruta preparado para animação por estados.
+- Idle, caminhada e ataque possuem temporização própria.
+- Disparo possui preparação, clarão, recuo e recuperação.
+- Mantém pixel art nítida e compatibilidade local (dois cliques).
+- A sprite sheet criada está em assets/sprites/recruta-animacoes.png.

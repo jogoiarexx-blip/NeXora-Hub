@@ -1,0 +1,16 @@
+JOÃO & CRIST: RUMO A VEGAS — v5.5 GRAPHICS
+
+PRINCIPAIS MUDANÇAS
+- Cenários receberam nova camada de atmosfera, profundidade, luz, poeira/neblina e foreground por fase.
+- Corrigido flicker dos prédios, janelas, letreiros e cactos causado por Math.random() dentro do draw.
+- Vegas agora mantém prédios e janelas estáveis entre frames; estrelas têm alpha válido.
+- Todos os inimigos recebem sombra de contato uniforme e feedback visual mais limpo.
+- Boss/Elite/Berserker têm aura discreta; ataques ficam mais fáceis de ler.
+- Exploder redesenhado: mantém impacto, mas sem centenas de partículas e sem poluir a tela.
+- Partículas de dano e coleta de power-up foram reduzidas.
+- Corrigido hit-stop global para sistemas de combate/inimigos externos.
+- Removida chave duplicada do ícone de velocidade.
+- Mantidos teclado e gamepad configuráveis da v5.4.1.
+
+ABRIR
+Abra game/joao-e-crist.html.

@@ -1,0 +1,293 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'VT323', 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  background: #0d0d12;
+  color: #fff;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tela {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow-y: auto;
+}
+
+.escondida {
+  display: none !important;
+}
+
+/* --- Menu principal --- */
+#tela-menu {
+  background:
+    linear-gradient(rgba(13,13,18,0.85), rgba(13,13,18,0.95)),
+    repeating-linear-gradient(45deg, #1a1a22 0 2px, #14141a 2px 4px);
+  position: relative;
+  overflow: hidden;
+}
+
+#tela-menu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 48%, rgba(255,80,80,0.06) 49%, rgba(255,80,80,0.06) 51%, transparent 52%);
+  background-size: 100% 40px;
+  animation: faixa-rolando 1.2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes faixa-rolando {
+  from { background-position-y: 0; }
+  to { background-position-y: 40px; }
+}
+
+.menu-conteudo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.logo-wrap {
+  margin-bottom: 10px;
+}
+
+.logo-titulo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.9rem;
+  line-height: 1.6;
+  letter-spacing: 2px;
+}
+
+.logo-pixel {
+  display: block;
+  color: #fff;
+  text-shadow: 4px 4px 0 #d62828;
+}
+
+.logo-rush {
+  display: block;
+  color: #ffd700;
+  text-shadow: 4px 4px 0 #b8860b;
+}
+
+.logo-linha {
+  width: 220px;
+  height: 4px;
+  margin: 14px auto 10px;
+  background: repeating-linear-gradient(90deg, #fff 0 14px, transparent 14px 28px);
+}
+
+.logo-sub {
+  color: #999;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.carro-decor {
+  font-size: 2.6rem;
+  margin: 6px 0 18px;
+  animation: flutuar 1.6s ease-in-out infinite;
+}
+
+@keyframes flutuar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+#tela-menu p {
+  color: #bbb;
+}
+
+.instrucoes {
+  background: #1a1a22;
+  border: 2px solid #333;
+  border-radius: 4px;
+  padding: 14px 22px;
+  margin-bottom: 25px;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.4);
+}
+
+.instrucoes-titulo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
+  color: #ffd700;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.instrucoes p {
+  margin: 8px 0;
+  color: #ddd;
+  font-size: 1.15rem;
+}
+
+.tecla {
+  display: inline-block;
+  background: #2a2a34;
+  border: 2px solid #555;
+  border-radius: 4px;
+  padding: 1px 8px;
+  margin: 0 2px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+}
+
+button {
+  font-family: 'Press Start 2P', monospace;
+  background: linear-gradient(180deg, #ff5050, #d62828);
+  color: #fff;
+  border: none;
+  padding: 16px 40px;
+  font-size: 1.1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #8f1e1e, 0 8px 20px rgba(214, 40, 40, 0.4);
+  transition: transform 0.1s ease;
+  letter-spacing: 1px;
+}
+
+button:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #8f1e1e;
+}
+
+.recorde {
+  margin-top: 25px;
+  color: #ffd700 !important;
+  font-weight: bold;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+}
+
+/* --- Jogo --- */
+#tela-jogo {
+  position: relative;
+  justify-content: flex-start;
+}
+
+#hud {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hud-item {
+  background: linear-gradient(180deg, rgba(15,18,24,0.86), rgba(0,0,0,0.65));
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  border: 2px solid #333;
+}
+
+#canvas-jogo {
+  display: block;
+  background: #20242b;
+}
+
+/* --- Fim de jogo --- */
+#tela-fim h1 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.8rem;
+  color: #ff5050;
+  margin-bottom: 20px;
+  text-shadow: 3px 3px 0 #8f1e1e;
+}
+
+#tela-fim p {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #ddd;
+}
+
+#fim-recorde-msg {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+
+#tela-fim button {
+  margin-top: 20px;
+}
+
+#canvas-jogo {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  box-shadow: 0 0 35px rgba(0,0,0,0.55);
+}
+#tela-jogo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 2px solid rgba(255,255,255,0.04);
+}
+@media (max-width: 600px) {
+  .logo-titulo { font-size: 1.35rem; }
+  .instrucoes { padding: 10px 12px; margin-bottom: 18px; }
+  .instrucoes p { font-size: 0.95rem; }
+  .hud-item { font-size: 0.95rem; padding: 7px 10px; }
+}
+
+.nitro-hud { min-width: 105px; }
+#hud-nitro { color: #7de7ff; }
+#hud-pontos, #hud-combo { color: #fff59d; }
+#fim-pontos { color: #fff59d; }
+.fuel-hud { min-width: 135px; }
+#hud-combustivel { color: #7dff9d; font-weight: bold; }
+.clima-hud { min-width: 105px; }
+@media (max-width: 800px) {
+  #hud { gap: 4px; padding: 0 6px; flex-wrap: wrap; }
+  .hud-item { font-size: .82rem; padding: 5px 7px; }
+  .fuel-hud, .clima-hud { min-width: auto; }
+}
+
+.menu-botoes{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn-sec{background:linear-gradient(180deg,#394454,#252c36);box-shadow:0 6px 0 #151a20,0 8px 20px rgba(0,0,0,.35);font-size:.78rem;padding:13px 18px}
+.moedas-menu{color:#ffd54a!important;font-family:'Press Start 2P',monospace;font-size:.72rem}
+.painel-menu{position:fixed;inset:5%;z-index:20;background:rgba(10,13,18,.97);border:3px solid #ffd54a;box-shadow:8px 8px 0 #000;padding:22px;overflow:auto}
+.painel-menu h2{font-family:'Press Start 2P',monospace;color:#ffd54a}
+.upgrade{background:#171c23;border:2px solid #343d48;padding:12px;margin:8px auto;max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left}
+.upgrade strong{display:block;color:#fff}.upgrade small{color:#9da7b3}
+.upgrade button{padding:9px 12px;font-size:.55rem;white-space:nowrap}
+.missao{background:#171c23;border:2px solid #343d48;padding:12px;margin:8px auto;max-width:520px;text-align:left}.missao.done{border-color:#55d68a}.missao .barra{height:8px;background:#333;margin-top:8px}.missao .barra i{display:block;height:100%;background:#55d68a}
+.power-hud{color:#b8f4ff}
+@media(max-width:700px){.hud-item{font-size:.7rem;padding:6px 8px}.hud-item:nth-child(4){display:none}.painel-menu{inset:2%}}
+
+.lista-cards{width:min(760px,94vw);display:grid;gap:10px;margin:18px auto;max-height:58vh;overflow:auto}.card-carro,.fase-card{background:#151a21;border:2px solid #303a46;padding:12px;display:grid;grid-template-columns:70px 1fr auto;align-items:center;gap:14px;text-align:left}.card-carro.selecionado,.fase-card.selecionada{border-color:#ffd54a;box-shadow:0 0 0 2px rgba(255,213,74,.12)}.card-carro.bloqueado,.fase-card.bloqueada{opacity:.55}.card-carro strong,.fase-card strong{display:block;color:#fff;font-family:'Press Start 2P',monospace;font-size:.7rem;margin-bottom:6px}.card-carro small,.fase-card small{display:block;color:#9da7b3;font-size:1rem}.mini-carro{font-size:42px;text-align:center;filter:drop-shadow(0 4px 0 #000)}.card-carro button,.fase-card button{padding:9px 12px;font-size:.58rem;white-space:nowrap}.fase-num{font-family:'Press Start 2P';font-size:1.4rem;color:#ffd54a;text-align:center}.boss-hud{border-color:#d33!important;color:#ff7070!important;min-width:160px}.boss-bar{height:8px;background:#2a1111;border:1px solid #662222;margin-top:5px}.boss-bar i{display:block;height:100%;width:100%;background:#e53935;transition:width .12s}.boss-hud span{color:#fff;font-size:.8em}@media(max-width:700px){.card-carro,.fase-card{grid-template-columns:45px 1fr}.card-carro button,.fase-card button{grid-column:2}.mini-carro{font-size:30px}.card-carro strong,.fase-card strong{font-size:.55rem}}
+.lista-cards{width:min(760px,94vw);display:grid;gap:10px;margin:18px auto;max-height:58vh;overflow:auto}.card-carro,.fase-card{background:#151a21;border:2px solid #303a46;padding:12px;display:grid;grid-template-columns:70px 1fr auto;align-items:center;gap:14px;text-align:left}.card-carro.selecionado,.fase-card.selecionada{border-color:#ffd54a;box-shadow:0 0 0 2px rgba(255,213,74,.12)}.card-carro.bloqueado,.fase-card.bloqueada{opacity:.55}.card-carro strong,.fase-card strong{display:block;color:#fff;font-family:'Press Start 2P',monospace;font-size:.7rem;margin-bottom:6px}.card-carro small,.fase-card small{display:block;color:#9da7b3;font-size:1rem}.mini-carro{font-size:42px;text-align:center;filter:drop-shadow(0 4px 0 #000)}.card-carro button,.fase-card button{padding:9px 12px;font-size:.58rem;white-space:nowrap}.fase-num{font-family:'Press Start 2P';font-size:1.4rem;color:#ffd54a;text-align:center}.boss-hud{border-color:#d33!important;color:#ff7070!important;min-width:160px}.boss-bar{height:8px;background:#2a1111;border:1px solid #662222;margin-top:5px}.boss-bar i{display:block;height:100%;width:100%;background:#e53935;transition:width .12s}.boss-hud span{color:#fff;font-size:.8em}@media(max-width:700px){.card-carro,.fase-card{grid-template-columns:45px 1fr}.card-carro button,.fase-card button{grid-column:2}.mini-carro{font-size:30px}.card-carro strong,.fase-card strong{font-size:.55rem}}
+
+/* Identidade visual dos carros e chefes */
+.card-carro{position:relative;overflow:hidden;transition:transform .12s,border-color .12s,box-shadow .12s}
+.card-carro:hover{transform:translateY(-2px);border-color:#7de7ff;box-shadow:0 5px 18px rgba(0,0,0,.35)}
+.card-carro.selecionado::after{content:'SELECIONADO';position:absolute;right:8px;top:7px;font:7px 'Press Start 2P';color:#ffd54a}
+.card-carro:nth-child(1) .mini-carro{filter:drop-shadow(0 0 7px rgba(255,80,80,.55))}
+.card-carro:nth-child(2) .mini-carro{filter:drop-shadow(0 0 9px rgba(24,199,255,.7))}
+.card-carro:nth-child(3) .mini-carro{filter:drop-shadow(0 0 9px rgba(155,89,182,.7))}
+.card-carro:nth-child(4) .mini-carro{filter:drop-shadow(0 0 9px rgba(243,156,18,.7))}
+.boss-hud{animation:bossPulse .7s infinite alternate}
+@keyframes bossPulse{from{box-shadow:0 0 0 rgba(255,40,40,0)}to{box-shadow:0 0 15px rgba(255,40,40,.28)}}

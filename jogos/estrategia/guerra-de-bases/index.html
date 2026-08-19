@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>GUERRA DE BASES V5.7</title>
+
+
+
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="wrap">
+ <div id="root">
+  <canvas id="gameCanvas" width="960" height="440"></canvas>
+  <div id="panel">
+    <button class="unitbtn" id="btn0"><canvas class="icon" width="30" height="30"></canvas><span>Recruta</span><span class="role">Linha de frente</span><span class="cost">$20</span></button>
+    <button class="unitbtn" id="btn1"><canvas class="icon" width="30" height="30"></canvas><span>Bazuca</span><span class="role">Área</span><span class="cost">$45</span></button>
+    <button class="unitbtn" id="btn2"><canvas class="icon" width="30" height="30"></canvas><span>Pesado</span><span class="role">Tanque humano</span><span class="cost">$70</span></button>
+    <button class="unitbtn" id="btn3"><canvas class="icon" width="30" height="30"></canvas><span>Tanque</span><span class="role">Blindado</span><span class="cost">$120</span></button>
+    <button class="unitbtn" id="btn4"><canvas class="icon" width="30" height="30"></canvas><span>Sniper</span><span class="role">Precisão</span><span class="cost">$95</span></button>
+    <button class="unitbtn" id="btn5"><canvas class="icon" width="30" height="30"></canvas><span>Metralha</span><span class="role">Supressão</span><span class="cost">$110</span></button>
+    <button class="unitbtn" id="btn6"><canvas class="icon" width="30" height="30"></canvas><span>Jipe</span><span class="role">Assalto rápido</span><span class="cost">$150</span></button>
+    <button class="unitbtn" id="btn7"><canvas class="icon" width="30" height="30"></canvas><span>Comando</span><span class="role">Elite / aura</span><span class="cost">$220</span></button>
+  </div>
+  <div id="battleTools">
+    <button class="toolbtn" id="incomeBtn">RENDA<span class="sub">melhorar</span></button>
+    <button class="toolbtn" id="baseBtn">BASE<span class="sub">melhorar</span></button>
+    <button class="toolbtn" id="airBtn">ATAQUE AÉREO<span class="sub">$140</span></button>
+  </div>
+ </div>
+  <div id="hud">
+    <div class="basebox">
+      <div class="label">SUA BASE</div>
+      <div class="hpbar"><div class="hpfill player" id="playerHp"></div></div>
+    </div>
+    <div>
+      <div id="moneyLabel">DINHEIRO</div>
+      <div id="money">100</div>
+      <div style="font-size:9px;opacity:.85;margin-top:4px;">PONTOS DE EVOLUÇÃO</div>
+      <div id="evoPoints" style="font-size:15px;color:#7fd1e8;">0</div>
+      <button id="liveEvoBtn" style="pointer-events:all;margin-top:4px;font-size:9px;padding:4px 8px;background:#2f2a1d;border:2px solid #7fd1e8;color:#7fd1e8;cursor:pointer;font-family:inherit;font-weight:bold;letter-spacing:1px;">⚡ EVOLUIR</button>
+    </div>
+    <div class="basebox right">
+      <div class="label">BASE INIMIGA</div>
+      <div class="hpbar"><div class="hpfill enemy" id="enemyHp"></div></div>
+    </div>
+  </div>
+  <div id="enemyMoneyBox">IA: $100</div>
+  <div id="stageBadge" style="position:absolute;top:50px;left:50%;transform:translateX(-50%);font-size:10px;color:#e8dcc0;text-shadow:2px 2px #000;pointer-events:none;">FASE 1</div>
+  <div id="bossBar"><div class="bossName" id="bossName">CHEFE</div><div class="bossTrack"><div class="bossFill" id="bossFill"></div></div></div>
+   <div id="tutorialTip" class="hiddenTip"></div>
+  <button id="pauseBtn" class="hidden" aria-label="Pausar">Ⅱ</button>
+  <div id="overlay"></div>
+</div>
+
+
+
+<div id="rotateGate" aria-hidden="true">
+  <div class="rotateCard">
+    <div class="phoneIcon"></div>
+    <h2>VIRE O CELULAR</h2>
+    <p>GUERRA DE BASES foi ajustado para jogar em tela cheia na horizontal.<br>Gire o aparelho para continuar a batalha.</p>
+  </div>
+</div>
+
+  <script src="js/game.js"></script>
+</body>
+</html>

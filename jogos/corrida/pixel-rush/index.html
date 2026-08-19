@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Rush</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div id="tela-menu" class="tela">
+    <div class="menu-conteudo">
+      <div class="logo-wrap">
+        <h1 class="logo-titulo">
+          <span class="logo-pixel">PIXEL</span>
+          <span class="logo-rush">RUSH</span>
+        </h1>
+        <div class="logo-linha"></div>
+        <p class="logo-sub">um jogo de fuga na estrada</p>
+      </div>
+
+      <div class="carro-decor">🏎️</div>
+
+      <div class="instrucoes">
+        <p class="instrucoes-titulo">COMO JOGAR</p>
+        <p><span class="tecla">◄</span><span class="tecla">►</span> ou <span class="tecla">A</span><span class="tecla">D</span> — mudar de pista</p>
+        <p><span class="tecla">▲</span><span class="tecla">▼</span> ou <span class="tecla">W</span><span class="tecla">S</span> — acelerar / frear</p>
+        <p><span class="tecla">ESPAÇO</span> — nitro</p>
+        <p>🛢️ — pegue gasolina para não ficar sem combustível</p>
+      </div>
+
+      <div class="menu-botoes">
+        <button id="btn-iniciar" class="btn-pixel">🏁 JOGAR</button>
+        <button id="btn-carros" class="btn-pixel btn-sec">🚗 CARROS</button>
+        <button id="btn-campanha" class="btn-pixel btn-sec">🗺️ CAMPANHA</button>
+        <button id="btn-garagem" class="btn-pixel btn-sec">🔧 GARAGEM</button>
+        <button id="btn-missoes" class="btn-pixel btn-sec">🎯 MISSÕES</button>
+      </div>
+      <p class="moedas-menu">🪙 MOEDAS: <span id="moedas-menu">0</span></p>
+      <p class="recorde">🏆 RECORDE: <span id="recorde-menu">0</span> m</p>
+      <div id="painel-garagem" class="painel-menu escondida">
+        <h2>🔧 GARAGEM</h2><p>Melhore seu carro com moedas.</p>
+        <div id="lista-upgrades"></div>
+        <button class="btn-pixel btn-sec" id="fechar-garagem">VOLTAR</button>
+      </div>
+
+      <div id="painel-carros" class="painel-menu escondida">
+        <h2>🚗 SELEÇÃO DE CARROS</h2><p>Escolha seu carro. Cada um tem uma característica.</p>
+        <div id="lista-carros" class="lista-cards"></div>
+        <button class="btn-pixel btn-sec" id="fechar-carros">VOLTAR</button>
+      </div>
+      <div id="painel-campanha" class="painel-menu escondida">
+        <h2>🗺️ MAPA DA CAMPANHA</h2><p>Complete uma fase para desbloquear a próxima.</p>
+        <div id="lista-fases" class="lista-cards"></div>
+        <button class="btn-pixel btn-sec" id="fechar-campanha">VOLTAR</button>
+      </div>
+      <div id="painel-missoes" class="painel-menu escondida">
+        <h2>🎯 MISSÕES</h2><div id="lista-missoes"></div>
+        <button class="btn-pixel btn-sec" id="fechar-missoes">VOLTAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tela-jogo" class="tela escondida">
+    <div id="hud">
+      <div class="hud-item">Distância: <span id="hud-distancia">0</span> m</div>
+      <div class="hud-item">Velocidade: <span id="hud-velocidade">0</span> km/h</div>
+      <div class="hud-item">Pontos: <span id="hud-pontos">0</span></div>
+      <div class="hud-item">Combo: <span id="hud-combo">x1</span></div>
+      <div class="hud-item fuel-hud">⛽ GASOLINA <span id="hud-combustivel">100</span>%</div>
+      <div class="hud-item nitro-hud">NITRO <span id="hud-nitro">100</span>%</div>
+      <div class="hud-item">🪙 <span id="hud-moedas">0</span></div><div class="hud-item power-hud" id="hud-power">POWER: —</div><div class="hud-item boss-hud escondida" id="hud-boss">BOSS <span id="hud-boss-name"></span><div class="boss-bar"><i id="hud-boss-bar"></i></div></div><div class="hud-item clima-hud"><span id="hud-clima">☀️ DIA</span></div>
+    </div>
+    <canvas id="canvas-jogo"></canvas>
+  </div>
+
+  <div id="tela-fim" class="tela escondida">
+    <h1>💥 BATEU!</h1>
+    <p id="fim-motivo">Você percorreu <span id="fim-distancia">0</span> metros</p>
+    <p>Pontuação: <strong id="fim-pontos">0</strong></p>
+    <p id="fim-recorde-msg" class="escondida">🏆 Novo recorde!</p>
+    <button id="btn-reiniciar">JOGAR NOVAMENTE</button>
+  </div>
+
+  <script src="js/constants.js"></script>
+  <script src="js/car.js"></script>
+  <script src="js/road.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
