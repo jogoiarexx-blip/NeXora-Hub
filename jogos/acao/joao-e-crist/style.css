@@ -75,3 +75,17 @@ canvas {
         0 0 120px rgba(0, 255, 255, 0.3),
         inset 0 0 30px rgba(0, 0, 0, 0.5);
 }
+
+/* v0.9.3 - camada mobile */
+#touch-controls{position:absolute;inset:0;z-index:900;pointer-events:none;display:none;user-select:none;-webkit-user-select:none;touch-action:none}
+#touch-controls .touch-left,#touch-controls .touch-right{position:absolute;bottom:18px;display:flex;gap:12px;align-items:flex-end;pointer-events:auto}
+#touch-controls .touch-left{left:18px}
+#touch-controls .touch-right{right:18px;max-width:330px;flex-wrap:wrap;justify-content:flex-end}
+#touch-controls button{border:2px solid rgba(255,255,255,.72);background:rgba(7,12,20,.68);color:#fff;border-radius:50%;width:72px;height:72px;font:700 16px 'Righteous',sans-serif;backdrop-filter:blur(5px);box-shadow:0 5px 18px rgba(0,0,0,.35);touch-action:none}
+#touch-controls button.attack{width:82px;height:82px;border-color:#ffcf4a;background:rgba(142,60,0,.72)}
+#touch-controls button.ranged{border-color:#5be7ff;background:rgba(0,91,135,.72)}
+#touch-controls button.dash{border-color:#d5a6ff}
+#touch-controls button.jump{border-color:#7dff9c}
+#touch-controls button.pressed{transform:scale(.92);filter:brightness(1.35)}
+@media (pointer:coarse),(max-width:900px){#touch-controls{display:block}.version-tag{font-size:11px!important;top:4px!important;right:4px!important;padding:3px 6px!important}body{height:100dvh}#game-container{width:100vw;max-height:100dvh}}
+@media (max-width:650px){#touch-controls button{width:60px;height:60px;font-size:13px}#touch-controls button.attack{width:70px;height:70px}.touch-right{gap:8px!important;max-width:270px!important}}

@@ -3,7 +3,7 @@
 <head>
     <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>João e Crist: Rumo a Vegas - v5.5 GRAPHICS</title>
+    <title>João e Crist: Rumo a Vegas - v0.9.3 16-BIT EDITION</title>
     <link rel='stylesheet' href='style.css'>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
             position: relative;
             width: min(1000px, 100vw);
             aspect-ratio: 20 / 13;
-            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+            box-shadow: 0 8px 28px rgba(0,0,0,.65);
         }
         
         #game {
@@ -70,7 +70,7 @@
 <body>
     <div id="game-container">
         <div class="version-tag">
-            v5.5 GRAPHICS <span class="new-badge">NEW</span>
+            v0.9.3 16-BIT EDITION
         </div>
         <canvas id='game' width='1000' height='650'></canvas>
     </div>
@@ -78,7 +78,7 @@
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- 🆕 SPRINT 1: DEBUG SYSTEM (CARREGAR PRIMEIRO) -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- debug-system.js removido (arquivo não existia) -->
+    <script src='js/debug-console.js'></script> <!-- Console interno no rodapé -->
     
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- CONTROLES E SISTEMAS BASE -->
@@ -120,22 +120,29 @@
     <script src='js/enemy-exploder.js'></script>
     <script src='js/enemy-cowboy.js'></script>
     <script src='js/enemy-cockroach.js'></script>
+    <script src='js/enemy-vegas.js'></script> <!-- Fases 5 e 6: turistas, segurancas e personagens de Vegas -->
     <script src='js/enemy-elite.js'></script>  <!-- ✅ EXPANSÃO: Elite, Fantasma, Assassino -->
     <script src='js/boss-enemies.js'></script>
     <script src='js/boss-expansion.js'></script>  <!-- ✅ EXPANSÃO: TechBoss, ShadowBoss, GodBoss -->
+    <script src='js/enemy-sprites-16bit.js'></script> <!-- renderer 16-bit de todos os inimigos -->
     <script src='js/enemy-factory.js'></script>
     <script src='js/wave-system.js'></script>  <!-- ✅ EXPANSÃO: Sistema de ondas + Gate de nível -->
     <script src='js/level.js'></script>
-    <script src='js/graphics-upgrade.js'></script> <!-- v5.5: cenários + acabamento visual -->
+    <script src='js/bus-sequence.js'></script> <!-- v0.9.3: sequência Fase 2 -> ônibus -> Fase 3 -->
+    
+    <script src='js/farm-background-16bit.js'></script>
+<script src='js/graphics-upgrade.js'></script> <!-- v5.5: cenários + acabamento visual -->
     
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <!-- MAIN (deve ser último) -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <script src='js/main.js'></script>
+    <script src='js/hud-v093.js'></script>
+    <script src='js/touch-controls.js'></script>
     
     <script>
         console.log('%c═══════════════════════════════════════════════════════════════', 'color: #00ffff; font-size: 12px');
-        console.log('%c🎮 JOÃO E CRIST: RUMO A VEGAS - v5.5 GRAPHICS + GAMEPAD', 'color: #00ffff; font-size: 20px; font-weight: bold');
+        console.log('%c🎮 JOÃO E CRIST: RUMO A VEGAS - v0.9.3 16-BIT EDITION + GAMEPAD', 'color: #00ffff; font-size: 20px; font-weight: bold');
         console.log('%c═══════════════════════════════════════════════════════════════', 'color: #00ffff; font-size: 12px');
         console.log('');
         console.log('%c✅ SPRINT 1 - CORREÇÕES CRÍTICAS APLICADAS:', 'color: #00ff00; font-size: 16px; font-weight: bold');
@@ -185,5 +192,6 @@
         console.log('%c🏆 Total de troféus: 22', 'color: #fff; font-size: 12px');
         console.log('%c⭐ Skills: 10', 'color: #fff; font-size: 12px');
     </script>
+    <script src='js/enemy-sprites-16bit-final.js'></script>
 </body>
 </html>
