@@ -134,12 +134,12 @@ const JOGOS = [
   {
     id: 'joao-e-crist-game',
     type: 'jogo',
-    title: 'João e Crist: Rumo a Vegas 5.5',
+    title: 'João & Crist 0.9.3 — Rumo a Vegas',
     genre: 'ação',
     category: 'acao',
     accent: 'var(--fire)',
     thumb: 'assets/thumbs/joao-e-crist-game.webp',
-    desc: 'Aventura de ação com João e Crist, combate, inimigos variados, chefes, história, controles configuráveis e correções gráficas da versão 5.5.',
+    desc: 'Beat ’em up de João e Crist rumo a Las Vegas. Versão 0.9.3 com sequência do ônibus, cutscenes e direção corrigida.',
     path: 'jogos/acao/joao-e-crist/index.html'
   },
   {
