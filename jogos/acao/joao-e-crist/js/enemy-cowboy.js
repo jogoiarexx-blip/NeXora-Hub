@@ -69,7 +69,13 @@ class CowboyEnemy extends Enemy {
     }
     
     update(players, allEnemies) {
-        if (this.dead) return;
+        // 16-bit renderer substitui o draw original, então a animação de morte
+        // precisa avançar no update. Caso contrário o Cowboy fica para sempre
+        // no array de inimigos com deathAnim = 0.
+        if (this.dead) {
+            this.deathAnim = Math.min((this.deathAnim || 0) + 1, 30);
+            return;
+        }
         
         const now = Date.now();
         const nearestPlayer = this.getNearestPlayer(players);

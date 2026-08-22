@@ -1,5 +1,6 @@
 const CRIST_SPRITE_SHEET = new Image();
-CRIST_SPRITE_SHEET.src = 'assets/crist-sprites.png';
+CRIST_SPRITE_SHEET.src = 'assets/crist-16bit.png';
+const CRIST_16_FRAMES = {"idle":[[29,10,80,107],[155,10,78,107],[280,10,76,107],[408,10,76,107]],"walk":[[24,132,91,111],[150,130,88,112],[273,130,90,112],[408,135,90,107],[540,135,87,108],[670,135,83,108]],"run":[[16,260,102,105],[144,260,107,105],[270,260,110,103],[402,258,116,196],[540,259,118,103]],"jump":[[23,387,82,93],[156,384,79,95],[276,376,80,104],[546,377,80,102]],"attack":[[629,502,186,218],[796,501,157,220],[919,500,153,220],[1063,624,76,96],[1072,501,86,96]],"hurt":[[26,840,85,99],[32,732,82,97],[170,846,82,93]],"dead":[[19,1072,102,77],[156,959,111,94],[171,1074,100,75]],"dash":[[19,1173,129,104],[157,1173,144,104],[314,1173,152,104],[492,1170,162,107],[671,1173,168,103],[854,1174,136,102]]};
 
 // Classe específica para o personagem CRIST
 class PlayerCrist {
@@ -29,7 +30,7 @@ class PlayerCrist {
             height: 45  // 65% da altura
         };
         
-        // Controles de Crist (Setas + Ctrl)
+        // Controles do SLOT do jogador (independe do personagem escolhido)
         this.controlPlayer = controlPlayer;
         this.controls = sistemControles.obterControles(controlPlayer);
         
@@ -102,7 +103,7 @@ class PlayerCrist {
         // Sombra
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.beginPath();
-        ctx.ellipse(this.x + this.w / 2, this.y + this.h + 5, this.w / 2, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(this.x + this.w / 2, this.groundY + 2, this.w / 2, 4, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // Desenhar Crist
@@ -158,59 +159,17 @@ class PlayerCrist {
     }
 
     drawCristSprite(ctx) {
-        const sheet = CRIST_SPRITE_SHEET;
-        if (!sheet.complete || sheet.naturalWidth === 0) {
-            // Fallback temporário enquanto o sprite carrega.
-            this.drawCrist(ctx);
-            return;
-        }
-
-        // Linhas do atlas: idle, andar, correr, pular, ataque, ataque cima,
-        // dano, agachar, bloquear, morrer, dash.
-        let state = 'idle';
-        let frames = 4;
-        let row = 0;
-        let frame = 0;
-
-        if (this.dashing) {
-            state = 'dash'; row = 10; frames = this.name === 'Crist' ? 4 : 3;
-            frame = Math.floor((this.dashDuration - Math.max(0, this.dashTimer)) / 2) % frames;
-        } else if (this.attacking) {
-            state = 'attack'; row = 4; frames = 4;
-            frame = Math.min(frames - 1, Math.floor((15 - Math.max(0, this.attackTimer)) / 4));
-        } else if (this.isJumping) {
-            state = 'jump'; row = 3; frames = this.name === 'Crist' ? 4 : 5;
-            frame = Math.min(frames - 1, Math.max(0, Math.floor((-this.jumpPower + 18) / 7)));
-        } else if (this.invulnerable > 15) {
-            state = 'damage'; row = 6; frames = 3;
-            frame = Math.floor(Date.now() / 90) % frames;
-        } else if (this.isMoving) {
-            state = this.isRunning ? 'run' : 'walk';
-            row = this.isRunning ? 2 : 1;
-            frames = this.isRunning ? 5 : 6;
-            const frameSpeed = this.isRunning ? 4 : 6;
-            frame = Math.floor(this.animTimer / frameSpeed) % frames;
-        }
-
-        // O sprite foi desenhado virado para a direita. Espelhamos quando anda para a esquerda.
-        const cell = 128;
-        const sx = frame * cell;
-        const sy = row * cell;
-        const drawW = 82;
-        const drawH = 92;
-        const dx = this.x + this.w / 2 - drawW / 2;
-        const dy = this.y + this.h - drawH + 7;
-
-        ctx.save();
-        if (this.invulnerable > 0 && Math.floor(this.invulnerable / 5) % 2 === 0) ctx.globalAlpha = 0.55;
-        if (!this.facingRight) {
-            ctx.translate(dx + drawW, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(sheet, sx, sy, cell, cell, 0, dy, drawW, drawH);
-        } else {
-            ctx.drawImage(sheet, sx, sy, cell, cell, dx, dy, drawW, drawH);
-        }
-        ctx.restore();
+        const sheet=CRIST_SPRITE_SHEET;
+        if(!sheet.complete||!sheet.naturalWidth){this.drawCrist(ctx);return;}
+        let state='idle';
+        if(this.dashing)state='dash'; else if(this.attacking)state='attack'; else if(this.isJumping)state='jump'; else if(this.invulnerable>15)state='hurt'; else if(this.isMoving)state=this.isRunning?'run':'walk';
+        const frames=CRIST_16_FRAMES[state]||CRIST_16_FRAMES.idle; let frame=0;
+        if(state==='attack')frame=Math.min(frames.length-1,Math.floor((15-Math.max(0,this.attackTimer))/3));
+        else if(state==='jump')frame=Math.min(frames.length-1,Math.max(0,Math.floor((this.vy+12)/6)));
+        else if(state==='dash')frame=Math.floor((this.dashDuration-Math.max(0,this.dashTimer))/2)%frames.length;
+        else frame=Math.floor(performance.now()/(state==='run'?85:state==='walk'?125:190))%frames.length;
+        const [sx,sy,sw,sh]=frames[frame];const ratio=sw/sh;let h=98,w=Math.max(70,h*ratio);if(ratio>1.45){w=Math.min(145,h*ratio);h=Math.min(98,w/ratio);}const cx=this.x+this.w/2,bottom=this.y+this.h+5,dx=cx-w/2,dy=bottom-h;
+        ctx.save();ctx.imageSmoothingEnabled=false;if(this.invulnerable>0&&Math.floor(this.invulnerable/5)%2===0)ctx.globalAlpha=.55;if(!this.facingRight){ctx.translate(dx+w,0);ctx.scale(-1,1);ctx.drawImage(sheet,sx,sy,sw,sh,0,dy,w,h);}else ctx.drawImage(sheet,sx,sy,sw,sh,dx,dy,w,h);ctx.restore();
     }
 
     drawCrist(ctx) {
@@ -407,7 +366,7 @@ class PlayerCrist {
 
     // ===== MÉTODO DE ATUALIZAÇÃO (MOVIMENTAÇÃO) =====
     update(keys) {
-        // Sistema de Dash (ArrowDown para Crist)
+        // Sistema de Dash (tecla configurável; padrão: ↓ no Jogador 2)
         if (sistemControles.acaoAtiva(this.controlPlayer, 'dash', keys) && !this.dashing && this.dashCooldown === 0 && !this.attacking) {
             this.dashing = true;
             this.dashTimer = this.dashDuration;
@@ -528,7 +487,8 @@ class PlayerCrist {
 
         // Limites da tela
         if (this.x < 0) this.x = 0;
-        if (this.x > 4950) this.x = 4950;
+        const worldMaxX = Math.max(0, ((typeof currentLevel !== 'undefined' && currentLevel?.width) || 5000) - this.w);
+        if (this.x > worldMaxX) this.x = worldMaxX;
     }
 
     // ===== MÉTODOS DE COMBATE =====

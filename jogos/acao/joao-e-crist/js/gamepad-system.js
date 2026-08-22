@@ -11,18 +11,18 @@ class GamepadSystem {
     }
     defaultConfig() {
         return {
-            1:{left:14,right:15,up:0,attack:2,dash:1,pause:9},
-            2:{left:14,right:15,up:0,attack:2,dash:1,pause:9}
+            1:{left:14,right:15,up:0,attack:2,ranged:3,dash:1,pause:9},
+            2:{left:14,right:15,up:0,attack:2,ranged:3,dash:1,pause:9}
         };
     }
     loadConfig() {
         try {
-            const saved=JSON.parse(localStorage.getItem('joaoCristGamepadConfig')||'null');
+            const saved=JSON.parse(localStorage.getItem('joaoCristGamepadConfig_v092')||'null');
             const def=this.defaultConfig();
             return {1:{...def[1],...(saved?.[1]||{})},2:{...def[2],...(saved?.[2]||{})}};
         } catch(_){ return this.defaultConfig(); }
     }
-    saveConfig(){ try{localStorage.setItem('joaoCristGamepadConfig',JSON.stringify(this.config));}catch(_){} }
+    saveConfig(){ try{localStorage.setItem('joaoCristGamepadConfig_v092',JSON.stringify(this.config));}catch(_){} }
     reset(player=null){
         const def=this.defaultConfig();
         if(player) this.config[player]={...def[player]}; else this.config={1:{...def[1]},2:{...def[2]}};
@@ -52,6 +52,7 @@ class GamepadSystem {
                 right:axisX > this.deadzone || !!pad.buttons[cfg.right]?.pressed,
                 up:!!pad.buttons[cfg.up]?.pressed,
                 attack:!!pad.buttons[cfg.attack]?.pressed,
+                ranged:!!pad.buttons[cfg.ranged]?.pressed,
                 dash:!!pad.buttons[cfg.dash]?.pressed,
                 pause:!!pad.buttons[cfg.pause]?.pressed
             };

@@ -1,5 +1,6 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
 
 // Estados do jogo
 const GameState = {
@@ -18,7 +19,11 @@ const GameState = {
     GAME_OVER: 'gameover',
     VICTORY: 'victory',
     ACHIEVEMENTS: 'achievements',
-    TROPHIES: 'trophies'  // ✅ SPRINT 1 FIX: Adicionado
+    TROPHIES: 'trophies',  // ✅ SPRINT 1 FIX: Adicionado
+    STAGE_SELECT: 'stage_select',
+    BUS_BOARDING: 'bus_boarding',
+    BUS_MINIGAME: 'bus_minigame',
+    BUS_ARRIVAL: 'bus_arrival'
 };
 
 let gameState = GameState.LOADING; // Melhoria #19: Começar em loading
@@ -44,17 +49,33 @@ let bossWarningTimer = 0;       // Timer para aviso de aparição do boss
 const BOSS_WARNING_DURATION = 180; // 3 segundos de aviso
 
 // ========== SISTEMA DE ONDAS (Expansão) ==========
-let waveSystem = null;          // WaveSystem para fases 6-8
+let waveSystem = null;
+let enemySpawnDirector = null; // grupos liberados conforme avanço do jogador
+let levelLoadToken = 0; // invalida callbacks de fases antigas          // WaveSystem para fases 6-8
 let levelGateActive = false;    // Tela de gate de nível ativa
 let menuSelection = 0;
-let menuOptions = ['1 JOGADOR', '2 JOGADORES', 'COMO JOGAR: JOÃO & CRIST', 'CONFIGURAR CONTROLES', 'TROFÉUS', 'OPÇÕES'];
+let menuOptions = [];
+let stageSelectIndex = 0;
+let pendingStartLevel = 0;
+let stageSelectPlayers = 1;
+function getStageSelectCount(){ return LEVELS.length + (saveSystem?.load?.().busMinigameUnlocked ? 1 : 0); }
+function stageSelectIsBusBonus(){ return saveSystem?.load?.().busMinigameUnlocked && stageSelectIndex === LEVELS.length; }
+
+function refreshMenuOptions() {
+    const completed = !!saveSystem?.load?.().gameCompleted;
+    menuOptions = ['1 JOGADOR', '2 JOGADORES', 'COMO JOGAR: JOÃO & CRIST', 'CONFIGURAR CONTROLES', 'TROFÉUS', 'OPÇÕES'];
+    if (completed) menuOptions.push('SELECIONAR FASE');
+    if (saveSystem?.load?.().busMinigameUnlocked) menuOptions.push('BÔNUS — ESTRADA PARA VEGAS');
+    if (menuSelection >= menuOptions.length) menuSelection = menuOptions.length - 1;
+}
+
 let controlsConfigPlayer = 1;
 let controlsConfigSelection = 0;
 let controlsConfigCapture = false;
 let controlsConfigDevice = 'keyboard'; // keyboard | gamepad
 let controlsConfigMessage = '';
-const controlsConfigActions = ['left', 'right', 'up', 'attack', 'dash', 'pause'];
-const controlsConfigLabels = { left:'Mover esquerda', right:'Mover direita', up:'Pular', attack:'Atacar', dash:'Dash / Esquiva', pause:'Pausar' };
+const controlsConfigActions = ['left', 'right', 'up', 'attack', 'ranged', 'dash', 'pause'];
+const controlsConfigLabels = { left:'Mover esquerda', right:'Mover direita', up:'Pular', attack:'Atacar', ranged:'Tiro / Ataque à distância', dash:'Dash / Esquiva', pause:'Pausar' };
 let gamepadSystem = new GamepadSystem(sistemControles); window.gamepadSystem = gamepadSystem;
 let soundSystem = new SoundSystem();
 let gameSettings = new SettingsSystem(); window.gameSettings = gameSettings; gameSettings.applyAudio(soundSystem);
@@ -87,7 +108,29 @@ let highContrastMode = false;
 // ========== NOVOS SISTEMAS ==========
 // Sistema unificado carregado via unified-achievements.js
 let saveSystem = new SaveSystem();
+refreshMenuOptions();
 let powerUps = [];
+let destructibles = []; // Caixas/barris que guardam power-ups
+
+// ===== SPRITES 16-BIT DOS RECIPIENTES =====
+const containerSprites = {};
+['crate', 'barrel'].forEach(type => {
+    const img = new Image();
+    img.src = type === 'crate' ? 'assets/objects/wood-crate-16bit.png' : 'assets/objects/wood-barrel-16bit.png';
+    containerSprites[type] = img;
+});
+window.containerSprites = containerSprites;
+
+// ===== SPRITES 16-BIT DOS POWER-UPS =====
+const powerUpSprites = {};
+['health', 'speed', 'strength', 'invincible', 'score'].forEach(type => {
+    const img = new Image();
+    img.onerror = () => console.warn('[powerup-sprite] Falha ao carregar:', type);
+    img.src = `assets/powerups/${type}-16bit.png`;
+    powerUpSprites[type] = img;
+});
+window.powerUpSprites = powerUpSprites;
+
 let projectiles = [];  // NOVO: Sistema de projéteis para Sniper
 let levelStartTime = 0;
 let levelDamageTaken = 0;
@@ -109,6 +152,7 @@ window.saveSystem = saveSystem;
 Object.defineProperty(window, 'selectedCharacters', { configurable: true, get: () => selectedCharacters, set: value => { selectedCharacters = value; } });
 window.projectiles = projectiles;  // NOVO: Tornar projéteis globais
 window.powerUps = powerUps;  // NOVO: Tornar powerUps globais para drops
+window.destructibles = destructibles;
 Object.defineProperty(window, 'screenShake', { configurable: true, get: () => screenShake, set: value => { screenShake = value; } }); // NOVO: Screen shake global
 Object.defineProperty(window, 'hitStopFrames', { configurable: true, get: () => hitStopFrames, set: value => { hitStopFrames = Math.max(0, Number(value) || 0); } }); // v5.5: hit-stop acessível aos sistemas externos
 window.eventBus = null; // Pode ser usado se implementar eventBus
@@ -162,14 +206,20 @@ function cleanupProjectiles() {
     const filteredProjectiles = projectiles.filter(p => {
         // Remover se morto
         if (p.dead) return false;
-        
-        // Remover se muito fora da tela (margem de 200px)
-        if (p.x < -200 || p.x > canvas.width + 200) return false;
-        if (p.y < -200 || p.y > canvas.height + 200) return false;
-        
+
+        // IMPORTANTE: p.x está em coordenadas do MUNDO, não da tela.
+        // O código antigo comparava com canvas.width e apagava instantaneamente
+        // tiros feitos mais adiante nas fases (ex.: x > ~1200), dando a impressão
+        // de que o João atirava sem criar projétil/dano.
+        const camX = (typeof cameraX === 'number' && Number.isFinite(cameraX)) ? cameraX : 0;
+        const leftWorld = camX - 350;
+        const rightWorld = camX + canvas.width + 350;
+        if (p.x < leftWorld || p.x > rightWorld) return false;
+        if (p.y < -250 || p.y > canvas.height + 250) return false;
+
         // Remover se tempo de vida expirou
-        if (p.maxLife && p.life !== undefined && p.life <= 0) return false;
-        
+        if (p.life !== undefined && p.life <= 0) return false;
+
         return true;
     });
     projectiles.splice(0, projectiles.length, ...filteredProjectiles);
@@ -209,7 +259,7 @@ document.addEventListener('keydown', e => {
         }
         return;
     }
-    if (gameState === GameState.PLAYING && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter',' ','Tab'].includes(e.key)) e.preventDefault();
+    if ((gameState === GameState.PLAYING || gameState === GameState.BUS_MINIGAME) && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter',' ','Tab'].includes(e.key)) e.preventDefault();
     keys[normalizedKey] = true;
     
     // Melhoria #19: Pular loading screen com qualquer tecla
@@ -229,40 +279,8 @@ document.addEventListener('keydown', e => {
             soundSystem.playSound('menuMove');
         }
         if (e.key === 'Enter') {
-            soundSystem.playSound('menuSelect');
-            if (menuSelection === 0) {
-                // 1 jogador
-                playerCount = 1;
-                gameState = GameState.CHARACTER_SELECT;
-                selectedCharacters = [null, null];
-                characterSelectCursor = 0;
-                characterSelectReady = false; // Prevenir seleção imediata
-                setTimeout(() => { characterSelectReady = true; }, 300); // 300ms de delay
-            } else if (menuSelection === 1) {
-                // 2 jogadores
-                playerCount = 2;
-                gameState = GameState.CHARACTER_SELECT;
-                selectedCharacters = [null, null];
-                characterSelectCursor = 0;
-                characterSelectReady = false; // Prevenir seleção imediata
-                setTimeout(() => { characterSelectReady = true; }, 300); // 300ms de delay
-            } else if (menuSelection === 2) {
-                // Melhoria #20: Tutorial
-                gameState = GameState.TUTORIAL;
-            } else if (menuSelection === 3) {
-                gameState = GameState.CONTROLS_CONFIG;
-                controlsConfigPlayer = 1;
-                controlsConfigSelection = 0;
-                controlsConfigCapture = false;
-            } else if (menuSelection === 4) {
-                // Troféus
-                gameState = GameState.TROPHIES;
-                if (window.trophySystem) window.trophySystem.scrollOffset = 0;
-            } else if (menuSelection === 5) {
-                // Toggle som
-                soundSystem.toggle();
-                menuOptions[5] = soundSystem.enabled ? 'SOM: ON' : 'SOM: OFF';
-            }
+            activateMenuSelection();
+            return;
         }
         // Atalhos diretos
         if (e.key === '1') {
@@ -305,6 +323,26 @@ document.addEventListener('keydown', e => {
         }
     }
     
+    // Seletor de fases (desbloqueado apenas após zerar o jogo)
+    if (gameState === GameState.STAGE_SELECT) {
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W' || e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+            stageSelectIndex = (stageSelectIndex + getStageSelectCount() - 1) % getStageSelectCount();
+            soundSystem.playSound('menuMove');
+        }
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S' || e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+            stageSelectIndex = (stageSelectIndex + 1) % getStageSelectCount();
+            soundSystem.playSound('menuMove');
+        }
+        if (e.key === 'Tab') {
+            e.preventDefault(); stageSelectPlayers = stageSelectPlayers === 1 ? 2 : 1; soundSystem.playSound('menuMove');
+        }
+        if (e.key === 'Enter') {
+            if (stageSelectIsBusBonus()) { window.busSequence?.startMinigame(true); gameState=GameState.BUS_MINIGAME; soundSystem.playSound('menuSelect'); }
+            else { pendingStartLevel = stageSelectIndex; playerCount = stageSelectPlayers; selectedCharacters=[null,null]; characterSelectCursor=0; characterSelectReady=false; gameState=GameState.CHARACTER_SELECT; setTimeout(()=>characterSelectReady=true,300); soundSystem.playSound('menuSelect'); }
+        }
+        if (e.key === 'Escape') { gameState=GameState.MENU; menuSelection=6; soundSystem.playSound('menuBack'); }
+    }
+
     // Melhoria #20: Tela de tutorial
     if (gameState === GameState.TUTORIAL) {
         if (e.key === 'Escape' || e.key === 'Enter') {
@@ -557,11 +595,12 @@ function startGameWithCharacters() {
     // Limpar teclas do menu/seleção para evitar conflitos
     clearKeys();
     
-    // Mostrar história introdutória apenas na primeira vez
-    if (currentLevelIndex === 0) {
+    const startLevelIndex = Math.max(0, Math.min(LEVELS.length - 1, pendingStartLevel || 0));
+    // História completa apenas ao iniciar uma campanha nova. No seletor, vai direto à introdução da fase.
+    if (startLevelIndex === 0) {
         gameState = GameState.STORY_INTRO;
     } else {
-        gameState = GameState.LEVEL_INTRO;
+        gameState = GameState.STORY_LEVEL;
     }
     
     players.length = 0;
@@ -570,7 +609,8 @@ function startGameWithCharacters() {
     score = 0;
     particles.length = 0; // Limpar array
     powerUps.length = 0;
-    currentLevelIndex = 0;
+    destructibles.length = 0;
+    currentLevelIndex = startLevelIndex;
     levelIntroTimer = 0;
     gameStartTime = Date.now();
     totalGameDamage = 0;
@@ -619,8 +659,9 @@ function startGameWithCharacters() {
     // Salvar personagem favorito
     saveSystem.updateFavoriteCharacter(selectedCharacters[0]);
     
-    // Carregar primeira fase
-    loadLevel(0);
+    // Carregar a fase escolhida (0 em campanha normal).
+    loadLevel(startLevelIndex);
+    pendingStartLevel = 0;
 }
 
 function loadLevel(index) {
@@ -631,6 +672,12 @@ function loadLevel(index) {
     
     currentLevelIndex = index;
     currentLevel = LEVELS[index];
+    levelLoadToken++;
+    const thisLevelToken = levelLoadToken;
+
+    // A nova fase começa limpa e olhando para o começo real do mapa.
+    cameraX = 0;
+    enemySpawnDirector = null;
 
     // === VERIFICAÇÃO DE GATE DE NÍVEL ===
     if (typeof checkLevelRequirement === 'function' && !checkLevelRequirement(index, players)) {
@@ -647,6 +694,8 @@ function loadLevel(index) {
     enemies.length = 0;
     particles.length = 0;
     powerUps.length = 0;
+    destructibles.length = 0;
+    if (typeof projectiles !== 'undefined') projectiles.length = 0;
     levelIntroTimer = 180;
     levelStartTime = Date.now();
     levelDamageTaken = 0;
@@ -663,6 +712,7 @@ function loadLevel(index) {
         waveSystem = new WaveSystem({ ...currentLevel, difficultyMultiplier:(currentLevel.difficultyMultiplier||1)*gameSettings.difficultyMultiplier() }, currentLevel.getGround());
         // Iniciar primeira onda automaticamente após 2s
         setTimeout(() => {
+            if (thisLevelToken !== levelLoadToken) return;
             if (waveSystem && gameState === GameState.PLAYING) {
                 waveSystem.startNextWave(enemies);
             }
@@ -674,6 +724,20 @@ function loadLevel(index) {
         player.groundY = currentLevel.getGround();
         player.x = 150 + players.indexOf(player) * 50;
         player.y = player.groundY - player.h;
+
+        // Não carregar impulso/ataque/dash da fase anterior.
+        if ('vy' in player) player.vy = 0;
+        if ('jumpPower' in player) player.jumpPower = 0;
+        if ('isJumping' in player) player.isJumping = false;
+        if ('attacking' in player) player.attacking = false;
+        if ('attackTimer' in player) player.attackTimer = 0;
+        if ('dashing' in player) player.dashing = false;
+        if ('dashTimer' in player) player.dashTimer = 0;
+        if ('isMoving' in player) player.isMoving = false;
+        if ('isRunning' in player) player.isRunning = false;
+        if ('moveHoldFrames' in player) player.moveHoldFrames = 0;
+        if ('rangedCharging' in player) player.rangedCharging = false;
+        if ('rangedChargeFrames' in player) player.rangedChargeFrames = 0;
     });
     
     // Spawn de inimigos (apenas para fases sem ondas)
@@ -685,46 +749,123 @@ function loadLevel(index) {
     spawnPowerUps(2 + Math.floor(Math.random() * 3));
 }
 
-function spawnEnemies() {
-    const enemyTypes = currentLevel.enemyTypes;
-    const enemyCount = currentLevel.enemyCount;
-    const difficultyMult = (currentLevel.difficultyMultiplier || 1.0) * gameSettings.difficultyMultiplier(); // dificuldade da fase + escolha do jogador
-    
-    for (let i = 0; i < enemyCount; i++) {
-        const type = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
-        const x = 600 + i * 200 + Math.random() * 100;
-        const y = currentLevel.getGround();
-        
-        // ATUALIZADO: Usar EnemyFactory para criar o tipo correto de inimigo
-        let enemy;
+function createEnemySafe(type, x, y) {
+    let enemy = null;
+    try {
         if (typeof EnemyFactory !== 'undefined') {
             enemy = EnemyFactory.create(x, y, type);
-        } else {
-            // Fallback para o sistema antigo
-            switch(type) {
-                case 'tank':
-                    enemy = typeof TankEnemy !== 'undefined' ? new TankEnemy(x, y) : new Enemy(x, y, type);
-                    break;
-                case 'berserker':
-                    enemy = typeof BerserkerEnemy !== 'undefined' ? new BerserkerEnemy(x, y) : new Enemy(x, y, type);
-                    break;
-                default:
-                    enemy = new Enemy(x, y, type);
-            }
         }
-        
-        // Melhoria #36: Aplicar scaling de dificuldade
-        if (enemy.maxLife) {
-            enemy.maxLife = Math.floor(enemy.maxLife * difficultyMult);
-            enemy.life = enemy.maxLife;
-        }
-        if (enemy.damage) enemy.damage = Math.floor(enemy.damage * difficultyMult);
-        if (enemy.score) enemy.score = Math.floor(enemy.score * difficultyMult);
-        
-        enemies.push(enemy);
+    } catch (err) {
+        console.error('[spawn] Erro ao criar inimigo', type, err);
     }
-    // NOTA: Boss NÃO é spawnado aqui - ele aparece após matar todos os inimigos normais
-    // Ver função spawnBoss() e a lógica no gameLoop
+
+    if (!enemy) {
+        try {
+            enemy = (typeof BasicEnemy !== 'undefined')
+                ? new BasicEnemy(x, y)
+                : new Enemy(x, y, 'basic');
+        } catch (fallbackErr) {
+            console.error('[spawn] Falha também no fallback', fallbackErr);
+            return null;
+        }
+    }
+
+    const difficultyMult = (currentLevel.difficultyMultiplier || 1.0) * gameSettings.difficultyMultiplier();
+    if (enemy.maxLife) {
+        enemy.maxLife = Math.floor(enemy.maxLife * difficultyMult);
+        enemy.life = enemy.maxLife;
+    }
+    if (enemy.damage) enemy.damage = Math.floor(enemy.damage * difficultyMult);
+    if (enemy.score) enemy.score = Math.floor(enemy.score * difficultyMult);
+    return enemy;
+}
+
+function buildEnemySpawnDirector() {
+    const total = Math.max(0, currentLevel.enemyCount || 0);
+    const types = Array.isArray(currentLevel.enemyTypes) && currentLevel.enemyTypes.length
+        ? currentLevel.enemyTypes.slice()
+        : ['basic'];
+    const worldWidth = currentLevel.width || 5000;
+
+    const groupCount = Math.max(1, Math.min(5, Math.ceil(total / 4)));
+    const startX = 650;
+    const endX = Math.max(startX + 500, worldWidth - 650);
+
+    const groups = [];
+    let assigned = 0;
+
+    for (let g = 0; g < groupCount; g++) {
+        const remaining = total - assigned;
+        const groupsLeft = groupCount - g;
+        const amount = Math.ceil(remaining / groupsLeft);
+        assigned += amount;
+
+        const t = groupCount === 1 ? 0 : g / (groupCount - 1);
+        const center = Math.round(startX + (endX - startX) * t);
+        const triggerX = g === 0 ? 0 : Math.max(700, center - 500);
+
+        groups.push({ index:g, center, triggerX, amount, spawned:false });
+    }
+
+    enemySpawnDirector = {
+        total,
+        spawnedCount: 0,
+        types,
+        groups,
+        allSpawned: total === 0
+    };
+
+    // Apenas o primeiro grupo aparece no começo.
+    updateEnemySpawnDirector(true);
+}
+
+function spawnDirectorGroup(group) {
+    if (!group || group.spawned || !enemySpawnDirector) return;
+
+    const groundY = currentLevel.getGround();
+    const worldWidth = currentLevel.width || 5000;
+
+    for (let i = 0; i < group.amount; i++) {
+        const type = enemySpawnDirector.types[Math.floor(Math.random() * enemySpawnDirector.types.length)];
+        const spread = (i - (group.amount - 1) / 2) * 125 + (Math.random() * 70 - 35);
+        const x = Math.max(580, Math.min(worldWidth - 180, group.center + spread));
+
+        const enemy = createEnemySafe(type, x, groundY);
+        if (enemy) {
+            enemy.spawnSector = group.index;
+            enemies.push(enemy);
+            enemySpawnDirector.spawnedCount++;
+        }
+    }
+
+    group.spawned = true;
+    enemySpawnDirector.allSpawned = enemySpawnDirector.groups.every(g => g.spawned);
+}
+
+function updateEnemySpawnDirector(forceFirst = false) {
+    if (!enemySpawnDirector || enemySpawnDirector.allSpawned) return;
+    if (!forceFirst && gameState !== GameState.PLAYING) return;
+
+    const alivePlayers = players.filter(p => p && p.life > 0);
+    if (!alivePlayers.length && !forceFirst) return;
+
+    const leadX = alivePlayers.length
+        ? Math.max(...alivePlayers.map(p => p.x + p.w))
+        : 0;
+
+    const nextGroup = enemySpawnDirector.groups.find(g => !g.spawned);
+    if (!nextGroup) {
+        enemySpawnDirector.allSpawned = true;
+        return;
+    }
+
+    if (forceFirst || leadX >= nextGroup.triggerX) {
+        spawnDirectorGroup(nextGroup);
+    }
+}
+
+function spawnEnemies() {
+    buildEnemySpawnDirector();
 }
 
 /**
@@ -790,23 +931,48 @@ function spawnBoss() {
 
 function spawnPowerUps(count) {
     const types = ['health', 'speed', 'strength', 'invincible', 'score'];
-    
+    // Sempre existe pelo menos 1 item de vida por fase. Antes era 100% aleatório,
+    // então era possível passar várias fases sem o sprite de vida aparecer.
+    const guaranteed = ['health'];
     for (let i = 0; i < count; i++) {
-        const type = types[Math.floor(Math.random() * types.length)];
+        const itemType = guaranteed[i] || types[Math.floor(Math.random() * types.length)];
+        const containerType = Math.random() < 0.58 ? 'crate' : 'barrel';
+        const w = containerType === 'crate' ? 58 : 50;
+        const h = containerType === 'crate' ? 58 : 62;
         const x = 400 + Math.random() * 3000;
-        const y = currentLevel.getGround() - 60;
-        
-        powerUps.push({
-            x: x,
-            y: y,
-            baseY: y,
-            type: type,
-            collected: false,
-            bobOffset: Math.random() * Math.PI * 2,
-            w: 30,
-            h: 30
+        const y = currentLevel.getGround() - h;
+        destructibles.push({
+            x, y, w, h, type: containerType, itemType,
+            life: containerType === 'crate' ? 35 : 45,
+            maxLife: containerType === 'crate' ? 35 : 45,
+            broken: false, hitFlash: 0
         });
     }
+}
+
+function breakPowerUpContainer(obj) {
+    if (!obj || obj.broken) return;
+    obj.broken = true;
+    const py = currentLevel.getGround() - 52;
+    powerUps.push({
+        x: obj.x + obj.w / 2 - 15,
+        y: py, baseY: py,
+        type: obj.itemType,
+        collected: false,
+        bobOffset: Math.random() * Math.PI * 2,
+        w: 30, h: 30,
+        persistent: true
+    });
+    createParticle(obj.x + obj.w/2, obj.y + obj.h/2, '#b97836', 12, 'spark');
+    createTextPopup(obj.x + obj.w/2, obj.y - 8, 'ITEM!', '#ffd76a');
+    if (window.soundSystem) window.soundSystem.playSound('hit');
+}
+
+function damagePowerUpContainer(obj, damage) {
+    if (!obj || obj.broken) return;
+    obj.life -= Math.max(1, damage || 20);
+    obj.hitFlash = 6;
+    if (obj.life <= 0) breakPowerUpContainer(obj);
 }
 
 function nextLevel() {
@@ -840,11 +1006,24 @@ function nextLevel() {
     // Atualizar nível mais alto
     saveSystem.updateHighestLevel(currentLevelIndex + 2);
     
-    // Próxima fase
-    loadLevel(currentLevelIndex + 1);
-    
-    if (currentLevelIndex < LEVELS.length) {
+    // Próxima fase com reset de estado consistente.
+    const nextIndex = currentLevelIndex + 1;
+
+    if (nextIndex >= LEVELS.length) {
+        if (saveSystem && typeof saveSystem.markGameCompleted === 'function') saveSystem.markGameCompleted();
+        refreshMenuOptions();
+        gameState = GameState.VICTORY;
+        return;
+    }
+
+    if (typeof clearKeys === 'function') clearKeys();
+
+    loadLevel(nextIndex);
+
+    // Só entra na tela de história se o carregamento não tiver acionado um gate.
+    if (gameState !== GameState.GAME_OVER && gameState !== GameState.VICTORY) {
         gameState = GameState.STORY_LEVEL;
+        levelIntroTimer = 180;
     }
 }
 
@@ -929,84 +1108,88 @@ if (!window.particles.createText) {
 }
 
 // Melhoria #19: Splash screen com loading
+// Imagem oficial da tela de carregamento
+const loadingScreenImage = new Image();
+loadingScreenImage.src = 'assets/ui/loading-screen.png';
+
 function drawLoading() {
-    // Fundo escuro com gradiente
-    const gradient = ctx.createLinearGradient(0, 0, 0, 650);
-    gradient.addColorStop(0, '#0a0a0a');
-    gradient.addColorStop(1, '#1a1a1a');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 1000, 650);
-    
-    // Título do jogo
     ctx.save();
-    ctx.shadowBlur = 40;
-    ctx.shadowColor = '#ff00ff';
-    ctx.fillStyle = '#ff00ff';
-    ctx.font = 'bold 80px Permanent Marker';
-    ctx.textAlign = 'center';
-    ctx.fillText('JOÃO E CRIST', 500, 200);
-    
-    ctx.shadowColor = '#00ffff';
-    ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 4;
-    ctx.strokeText('JOÃO E CRIST', 500, 200);
-    
-    ctx.font = 'bold 45px Permanent Marker';
-    ctx.shadowBlur = 25;
-    ctx.shadowColor = '#ffd700';
-    ctx.fillStyle = '#ffd700';
-    ctx.fillText('RUMO A VEGAS!', 500, 260);
-    ctx.restore();
-    
-    // Barra de loading
-    const barWidth = 400;
-    const barHeight = 30;
-    const barX = (1000 - barWidth) / 2;
-    const barY = 380;
-    
-    // Fundo da barra
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(barX, barY, barWidth, barHeight);
-    
-    // Borda
-    ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(barX, barY, barWidth, barHeight);
-    
-    // Progresso
-    const progressGradient = ctx.createLinearGradient(barX, 0, barX + barWidth, 0);
-    progressGradient.addColorStop(0, '#ff00ff');
-    progressGradient.addColorStop(0.5, '#00ffff');
-    progressGradient.addColorStop(1, '#ffd700');
-    
-    ctx.fillStyle = progressGradient;
-    ctx.fillRect(barX + 2, barY + 2, (barWidth - 4) * loadingProgress, barHeight - 4);
-    
-    // Texto de progresso
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 20px Righteous';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${Math.floor(loadingProgress * 100)}%`, 500, barY + barHeight + 35);
-    
-    // Dica
-    if (loadingProgress > 0.5) {
-        ctx.fillStyle = '#888';
-        ctx.font = '16px Righteous';
-        ctx.fillText('Pressione qualquer tecla para começar...', 500, 500);
+    ctx.imageSmoothingEnabled = false;
+
+    // Fundo: arte oficial enviada pelo usuário.
+    if (loadingScreenImage.complete && loadingScreenImage.naturalWidth) {
+        // "cover" para preencher todo o canvas sem deformar a imagem.
+        const cw = ctx.canvas.width;
+        const ch = ctx.canvas.height;
+        const iw = loadingScreenImage.naturalWidth;
+        const ih = loadingScreenImage.naturalHeight;
+        const scale = Math.max(cw / iw, ch / ih);
+        const sw = cw / scale;
+        const sh = ch / scale;
+        const sx = (iw - sw) / 2;
+        const sy = (ih - sh) / 2;
+        ctx.drawImage(loadingScreenImage, sx, sy, sw, sh, 0, 0, cw, ch);
+    } else {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     }
-    
-    // Créditos
-    ctx.fillStyle = '#555';
-    ctx.font = '14px Righteous';
-    ctx.fillText('Um jogo de ação arcade', 500, 580);
-    
-    // Atualizar progresso
+
+    // Painel discreto para leitura da barra sem esconder a arte.
+    const barW = 430;
+    const barH = 24;
+    const barX = (ctx.canvas.width - barW) / 2;
+    const barY = ctx.canvas.height - 88;
+
+    ctx.fillStyle = 'rgba(8, 8, 10, 0.72)';
+    ctx.fillRect(barX - 14, barY - 16, barW + 28, 74);
+
+    // Moldura pixel-art.
+    ctx.fillStyle = '#1b130d';
+    ctx.fillRect(barX - 5, barY - 5, barW + 10, barH + 10);
+    ctx.fillStyle = '#d49a26';
+    ctx.fillRect(barX - 3, barY - 3, barW + 6, barH + 6);
+    ctx.fillStyle = '#241b16';
+    ctx.fillRect(barX, barY, barW, barH);
+
+    // Progresso.
+    const innerW = barW - 8;
+    const filled = Math.max(0, Math.min(innerW, Math.floor(innerW * loadingProgress)));
+    ctx.fillStyle = '#f0b52f';
+    ctx.fillRect(barX + 4, barY + 4, filled, barH - 8);
+
+    // Segmentação pixel-art.
+    ctx.fillStyle = 'rgba(70, 40, 18, .38)';
+    for (let x = barX + 22; x < barX + barW - 5; x += 22) {
+        ctx.fillRect(x, barY + 4, 3, barH - 8);
+    }
+
+    const pct = Math.floor(loadingProgress * 100);
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 16px monospace';
+    ctx.fillStyle = '#fff2c2';
+    ctx.fillText(pct + '%', ctx.canvas.width / 2, barY - 22);
+
+    if (loadingProgress >= 1) {
+        ctx.font = 'bold 17px monospace';
+        ctx.fillStyle = '#ffffff';
+        if ((Math.floor(performance.now() / 450) & 1) === 0) {
+            ctx.fillText('PRESSIONE QUALQUER TECLA', ctx.canvas.width / 2, barY + 52);
+        }
+    } else {
+        ctx.font = 'bold 14px monospace';
+        ctx.fillStyle = '#e6d2a2';
+        ctx.fillText('CARREGANDO...', ctx.canvas.width / 2, barY + 50);
+    }
+
+    ctx.restore();
+
     if (loadingProgress < 1) {
-        loadingProgress += 0.01;
+        loadingProgress = Math.min(1, loadingProgress + 0.01);
     }
 }
 
 function drawMenu() {
+    refreshMenuOptions();
     // Fundo inspirado na estrada para Vegas: céu do deserto, asfalto e neon retrô.
     const sky = ctx.createLinearGradient(0, 0, 0, 650);
     sky.addColorStop(0, '#0c1026');
@@ -1058,7 +1241,8 @@ function drawMenu() {
 
     // Painel de menu de madeira/metal.
     ctx.fillStyle='rgba(12,12,16,.88)'; ctx.strokeStyle='#8c5a2b'; ctx.lineWidth=4;
-    ctx.beginPath(); ctx.roundRect(275,235,450,345,18); ctx.fill(); ctx.stroke();
+    const menuPanelH = menuOptions.length > 6 ? 365 : 345;
+    ctx.beginPath(); ctx.roundRect(275,225,450,menuPanelH,18); ctx.fill(); ctx.stroke();
 
     const savedData = saveSystem.load();
     if (savedData.highScore > 0) {
@@ -1067,7 +1251,8 @@ function drawMenu() {
     }
 
     menuOptions.forEach((option,i)=>{
-        const y=306+i*43;
+        const spacing = menuOptions.length > 6 ? 40 : 43;
+        const y=296+i*spacing;
         const selected=i===menuSelection;
         if(selected){
             ctx.save(); ctx.shadowBlur=14; ctx.shadowColor='#ff7b39';
@@ -1142,7 +1327,7 @@ function drawTutorialCharacter(cx,sheet,name,accent,tag,tips) {
 function drawControlsConfig() {
     const g=ctx.createLinearGradient(0,0,0,650);g.addColorStop(0,'#11182c');g.addColorStop(1,'#1d0f14');ctx.fillStyle=g;ctx.fillRect(0,0,1000,650);
     ctx.fillStyle='#fff0c7';ctx.font='bold 47px Bebas Neue';ctx.textAlign='center';ctx.fillText('CONFIGURAR CONTROLES',500,58);
-    ctx.fillStyle='#d8c19a';ctx.font='14px Righteous';ctx.fillText('João e Crist usam exatamente o mesmo conjunto de ações; só as teclas/botões mudam por jogador.',500,84);
+    ctx.fillStyle='#d8c19a';ctx.font='14px Righteous';ctx.fillText('Controles por jogador. A ação TIRO é exclusiva do João e usa um botão separado do soco.',500,84);
 
     const isKeyboard=controlsConfigDevice==='keyboard';
     ctx.fillStyle=isKeyboard?'#f5c04a':'#7e6d57';ctx.beginPath();ctx.roundRect(330,101,160,36,8);ctx.fill();
@@ -1153,27 +1338,27 @@ function drawControlsConfig() {
     const pads=gamepadSystem.getPads();
     [1,2].forEach((pl,i)=>{
         const x=i?535:105,w=360,active=controlsConfigPlayer===pl;
-        ctx.fillStyle=active?'rgba(45,31,20,.96)':'rgba(8,8,12,.78)';ctx.strokeStyle=active?'#f5c04a':'#5e5145';ctx.lineWidth=active?4:2;ctx.beginPath();ctx.roundRect(x,168,w,338,15);ctx.fill();ctx.stroke();
+        ctx.fillStyle=active?'rgba(45,31,20,.96)':'rgba(8,8,12,.78)';ctx.strokeStyle=active?'#f5c04a':'#5e5145';ctx.lineWidth=active?4:2;ctx.beginPath();ctx.roundRect(x,168,w,374,15);ctx.fill();ctx.stroke();
         ctx.fillStyle=pl===1?'#69b7ff':'#ff735e';ctx.font='bold 28px Bebas Neue';ctx.textAlign='center';ctx.fillText(`JOGADOR ${pl}`,x+w/2,202);
         ctx.fillStyle='#cfc1ad';ctx.font='12px Righteous';ctx.fillText(isKeyboard?'Teclado configurável':(pads[pl-1]?pads[pl-1].id.slice(0,34):'Gamepad não conectado'),x+w/2,222);
         const kb=sistemControles.obterControles(pl);
         controlsConfigActions.forEach((action,row)=>{
-            const yy=257+row*43,sel=active&&row===controlsConfigSelection;
+            const yy=252+row*40,sel=active&&row===controlsConfigSelection;
             if(sel){ctx.fillStyle='rgba(245,192,74,.15)';ctx.strokeStyle='#f5c04a';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x+22,yy-27,w-44,35,8);ctx.fill();ctx.stroke();}
             ctx.fillStyle='#eee4d6';ctx.font='13px Righteous';ctx.textAlign='left';ctx.fillText(controlsConfigLabels[action],x+38,yy-4);
             const value=isKeyboard?sistemControles.nomeTecla(kb[action]):gamepadSystem.buttonName(gamepadSystem.config[pl][action]);
             ctx.fillStyle=sel?'#f5c04a':'#9de2ff';ctx.font='bold 14px Righteous';ctx.textAlign='right';ctx.fillText(value,x+w-38,yy-4);
         });
     });
-    if(controlsConfigMessage){ctx.fillStyle='#74f19b';ctx.font='13px Righteous';ctx.textAlign='center';ctx.fillText(controlsConfigMessage,500,532);}
+    if(controlsConfigMessage){ctx.fillStyle='#74f19b';ctx.font='13px Righteous';ctx.textAlign='center';ctx.fillText(controlsConfigMessage,500,555);}
     if(controlsConfigCapture){
         ctx.fillStyle='rgba(0,0,0,.82)';ctx.fillRect(0,0,1000,650);ctx.strokeStyle='#f5c04a';ctx.lineWidth=4;ctx.fillStyle='#24160f';ctx.beginPath();ctx.roundRect(245,228,510,185,16);ctx.fill();ctx.stroke();
         ctx.fillStyle='#fff0c7';ctx.font='bold 31px Bebas Neue';ctx.textAlign='center';ctx.fillText(isKeyboard?'PRESSIONE A NOVA TECLA':'PRESSIONE O NOVO BOTÃO',500,287);
         ctx.fillStyle='#fff';ctx.font='16px Righteous';ctx.fillText(`${controlsConfigLabels[controlsConfigActions[controlsConfigSelection]]} • Jogador ${controlsConfigPlayer}`,500,329);
         ctx.fillStyle='#cdbda4';ctx.fillText('Se houver conflito, as duas ações trocam de tecla/botão automaticamente.',500,360);ctx.fillText('ESC cancela',500,389);
     } else {
-        ctx.fillStyle='#ded1bd';ctx.font='14px Righteous';ctx.textAlign='center';ctx.fillText('← → troca jogador  •  ↑ ↓ ação  •  TAB teclado/gamepad  •  ENTER/A remapeia  •  R restaura  •  ESC/B volta',500,574);
-        ctx.fillStyle='#9de2ff';ctx.font='13px Righteous';ctx.fillText('Gamepad e teclado são lidos separadamente: usar um não cancela o outro.',500,602);
+        ctx.fillStyle='#ded1bd';ctx.font='14px Righteous';ctx.textAlign='center';ctx.fillText('← → troca jogador  •  ↑ ↓ ação  •  TAB teclado/gamepad  •  ENTER/A remapeia  •  R restaura  •  ESC/B volta',500,585);
+        ctx.fillStyle='#9de2ff';ctx.font='13px Righteous';ctx.fillText('Gamepad e teclado são lidos separadamente: usar um não cancela o outro.',500,610);
     }
 }
 
@@ -1210,13 +1395,19 @@ function drawOptions() {
 }
 
 function activateMenuSelection() {
-    if (menuSelection===0 || menuSelection===1) {
-        playerCount=menuSelection+1; gameState=GameState.CHARACTER_SELECT; selectedCharacters=[null,null]; characterSelectCursor=0; characterSelectReady=false; setTimeout(()=>characterSelectReady=true,300); soundSystem.playSound('menuSelect');
-    } else if(menuSelection===2){gameState=GameState.TUTORIAL;soundSystem.playSound('menuSelect');}
-    else if(menuSelection===3){gameState=GameState.CONTROLS_CONFIG;controlsConfigPlayer=1;controlsConfigSelection=0;controlsConfigCapture=false;controlsConfigDevice='keyboard';controlsConfigMessage='';soundSystem.playSound('menuSelect');}
-    else if(menuSelection===4){gameState=GameState.TROPHIES;if(window.trophySystem)window.trophySystem.scrollOffset=0;soundSystem.playSound('menuSelect');}
-    else if(menuSelection===5){gameState=GameState.OPTIONS;optionsSelection=0;gameSettings.applyAudio(soundSystem);soundSystem.playSound('menuSelect');}
+    refreshMenuOptions();
+    const option = menuOptions[menuSelection];
+    if (option==='1 JOGADOR' || option==='2 JOGADORES') {
+        pendingStartLevel=0;
+        playerCount=option==='2 JOGADORES'?2:1; gameState=GameState.CHARACTER_SELECT; selectedCharacters=[null,null]; characterSelectCursor=0; characterSelectReady=false; setTimeout(()=>characterSelectReady=true,300); soundSystem.playSound('menuSelect');
+    } else if(option==='COMO JOGAR: JOÃO & CRIST'){gameState=GameState.TUTORIAL;soundSystem.playSound('menuSelect');}
+    else if(option==='CONFIGURAR CONTROLES'){clearKeys();gameState=GameState.CONTROLS_CONFIG;controlsConfigPlayer=1;controlsConfigSelection=0;controlsConfigCapture=false;controlsConfigDevice='keyboard';controlsConfigMessage='';soundSystem.playSound('menuSelect');}
+    else if(option==='TROFÉUS'){gameState=GameState.TROPHIES;if(window.trophySystem)window.trophySystem.scrollOffset=0;soundSystem.playSound('menuSelect');}
+    else if(option==='OPÇÕES'){gameState=GameState.OPTIONS;optionsSelection=0;gameSettings.applyAudio(soundSystem);soundSystem.playSound('menuSelect');}
+    else if(option==='SELECIONAR FASE' && saveSystem.load().gameCompleted){stageSelectIndex=0;stageSelectPlayers=1;gameState=GameState.STAGE_SELECT;soundSystem.playSound('menuSelect');}
+    else if(option==='BÔNUS — ESTRADA PARA VEGAS' && saveSystem.load().busMinigameUnlocked){window.busSequence?.startMinigame(true);gameState=GameState.BUS_MINIGAME;soundSystem.playSound('menuSelect');}
 }
+window.refreshMenuOptions = refreshMenuOptions;
 
 function handleGamepadInput() {
     const pads=gamepadSystem.getPads(); if(!pads.length)return;
@@ -1229,6 +1420,18 @@ function handleGamepadInput() {
     const back=gamepadSystem.wasPressed(p,1);
 
     if(gameState===GameState.MENU){if(up){menuSelection=(menuSelection+menuOptions.length-1)%menuOptions.length;soundSystem.playSound('menuMove');}if(down){menuSelection=(menuSelection+1)%menuOptions.length;soundSystem.playSound('menuMove');}if(accept)activateMenuSelection();}
+    else if(gameState===GameState.TROPHIES){
+        if(up&&window.trophySystem){window.trophySystem.scrollUp();soundSystem.playSound('menuMove');}
+        if(down&&window.trophySystem){window.trophySystem.scrollDown();soundSystem.playSound('menuMove');}
+        if(back||accept){gameState=GameState.MENU;menuSelection=4;soundSystem.playSound('menuBack');}
+    }
+    else if(gameState===GameState.STAGE_SELECT){
+        if(up||left){stageSelectIndex=(stageSelectIndex+getStageSelectCount()-1)%getStageSelectCount();soundSystem.playSound('menuMove');}
+        if(down||right){stageSelectIndex=(stageSelectIndex+1)%getStageSelectCount();soundSystem.playSound('menuMove');}
+        if(gamepadSystem.wasPressed(p,2)){stageSelectPlayers=stageSelectPlayers===1?2:1;soundSystem.playSound('menuMove');}
+        if(accept){if(stageSelectIsBusBonus()){window.busSequence?.startMinigame(true);gameState=GameState.BUS_MINIGAME;soundSystem.playSound('menuSelect');}else{pendingStartLevel=stageSelectIndex;playerCount=stageSelectPlayers;selectedCharacters=[null,null];characterSelectCursor=0;characterSelectReady=false;gameState=GameState.CHARACTER_SELECT;setTimeout(()=>characterSelectReady=true,300);soundSystem.playSound('menuSelect');}}
+        if(back){gameState=GameState.MENU;menuSelection=6;soundSystem.playSound('menuBack');}
+    }
     else if(gameState===GameState.TUTORIAL){if(accept||back){gameState=GameState.MENU;soundSystem.playSound('menuBack');}}
     else if(gameState===GameState.CHARACTER_SELECT){if(left){characterSelectCursor=0;soundSystem.playSound('menuMove');}if(right){characterSelectCursor=1;soundSystem.playSound('menuMove');}if(back){gameState=GameState.MENU;selectedCharacters=[null,null];soundSystem.playSound('menuBack');}if(accept&&characterSelectReady){if(selectedCharacters[0]===null){selectedCharacters[0]=characterSelectCursor===0?'João':'Crist';if(playerCount===1)startGameWithCharacters();else characterSelectCursor=selectedCharacters[0]==='João'?1:0;}else if(playerCount===2&&selectedCharacters[1]===null){selectedCharacters[1]=characterSelectCursor===0?'João':'Crist';startGameWithCharacters();}}}
     else if(gameState===GameState.OPTIONS){
@@ -1257,7 +1460,7 @@ function handleGamepadInput() {
             if(up){controlsConfigSelection=(controlsConfigSelection+controlsConfigActions.length-1)%controlsConfigActions.length;soundSystem.playSound('menuMove');}
             if(down){controlsConfigSelection=(controlsConfigSelection+1)%controlsConfigActions.length;soundSystem.playSound('menuMove');}
             if(left||right){controlsConfigPlayer=controlsConfigPlayer===1?2:1;soundSystem.playSound('menuMove');}
-            if(gamepadSystem.wasPressed(p,3)){controlsConfigDevice=controlsConfigDevice==='keyboard'?'gamepad':'keyboard';controlsConfigMessage='';soundSystem.playSound('menuMove');}
+            if(gamepadSystem.wasPressed(p,10)){controlsConfigDevice=controlsConfigDevice==='keyboard'?'gamepad':'keyboard';controlsConfigMessage='';soundSystem.playSound('menuMove');}
             if(accept){controlsConfigCapture=true;controlsConfigMessage='';soundSystem.playSound('menuSelect');}
             if(back){gameState=GameState.MENU;menuSelection=3;soundSystem.playSound('menuBack');}
         }
@@ -1265,6 +1468,18 @@ function handleGamepadInput() {
     else if((gameState===GameState.STORY_INTRO||gameState===GameState.STORY_LEVEL||gameState===GameState.LEVEL_INTRO||gameState===GameState.LEVEL_COMPLETE)&&accept){if(gameState===GameState.STORY_INTRO)gameState=GameState.STORY_LEVEL;else if(gameState===GameState.STORY_LEVEL)gameState=GameState.LEVEL_INTRO;else if(gameState===GameState.LEVEL_INTRO){gameState=GameState.PLAYING;levelStartTime=Date.now();levelDamageTaken=0;}else nextLevel();soundSystem.playSound('menuSelect');}
     else if(gameState===GameState.PLAYING&&[0,1].some(i=>pads[i]&&gamepadSystem.wasPressed(i,gamepadSystem.config[i+1]?.pause??9))){gameState=GameState.PAUSED;soundSystem.playSound('menuSelect');}
     else if(gameState===GameState.PAUSED&&([0,1].some(i=>pads[i]&&gamepadSystem.wasPressed(i,gamepadSystem.config[i+1]?.pause??9))||back)){gameState=GameState.PLAYING;soundSystem.playSound('menuSelect');}
+}
+
+function drawStageSelect() {
+    const g=ctx.createLinearGradient(0,0,0,650); g.addColorStop(0,'#090d20'); g.addColorStop(.55,'#30133b'); g.addColorStop(1,'#6b2d1b'); ctx.fillStyle=g;ctx.fillRect(0,0,1000,650);
+    ctx.fillStyle='#fff1c8';ctx.font='bold 48px Bebas Neue';ctx.textAlign='center';ctx.fillText('SELECIONAR FASE',500,58);
+    ctx.fillStyle='#f5c04a';ctx.font='14px Righteous';ctx.fillText(saveSystem.load().busMinigameUnlocked?'FASES + CONTEÚDO BÔNUS DESBLOQUEADO':'DESBLOQUEADO POR ZERAR O JOGO',500,84);
+    const entries=LEVELS.map((level,i)=>({title:`${i+1}. ${level.name}`,desc:level.description||'Rumo a Vegas',bonus:false}));
+    if(saveSystem.load().busMinigameUnlocked)entries.push({title:'BÔNUS — ESTRADA PARA VEGAS',desc:'Rejogue o minigame do ônibus sem repetir a Fase 2',bonus:true});
+    const cardY=105, cardH=45, gap=7;
+    entries.forEach((entry,i)=>{const y=cardY+i*(cardH+gap),sel=i===stageSelectIndex;ctx.fillStyle=sel?(entry.bonus?'rgba(45,115,108,.94)':'rgba(168,50,37,.92)'):'rgba(10,10,14,.82)';ctx.strokeStyle=sel?'#ffd06a':'#65513f';ctx.lineWidth=sel?3:1;ctx.beginPath();ctx.roundRect(175,y,650,cardH,9);ctx.fill();ctx.stroke();ctx.textAlign='left';ctx.fillStyle=sel?'#fff7db':'#ddd3c2';ctx.font='bold 19px Bebas Neue';ctx.fillText(entry.title,198,y+20);ctx.fillStyle=sel?'#ffd06a':'#9eb2c7';ctx.font='11px Righteous';ctx.fillText(entry.desc.slice(0,74),198,y+37);ctx.textAlign='right';ctx.fillStyle=sel?'#fff':'#8d8273';ctx.font='bold 15px Bebas Neue';ctx.fillText(sel?'▶ JOGAR':'',795,y+27);});
+    ctx.textAlign='center';ctx.fillStyle='#8de3ff';ctx.font='14px Righteous';ctx.fillText(`MODO: ${stageSelectPlayers} JOGADOR${stageSelectPlayers>1?'ES':''}  •  TAB / X troca jogadores`,500,595);
+    ctx.fillStyle='#ded1bd';ctx.font='13px Righteous';ctx.fillText('↑↓ / ←→ escolher  •  ENTER / A confirmar  •  ESC / B voltar',500,622);
 }
 
 function drawAchievements() {
@@ -1314,9 +1529,9 @@ function drawTutorial() {
     ctx.fillStyle='rgba(0,0,0,.55)'; ctx.strokeStyle='#75512f'; ctx.lineWidth=2; ctx.beginPath(); ctx.roundRect(90,388,820,156,14); ctx.fill(); ctx.stroke();
     ctx.fillStyle='#f5c04a'; ctx.font='bold 20px Bebas Neue'; ctx.fillText('TECLADO',500,417);
     ctx.fillStyle='#fff'; ctx.font='15px Righteous';
-    ctx.fillText(`JOGADOR 1: A/D mover  •  W pular  •  ${prettyKey(c1.attack)} atacar  •  ${prettyKey(c1.dash)} dash`,500,449);
-    ctx.fillText(`JOGADOR 2: ←/→ mover  •  ↑ pular  •  ${prettyKey(c2.attack)} atacar  •  ↓ dash`,500,477);
-    ctx.fillStyle='#8de3ff'; ctx.fillText('GAMEPAD: analógico/D-pad mover • A pular • X atacar • B dash (padrão)',500,510);
+    ctx.fillText(`JOGADOR 1: ${prettyKey(c1.left)}/${prettyKey(c1.right)} mover • ${prettyKey(c1.up)} pular • ${prettyKey(c1.attack)} atacar • ${prettyKey(c1.ranged)} atirar • ${prettyKey(c1.dash)} dash`,500,449);
+    ctx.fillText(`JOGADOR 2: ${prettyKey(c2.left)}/${prettyKey(c2.right)} mover • ${prettyKey(c2.up)} pular • ${prettyKey(c2.attack)} atacar • ${prettyKey(c2.ranged)} atirar • ${prettyKey(c2.dash)} dash`,500,477);
+    ctx.fillStyle='#8de3ff'; ctx.fillText('GAMEPAD: analógico/D-pad mover • A pular • X atacar • Y atirar • B dash (padrão)',500,510);
     ctx.fillStyle='#cbbca5'; ctx.font='14px Righteous'; ctx.fillText('Você pode remapear os botões em CONFIGURAR CONTROLES no menu principal.',500,535);
 
     ctx.fillStyle='#eee2cf'; ctx.font='15px Righteous'; ctx.fillText('ENTER / ESC / B para voltar',500,614);
@@ -1621,6 +1836,7 @@ function drawGameOver() {
 }
 
 function drawVictory() {
+    if (saveSystem && typeof saveSystem.markGameCompleted === 'function' && !saveSystem.load().gameCompleted) { saveSystem.markGameCompleted(); refreshMenuOptions(); }
     // Fundo dourado
     const gradient = ctx.createLinearGradient(0, 0, 0, 650);
     gradient.addColorStop(0, '#ffd700');
@@ -1660,6 +1876,7 @@ function drawVictory() {
     const totalTime = ((Date.now() - gameStartTime) / 1000).toFixed(1);
     ctx.font = 'bold 32px Righteous';
     ctx.fillText(`Tempo total: ${totalTime}s`, 500, 400);
+    ctx.fillStyle='#3b1600';ctx.font='bold 22px Righteous';ctx.fillText('SELETOR DE FASES DESBLOQUEADO!',500,455);
     
     // Verificar conquista de vitória
     const totalLife = players.reduce((sum, p) => sum + p.life, 0);
@@ -1905,16 +2122,12 @@ function drawHUD() {
         if (player.evolution) {
             player.evolution.draw(ctx, hudX + 240, hudY + 20);
             
-            // Update do sistema de evolução
-            player.evolution.update();
+            // Evolução é atualizada no loop de gameplay; HUD apenas desenha.
         }
     });
     
-    // Atualizar e desenhar notificações de conquistas
-    if (window.unifiedAchievements) {
-        window.trophySystem.updateNotifications();
-        window.trophySystem.drawNotifications(ctx);
-    }
+    // Notificações de troféus são atualizadas/desenhadas apenas pelo hud-v093.js.
+    // Evita atualização dupla e notificações aceleradas.
     
     // ========== CONTADOR DE INIMIGOS RESTANTES / ONDAS ==========
     if (!bossSpawned) {
@@ -2057,7 +2270,30 @@ function drawHUD() {
     }
 }
 
+function safeGameLoopFrame() {
+    try {
+        gameLoop();
+    } catch (fatalError) {
+        const details = {
+            state: (typeof gameState !== 'undefined' ? gameState : 'desconhecido'),
+            level: (typeof currentLevelIndex !== 'undefined' ? currentLevelIndex + 1 : '?'),
+            enemies: (typeof enemies !== 'undefined' && enemies ? enemies.length : '?'),
+            players: (typeof players !== 'undefined' && players ? players.length : '?'),
+            cameraX: (typeof cameraX !== 'undefined' ? Math.round(cameraX) : '?')
+        };
+        const stack = fatalError && (fatalError.stack || fatalError.message) ? (fatalError.stack || fatalError.message) : String(fatalError);
+        if (window.GameDebugConsole) {
+            window.GameDebugConsole.error('ERRO FATAL NO GAME LOOP | contexto=' + JSON.stringify(details) + '\n' + stack);
+        }
+        console.error('[game-loop-fatal]', details, fatalError);
+        window.__gameDebugFatal = { details, stack, time: Date.now() };
+        // Não agenda outro frame aqui: preserva o ponto exato do erro no console interno.
+    }
+}
+
 function gameLoop() {
+    // Heartbeat para o console interno detectar travamentos do loop
+    window.__gameDebugLastFrame = Date.now();
     // Melhoria #14: Calcular FPS
     fpsCounter++;
     const now = Date.now();
@@ -2074,7 +2310,7 @@ function gameLoop() {
     // Hit stop
     if (hitStopFrames > 0) {
         hitStopFrames--;
-        requestAnimationFrame(gameLoop);
+        requestAnimationFrame(safeGameLoopFrame);
         return;
     }
     
@@ -2125,6 +2361,9 @@ function gameLoop() {
             window.trophySystem.draw(ctx);
         }
     }
+    else if (gameState === GameState.STAGE_SELECT) {
+        drawStageSelect();
+    }
     else if (gameState === GameState.TROPHIES) {  // ✅ SPRINT 1 FIX
         if (window.trophySystem) {
             window.trophySystem.draw(ctx);
@@ -2147,6 +2386,7 @@ function gameLoop() {
         players.forEach(player => {
             if (player.life > 0) {
                 player.update(keys);
+                if (player.evolution?.update) player.evolution.update();
                 
                 // Rastrear dashes para conquista
                 if (player.isDashing && player.dashTimer === player.dashDuration - 1) {
@@ -2177,6 +2417,10 @@ function gameLoop() {
         if (waveSystem && !waveSystem.allWavesDone) {
             waveSystem.update(enemies);
         }
+
+        if (!waveSystem && enemySpawnDirector) {
+            updateEnemySpawnDirector();
+        }
         
         // Aplicar transformação da câmera
         ctx.save();
@@ -2191,7 +2435,40 @@ function gameLoop() {
         if (window.GraphicsUpgrade) {
             window.GraphicsUpgrade.drawBackdropAtmosphere(ctx, currentLevel, cameraX);
         }
+        if (currentLevelIndex === 1 && window.busSequence?.isPhase2Waiting?.()) window.busSequence.drawPhase2Bus(ctx);
         
+        // Caixas e barris quebráveis que guardam os power-ups
+        destructibles.forEach(obj => {
+            if (obj.broken) return;
+            if (obj.hitFlash > 0) obj.hitFlash--;
+            const spr = containerSprites[obj.type];
+            ctx.save();
+            if (obj.hitFlash > 0) { ctx.globalAlpha = 0.65; ctx.translate((Math.random()-.5)*3, 0); }
+            if (spr && spr.complete && spr.naturalWidth > 0) {
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(spr, Math.round(obj.x), Math.round(obj.y), obj.w, obj.h);
+            } else {
+                ctx.fillStyle = obj.type === 'barrel' ? '#8a5125' : '#a96b32';
+                ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+            }
+            ctx.restore();
+
+            players.forEach(player => {
+                if (!player || player.life <= 0 || !player.attacking) return;
+                const hb = player.getHitbox ? player.getHitbox() : null;
+                if (!hb || !rects(hb, obj)) return;
+                if (!player.hitContainersThisSwing) player.hitContainersThisSwing = new Set();
+                if (player.hitContainersThisSwing.has(obj)) return;
+                player.hitContainersThisSwing.add(obj);
+                const damage = 20 + (player.hasActivePowerUp?.('strength') ? 20 : 0);
+                damagePowerUpContainer(obj, damage);
+                screenShake = Math.max(screenShake, 2);
+            });
+        });
+        players.forEach(player => { if (player && !player.attacking && player.hitContainersThisSwing) player.hitContainersThisSwing.clear(); });
+        destructibles = destructibles.filter(o => !o.broken);
+        window.destructibles = destructibles;
+
         // Desenhar e atualizar power-ups
         powerUps.forEach(powerUp => {
             if (powerUp.collected) return;
@@ -2200,13 +2477,7 @@ function gameLoop() {
             powerUp.bobOffset += 0.1;
             powerUp.y = powerUp.baseY + Math.sin(powerUp.bobOffset) * 10;
             
-            // Lifetime — desaparecer após 480 frames (8s)
-            if (powerUp.life === undefined) powerUp.life = 480;
-            powerUp.life--;
-            if (powerUp.life <= 0) { powerUp.collected = true; return; }
-            
-            // Piscar quando prestes a sumir
-            if (powerUp.life < 120 && Math.floor(powerUp.life / 10) % 2 === 0) return;
+            // Power-ups agora são persistentes: permanecem na fase até serem coletados.
             
             // Desenhar power-up
             const colors = {
@@ -2237,10 +2508,19 @@ function gameLoop() {
             ctx.fill();
             ctx.globalAlpha = 1;
             
-            // Ícone
-            ctx.font = '30px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(icons[powerUp.type], powerUp.x + powerUp.w / 2, powerUp.y + powerUp.h / 2 + 10);
+            // Sprite 16-bit (fallback para ícone se a imagem ainda não carregou)
+            const puSprite = powerUpSprites[powerUp.type];
+            if (puSprite && puSprite.complete && puSprite.naturalWidth > 0) {
+                const visualSize = 48;
+                const vx = powerUp.x + powerUp.w / 2 - visualSize / 2;
+                const vy = powerUp.y + powerUp.h / 2 - visualSize / 2;
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(puSprite, Math.round(vx), Math.round(vy), visualSize, visualSize);
+            } else {
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(icons[powerUp.type], powerUp.x + powerUp.w / 2, powerUp.y + powerUp.h / 2 + 10);
+            }
             
             ctx.shadowBlur = 0;
             
@@ -2294,6 +2574,71 @@ function gameLoop() {
         // NOVO: Atualizar e desenhar projéteis (filter ao final para evitar bugs de índice)
         const activeProjectiles = [];
         projectiles.forEach(proj => {
+            if (proj.type === 'player_projectile') {
+                proj.x += proj.vx;
+                proj.y += proj.vy || 0;
+                proj.life--;
+
+                // Tiros do jogador também quebram caixas e barris
+                for (const obj of destructibles) {
+                    if (proj.life <= 0 || obj.broken) continue;
+                    const hitObj = proj.x + proj.w/2 >= obj.x && proj.x - proj.w/2 <= obj.x + obj.w &&
+                                   proj.y + proj.h/2 >= obj.y && proj.y - proj.h/2 <= obj.y + obj.h;
+                    if (!hitObj) continue;
+                    damagePowerUpContainer(obj, proj.damage || 20);
+                    createParticle(proj.x, proj.y, '#d79a52', 4, 'spark');
+                    proj.life = 0;
+                    break;
+                }
+                destructibles = destructibles.filter(o => !o.broken);
+                window.destructibles = destructibles;
+
+                for (const enemy of enemies) {
+                    if (proj.life <= 0 || !enemy || enemy.life <= 0) continue;
+                    if (proj.hitEnemies?.has(enemy)) continue;
+                    const box = enemy.getCollisionBox ? enemy.getCollisionBox() : enemy;
+                    const hit = proj.x + proj.w/2 >= box.x && proj.x - proj.w/2 <= box.x + box.w &&
+                                proj.y + proj.h/2 >= box.y && proj.y - proj.h/2 <= box.y + box.h;
+                    if (!hit) continue;
+
+                    if (proj.hitEnemies) proj.hitEnemies.add(enemy);
+                    const lifeBefore = Number.isFinite(enemy.life) ? enemy.life : null;
+                    const killed = typeof enemy.takeDamage === 'function' ? enemy.takeDamage(proj.damage, proj.owner) : false;
+                    if (typeof enemy.takeDamage !== 'function') { enemy.life = Math.max(0, enemy.life - proj.damage); enemy.hitFlash = 10; }
+                    const lifeAfter = Number.isFinite(enemy.life) ? enemy.life : null;
+                    if (proj.owner?.name === 'João' || proj.owner?.constructor?.name?.toLowerCase().includes('joao')) {
+                        const enemyName = enemy.type || enemy.name || enemy.constructor?.name || 'inimigo';
+                        if (window.DEBUG_GAME) console.log(`[TIRO JOAO] ACERTO id=${proj.shotId ?? '?'} alvo=${enemyName} dano=${proj.damage} vida=${lifeBefore ?? '?'}->${lifeAfter ?? '?'}`);
+                    }
+                    score += killed ? 30 : 8;
+                    if (proj.owner?.addCombo) proj.owner.addCombo();
+                    createParticle(proj.x, proj.y, proj.charged ? '#ffd23f' : '#f4f1df', proj.charged ? 5 : 2, 'spark');
+                    createTextPopup(enemy.x + enemy.w/2, enemy.y, `-${proj.damage}`, proj.charged ? '#ffd23f' : '#fff0c7');
+                    screenShake = Math.max(screenShake, proj.charged ? 3 : 1);
+                    proj.pierce = (proj.pierce || 1) - 1;
+                    if (proj.pierce <= 0) proj.life = 0;
+                }
+
+                const outOfBounds = proj.x < cameraX - 120 || proj.x > cameraX + 1120;
+                if (proj.life <= 0 || outOfBounds) return;
+
+                ctx.save();
+                ctx.shadowBlur = proj.charged ? 16 : 6;
+                ctx.shadowColor = proj.color;
+                ctx.strokeStyle = proj.color;
+                ctx.fillStyle = proj.color;
+                ctx.lineWidth = proj.charged ? 4 : 2;
+                ctx.beginPath();
+                ctx.moveTo(proj.x - proj.vx * (proj.charged ? .7 : .35), proj.y);
+                ctx.lineTo(proj.x, proj.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.ellipse(proj.x, proj.y, proj.w/2, proj.h/2, 0, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+                activeProjectiles.push(proj);
+                return;
+            }
             if (proj.type === 'enemy_projectile') {
                 // Mover projétil
                 proj.x += proj.vx;
@@ -2352,10 +2697,37 @@ function gameLoop() {
         
         // Atualizar e desenhar inimigos
         enemies.forEach((enemy, index) => {
-            enemy.update(players, enemies);
-            if (window.GraphicsUpgrade) window.GraphicsUpgrade.drawEnemyPre(ctx, enemy);
-            enemy.draw(ctx); // camera já aplicada via ctx.translate(-cameraX, 0)
-            if (window.GraphicsUpgrade) window.GraphicsUpgrade.drawEnemyPost(ctx, enemy);
+            try {
+                enemy.update(players, enemies);
+            } catch (enemyUpdateError) {
+                console.error('[enemy-update] Inimigo removido para evitar travamento:', enemy?.type || enemy?.name, enemyUpdateError);
+                enemy.life = 0;
+                enemy.dead = true;
+            }
+            try {
+                // PERFORMANCE: atualiza todos, mas só desenha quem está próximo do viewport.
+                // Isso evita dezenas de drawImage/gradientes para inimigos a milhares de px da câmera.
+                const enemyW = enemy.w || 60;
+                const visible = enemy.x + enemyW >= cameraX - 180 && enemy.x <= cameraX + canvas.width + 180;
+                if (visible) {
+                    if (window.GraphicsUpgrade) window.GraphicsUpgrade.drawEnemyPre(ctx, enemy);
+                    enemy.draw(ctx); // camera já aplicada via ctx.translate(-cameraX, 0)
+                    if (window.GraphicsUpgrade) window.GraphicsUpgrade.drawEnemyPost(ctx, enemy);
+                }
+            } catch (enemyDrawError) {
+                const enemyLabel = enemy?.type || enemy?.name || (enemy?.constructor && enemy.constructor.name) || 'desconhecido';
+                console.error('[enemy-draw] Falha ao desenhar inimigo:', enemyLabel,
+                    'x=' + Math.round(enemy?.x || 0), 'y=' + Math.round(enemy?.y || 0), enemyDrawError);
+                if (window.GameDebugConsole) {
+                    window.GameDebugConsole.error('INIMIGO COM ERRO DE SPRITE/DRAW: ' + enemyLabel +
+                        ' | fase=' + (currentLevelIndex + 1) +
+                        ' | x=' + Math.round(enemy?.x || 0) +
+                        ' | ' + (enemyDrawError?.stack || enemyDrawError?.message || enemyDrawError));
+                }
+                enemy.life = 0;
+                enemy.dead = true;
+                return;
+            }
             
             // Verificar colisão dos ataques dos jogadores
             players.forEach(player => {
@@ -2623,6 +2995,9 @@ function gameLoop() {
         }
         // Lógica de progresso de fase com sistema de boss
         else {
+            if (currentLevelIndex === 1 && window.busSequence?.isPhase2Waiting?.()) {
+                if (window.busSequence.updatePhase2Waiting(players)) gameState = GameState.BUS_BOARDING;
+            }
             const hasBossThisLevel = currentLevel.hasBoss || currentLevel.hasFinalBoss || 
                                      currentLevel.hasTechBoss || currentLevel.hasShadowBoss || currentLevel.hasGodBoss;
             
@@ -2717,7 +3092,16 @@ function gameLoop() {
             } else {
                 // === FASE SEM BOSS - lógica original ===
                 const allEnemiesDead = enemies.length === 0 || enemies.every(e => e.dead || e.life <= 0);
-                if (allEnemiesDead) {
+                const allScheduledEnemiesSpawned = !enemySpawnDirector || enemySpawnDirector.allSpawned;
+                if (allEnemiesDead && allScheduledEnemiesSpawned) {
+                    if (currentLevelIndex === 1) {
+                        if (gameState === GameState.PLAYING && !window.busSequence?.isPhase2Waiting?.()) {
+                            if (window.trophySystem) window.trophySystem.stats.levelsCompleted++;
+                            players.forEach(player => { if (player.evolution) saveSystem.savePlayerProgress(player.name, player.evolution.save()); });
+                            enemySpawnDirector = null;
+                            window.busSequence?.preparePhase2Exit(currentLevel, players);
+                        }
+                    } else {
                     if (window.trophySystem) window.trophySystem.stats.levelsCompleted++;
                     
                     if (currentLevel.nextLevel) {
@@ -2741,9 +3125,30 @@ function gameLoop() {
                             }
                         });
                     }
+                    }
                 }
             }
         }
+    }
+    else if (gameState === GameState.BUS_BOARDING) {
+        const busResult = window.busSequence?.updateDrawBoarding(ctx, currentLevel, players);
+        if (busResult === 'MINIGAME') gameState = GameState.BUS_MINIGAME;
+        else if (busResult === 'ERROR') gameState = GameState.BUS_MINIGAME;
+    }
+    else if (gameState === GameState.BUS_MINIGAME) {
+        const busResult = window.busSequence?.updateDrawMinigame(ctx, keys, gamepadSystem, sistemControles);
+        if (window.trophySystem) { window.trophySystem.updateNotifications(); window.trophySystem.drawNotifications(ctx); }
+        if (busResult === 'ARRIVAL') {
+            loadLevel(2);
+            gameState = GameState.BUS_ARRIVAL;
+            window.busSequence?.startArrival(players);
+        } else if (busResult === 'BONUS_DONE') {
+            gameState = GameState.MENU; refreshMenuOptions(); menuSelection = Math.max(0, menuOptions.indexOf('BÔNUS — ESTRADA PARA VEGAS'));
+        }
+    }
+    else if (gameState === GameState.BUS_ARRIVAL) {
+        const busResult = window.busSequence?.updateDrawArrival(ctx, currentLevel, players);
+        if (busResult === 'DONE') { levelStartTime = Date.now(); levelDamageTaken = 0; gameState = GameState.PLAYING; }
     }
     else if (gameState === GameState.LEVEL_COMPLETE) {
         // Mostrar jogo ao fundo
@@ -2827,8 +3232,8 @@ function gameLoop() {
     // Restaurar contexto do shake
     ctx.restore();
     
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(safeGameLoopFrame);
 }
 
 // Iniciar o jogo
-gameLoop();
+safeGameLoopFrame();

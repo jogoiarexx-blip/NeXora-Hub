@@ -1,5 +1,10 @@
 const JOAO_SPRITE_SHEET = new Image();
-JOAO_SPRITE_SHEET.src = 'assets/joao-sprites.png';
+JOAO_SPRITE_SHEET.src = 'assets/joao-16bit.png';
+
+const JOAO_RANGED_SPRITE_SHEET = new Image();
+JOAO_RANGED_SPRITE_SHEET.src = 'assets/joao-16bit.png';
+const JOAO_16_FRAMES = {"idle":[[35,6,70,128],[149,8,69,126],[261,8,69,126],[374,8,70,126]],"walk":[[501,8,86,126],[615,7,83,126],[727,7,82,126],[836,6,81,127],[944,6,83,127],[1057,6,85,128]],"run":[[944,6,83,127],[1057,6,85,128],[1182,8,80,126],[1301,8,70,126],[1419,8,70,126]],"jump":[[21,165,99,122],[127,164,99,122],[236,166,96,120],[348,166,99,121],[456,166,108,125]],"attack":[[20,308,94,124],[118,315,90,117],[222,318,99,116],[323,321,159,115],[118,315,90,117]],"ranged":[[18,478,144,120],[174,480,118,117],[291,485,163,113]],"hurt":[[20,626,94,104],[31,747,94,109],[135,624,95,105]],"dead":[[659,755,142,101],[841,762,142,96],[995,624,126,108],[1031,771,140,91]],"dash":[[31,891,103,104],[152,902,88,91],[268,896,104,96],[405,915,164,76],[611,909,173,83],[813,910,177,86]]};
+
 
 // Classe específica para o personagem JOÃO
 class PlayerJoao {
@@ -29,7 +34,7 @@ class PlayerJoao {
             height: 45  // 65% da altura
         };
         
-        // Controles de João (WASD + Shift)
+        // Controles do SLOT do jogador (independe do personagem escolhido)
         this.controlPlayer = controlPlayer;
         this.controls = sistemControles.obterControles(controlPlayer);
         
@@ -60,6 +65,18 @@ class PlayerJoao {
         this.isMoving = false;
         this.isRunning = false;
         this.moveHoldFrames = 0;
+
+        // Ataque à distância exclusivo do João
+        this.rangedCharging = false;
+        this.rangedChargeFrames = 0;
+        this.rangedCooldown = 0;
+        this.rangedRecovery = 0;
+        this.rangedWasDown = false;
+        this.rangedInputBuffer = 0; // evita perder o comando se o botão for apertado perto do fim de outro golpe
+        this.rangedShotSerial = 0;
+        this.lastRangedCharged = false;
+        this.rangedChargeThreshold = 42;
+        this.rangedMaxCharge = 90;
     }
     
     // ===== MÉTODOS DE POWER-UPS =====
@@ -101,11 +118,12 @@ class PlayerJoao {
         // Sombra
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.beginPath();
-        ctx.ellipse(this.x + this.w / 2, this.y + this.h + 5, this.w / 2, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(this.x + this.w / 2, this.groundY + 2, this.w / 2, 4, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // Desenhar João
-        this.drawJoaoSprite(ctx);
+        if (this.rangedCharging || this.rangedRecovery > 0) this.drawRangedSprite(ctx);
+        else this.drawJoaoSprite(ctx);
 
         ctx.globalAlpha = 1;
 
@@ -158,55 +176,104 @@ class PlayerJoao {
 
     drawJoaoSprite(ctx) {
         const sheet = JOAO_SPRITE_SHEET;
-        if (!sheet.complete || sheet.naturalWidth === 0) {
-            // Fallback temporário enquanto o sprite carrega.
-            this.drawJoao(ctx);
-            return;
-        }
+        if (!sheet.complete || !sheet.naturalWidth) { this.drawJoao(ctx); return; }
+        let state='idle';
+        if (this.dashing) state='dash';
+        else if (this.attacking) state='attack';
+        else if (this.isJumping) state='jump';
+        else if (this.invulnerable > 15) state='hurt';
+        else if (this.isMoving || this.walkCycle !== 0) state=this.isRunning?'run':'walk';
+        const frames=JOAO_16_FRAMES[state]||JOAO_16_FRAMES.idle;
+        let frame=0;
+        if(state==='attack') frame=Math.min(frames.length-1,Math.floor((15-Math.max(0,this.attackTimer))/3));
+        else if(state==='jump') frame=Math.min(frames.length-1,Math.max(0,Math.floor((this.vy+12)/6)));
+        else if(state==='dash') frame=Math.floor((this.dashDuration-Math.max(0,this.dashTimer))/2)%frames.length;
+        else frame=Math.floor(performance.now()/(state==='run'?85:state==='walk'?125:190))%frames.length;
+        this._draw16Frame(ctx,sheet,frames[frame],88,100);
+    }
 
-        // Linhas do atlas: idle, andar, correr, pular, ataque, ataque cima,
-        // dano, agachar, bloquear, morrer, dash.
-        let state = 'idle';
-        let frames = 4;
-        let row = 0;
+    _draw16Frame(ctx,sheet,rect,drawW,drawH) {
+        if(!rect) return;
+        const [sx,sy,sw,sh]=rect;
+        const ratio=sw/sh; let h=drawH,w=Math.max(drawW*0.72,h*ratio);
+        if(ratio>1.45){ w=Math.min(150,h*ratio); h=Math.min(drawH,w/ratio); }
+        const cx=this.x+this.w/2;
+        // Corpo acompanha a física; sombra continua presa ao chão.
+        const bottom=this.y+this.h+5;
+        const dx=cx-w/2,dy=bottom-h;
+        ctx.save();ctx.imageSmoothingEnabled=false;
+        if(this.invulnerable>0&&Math.floor(this.invulnerable/5)%2===0)ctx.globalAlpha=.55;
+        if(!this.facingRight){ctx.translate(dx+w,0);ctx.scale(-1,1);ctx.drawImage(sheet,sx,sy,sw,sh,0,dy,w,h);}else ctx.drawImage(sheet,sx,sy,sw,sh,dx,dy,w,h);
+        ctx.restore();
+    }
+
+    drawRangedSprite(ctx) {
+        const sheet = JOAO_RANGED_SPRITE_SHEET;
+        if (!sheet.complete || !sheet.naturalWidth) { this.drawJoaoSprite(ctx); return; }
+
+        // A folha 16-bit possui três poses próprias para o tiro.
+        // Não misturar com os frames do soco, pois isso fazia João "piscar"/pular de pose.
+        const frames = JOAO_16_FRAMES.ranged;
         let frame = 0;
 
-        if (this.dashing) {
-            state = 'dash'; row = 10; frames = this.name === 'Crist' ? 4 : 3;
-            frame = Math.floor((this.dashDuration - Math.max(0, this.dashTimer)) / 2) % frames;
-        } else if (this.attacking) {
-            state = 'attack'; row = 4; frames = 4;
-            frame = Math.min(frames - 1, Math.floor((15 - Math.max(0, this.attackTimer)) / 4));
-        } else if (this.isJumping) {
-            state = 'jump'; row = 3; frames = this.name === 'Crist' ? 4 : 5;
-            frame = Math.min(frames - 1, Math.max(0, Math.floor((-this.jumpPower + 18) / 7)));
-        } else if (this.invulnerable > 15) {
-            state = 'damage'; row = 6; frames = 3;
-            frame = Math.floor(Date.now() / 90) % frames;
-        } else if (this.walkCycle !== 0) {
-            state = this.isRunning ? 'run' : 'walk'; row = this.isRunning ? 2 : 1; frames = 6;
-            frame = Math.floor(this.walkCycle / 0.3) % frames;
-        }
-
-        // O sprite foi desenhado virado para a direita. Espelhamos quando anda para a esquerda.
-        const cell = 128;
-        const sx = frame * cell;
-        const sy = row * cell;
-        const drawW = 82;
-        const drawH = 92;
-        const dx = this.x + this.w / 2 - drawW / 2;
-        const dy = this.y + this.h - drawH + 7;
-
-        ctx.save();
-        if (this.invulnerable > 0 && Math.floor(this.invulnerable / 5) % 2 === 0) ctx.globalAlpha = 0.55;
-        if (!this.facingRight) {
-            ctx.translate(dx + drawW, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(sheet, sx, sy, cell, cell, 0, dy, drawW, drawH);
+        if (this.rangedCharging) {
+            const charge = Math.min(1, this.rangedChargeFrames / Math.max(1, this.rangedMaxCharge));
+            frame = charge >= 0.58 ? 1 : 0;
         } else {
-            ctx.drawImage(sheet, sx, sy, cell, cell, dx, dy, drawW, drawH);
+            // Recuperação: mostra a pose de disparo e volta suavemente para a pose de preparo.
+            const totalRecovery = this.lastRangedCharged ? 18 : 14;
+            const elapsed = totalRecovery - Math.max(0, this.rangedRecovery);
+            if (elapsed < 5) frame = 2;
+            else if (elapsed < 10) frame = 1;
+            else frame = 0;
         }
-        ctx.restore();
+
+        this._draw16Frame(ctx, sheet, frames[frame], 94, 104);
+
+        if (this.rangedCharging && this.rangedChargeFrames >= this.rangedChargeThreshold) {
+            ctx.save();
+            const pulse = 0.55 + Math.abs(Math.sin(performance.now() / 90)) * 0.35;
+            ctx.globalAlpha = pulse;
+            ctx.fillStyle = '#ffd23f';
+            ctx.beginPath();
+            ctx.arc(this.x + this.w / 2 + (this.facingRight ? 40 : -40), this.y + 31, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    fireRangedAttack(charged = false) {
+        const direction = this.facingRight ? 1 : -1;
+        const damage = charged ? 42 : 18;
+        const speed = charged ? 18 : 14;
+        const muzzleX = this.x + this.w/2 + direction * 34;
+        const muzzleY = this.y + 31;
+        if (!Array.isArray(window.projectiles)) {
+            console.error('[TIRO JOAO] ERRO: lista global de projeteis indisponivel');
+            return false;
+        }
+        const shotId = ++this.rangedShotSerial;
+        window.projectiles.push({
+            type: 'player_projectile',
+            shotId,
+            owner: this,
+            x: muzzleX,
+            y: muzzleY,
+            vx: speed * direction,
+            vy: 0,
+            w: charged ? 18 : 10,
+            h: charged ? 10 : 6,
+            life: charged ? 95 : 75,
+            damage,
+            charged,
+            pierce: charged ? 3 : 1,
+            hitEnemies: new Set(),
+            color: charged ? '#ffd23f' : '#f4f1df'
+        });
+        console.log(`[TIRO JOAO] CRIADO id=${shotId} carregado=${charged ? 'sim' : 'nao'} x=${Math.round(muzzleX)} y=${Math.round(muzzleY)} dir=${direction > 0 ? 'direita' : 'esquerda'} dano=${damage}`);
+        if (window.soundSystem?.playSound) window.soundSystem.playSound('hit');
+        if (window.gamepadSystem?.rumble) window.gamepadSystem.rumble(this.controlPlayer || 1, charged ? 110 : 60, charged ? .45 : .2, charged ? .2 : .08);
+        return true;
     }
 
     drawJoao(ctx) {
@@ -390,8 +457,8 @@ class PlayerJoao {
             this.dashTimer = 0;
         }
         
-        // Sistema de Dash (S para João)
-        if (sistemControles.acaoAtiva(this.controlPlayer, 'dash', keys) && !this.dashing && this.dashCooldown === 0 && !this.attacking) {
+        // Sistema de Dash (tecla configurável; padrão: SHIFT no Jogador 1)
+        if (sistemControles.acaoAtiva(this.controlPlayer, 'dash', keys) && !this.dashing && this.dashCooldown === 0 && !this.attacking && !this.rangedCharging && this.rangedRecovery === 0) {
             this.dashing = true;
             this.dashTimer = this.dashDuration;
             this.dashCooldown = 60;
@@ -423,7 +490,7 @@ class PlayerJoao {
             currentSpeed *= 1.5;
         }
         
-        if (!this.dashing && !this.attacking) {
+        if (!this.dashing && !this.attacking && !this.rangedCharging && this.rangedRecovery === 0) {
             if (sistemControles.acaoAtiva(this.controlPlayer, 'left', keys)) {
                 this.x -= currentSpeed;
                 this.facingRight = false;
@@ -437,13 +504,13 @@ class PlayerJoao {
         }
 
         // Caminhada vira corrida depois de alguns frames segurando direção.
-        this.isMoving = moving && !this.isJumping && !this.dashing && !this.attacking;
+        this.isMoving = moving && !this.isJumping && !this.dashing && !this.attacking && !this.rangedCharging && this.rangedRecovery === 0;
         this.moveHoldFrames = this.isMoving ? (this.moveHoldFrames || 0) + 1 : 0;
         this.isRunning = this.isMoving && (this.moveHoldFrames > 22 || currentSpeed > this.speed + 0.01);
         if (this.isMoving) this.walkCycle += this.isRunning ? 0.5 : 0.3; else this.walkCycle = 0;
 
         // Pulo
-        if (sistemControles.acaoAtiva(this.controlPlayer, 'up', keys) && !this.isJumping && this.y + this.h >= this.groundY && !this.dashing) {
+        if (sistemControles.acaoAtiva(this.controlPlayer, 'up', keys) && !this.isJumping && this.y + this.h >= this.groundY && !this.dashing && !this.rangedCharging && this.rangedRecovery === 0) {
             this.jumpPower = -18;
             this.isJumping = true;
         }
@@ -464,7 +531,7 @@ class PlayerJoao {
             this.attackCooldown--;
         }
 
-        if (sistemControles.acaoAtiva(this.controlPlayer, 'attack', keys) && !this.attacking && this.attackCooldown === 0 && !this.dashing) {
+        if (sistemControles.acaoAtiva(this.controlPlayer, 'attack', keys) && !this.attacking && this.attackCooldown === 0 && !this.dashing && !this.rangedCharging && this.rangedRecovery === 0) {
             this.attacking = true;
             this.attackTimer = 15;
             this.attackCooldown = 20;
@@ -476,6 +543,70 @@ class PlayerJoao {
                 this.attacking = false;
             }
         }
+
+        // Ataque à distância do João: segure para carregar e solte para disparar.
+        // Há um pequeno buffer de entrada para o comando não sumir quando pressionado
+        // exatamente no fim de um soco/dash/recuperação.
+        if (this.rangedCooldown > 0) this.rangedCooldown--;
+        if (this.rangedRecovery > 0) this.rangedRecovery--;
+        if (this.rangedInputBuffer > 0) this.rangedInputBuffer--;
+
+        const rangedDown = sistemControles.acaoAtiva(this.controlPlayer, 'ranged', keys);
+        const rangedPressed = rangedDown && !this.rangedWasDown;
+        const rangedReleased = !rangedDown && this.rangedWasDown;
+
+        if (rangedPressed) this.rangedInputBuffer = 8;
+
+        const canStartRanged = !this.attacking && !this.dashing &&
+            this.rangedCooldown === 0 && this.rangedRecovery === 0;
+
+        // Pode iniciar no frame do toque OU alguns frames depois.
+        // Se o jogador apenas tocou e soltou enquanto João ainda terminava outra ação,
+        // o tiro fica no buffer e é disparado assim que o personagem puder atirar.
+        if (!this.rangedCharging && this.rangedInputBuffer > 0 && canStartRanged) {
+            if (rangedDown) {
+                this.rangedCharging = true;
+                this.rangedChargeFrames = 0;
+                this.lastRangedCharged = false;
+                this.rangedInputBuffer = 0;
+            } else {
+                this.lastRangedCharged = false;
+                const fired = this.fireRangedAttack(false);
+                this.rangedInputBuffer = 0;
+                if (fired !== false) {
+                    this.rangedRecovery = 14;
+                    this.rangedCooldown = 42;
+                }
+            }
+        }
+
+        if (this.rangedCharging && rangedDown) {
+            this.rangedChargeFrames = Math.min(this.rangedMaxCharge, this.rangedChargeFrames + 1);
+        }
+
+        if (this.rangedCharging && rangedReleased) {
+            const charged = this.rangedChargeFrames >= this.rangedChargeThreshold;
+            this.lastRangedCharged = charged;
+            this.fireRangedAttack(charged);
+            this.rangedCharging = false;
+            this.rangedChargeFrames = 0;
+            this.rangedRecovery = charged ? 18 : 14;
+            this.rangedCooldown = charged ? 72 : 42;
+        }
+
+        // Segurança: se o controle perder o evento de soltura (touch/gamepad),
+        // nunca deixe João preso eternamente no estado de carregamento.
+        if (this.rangedCharging && !rangedDown && !rangedReleased) {
+            const charged = this.rangedChargeFrames >= this.rangedChargeThreshold;
+            this.lastRangedCharged = charged;
+            this.fireRangedAttack(charged);
+            this.rangedCharging = false;
+            this.rangedChargeFrames = 0;
+            this.rangedRecovery = charged ? 18 : 14;
+            this.rangedCooldown = charged ? 72 : 42;
+        }
+
+        this.rangedWasDown = rangedDown;
 
         // Invulnerabilidade
         if (this.invulnerable > 0) {
@@ -504,7 +635,8 @@ class PlayerJoao {
 
         // Limites da tela
         if (this.x < 0) this.x = 0;
-        if (this.x > 4950) this.x = 4950;
+        const worldMaxX = Math.max(0, ((typeof currentLevel !== 'undefined' && currentLevel?.width) || 5000) - this.w);
+        if (this.x > worldMaxX) this.x = worldMaxX;
     }
 
     // ===== MÉTODOS DE COMBATE =====
@@ -570,6 +702,12 @@ class PlayerJoao {
         this.dashing = false;
         this.dashTimer = 0;
         this.dashCooldown = 0;
+        this.rangedCharging = false;
+        this.rangedChargeFrames = 0;
+        this.rangedCooldown = 0;
+        this.rangedRecovery = 0;
+        this.rangedWasDown = false;
+        this.lastRangedCharged = false;
         this.heal(30);
     }
 }

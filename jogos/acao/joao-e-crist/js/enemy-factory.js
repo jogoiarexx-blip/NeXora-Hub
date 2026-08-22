@@ -65,6 +65,21 @@ class EnemyFactory {
                     ? new CockroachEnemy(x, y)
                     : new Enemy(x, y, 'cockroach');
             
+            case 'turista':
+                return typeof window.TuristaEnemy !== 'undefined' ? new window.TuristaEnemy(x, y) : new Enemy(x, y, 'basic');
+
+            case 'seguranca':
+                return typeof window.SegurancaEnemy !== 'undefined' ? new window.SegurancaEnemy(x, y) : new Enemy(x, y, 'strong');
+
+            case 'elvis_fan':
+                return typeof window.ElvisFanEnemy !== 'undefined' ? new window.ElvisFanEnemy(x, y) : new Enemy(x, y, 'fast');
+
+            case 'mulher_feia':
+                return typeof window.MulherFeiaEnemy !== 'undefined' ? new window.MulherFeiaEnemy(x, y) : new Enemy(x, y, 'strong');
+
+            case 'travesti':
+                return typeof window.TravestiEnemy !== 'undefined' ? new window.TravestiEnemy(x, y) : new Enemy(x, y, 'fast');
+            
             case 'elite':
                 return typeof EliteEnemy !== 'undefined'
                     ? new EliteEnemy(x, y)
@@ -114,6 +129,11 @@ class EnemyFactory {
         console.log('  ExploderEnemy:', typeof ExploderEnemy !== 'undefined' ? '✓' : '✗');
         console.log('  CowboyEnemy:', typeof CowboyEnemy !== 'undefined' ? '✓' : '✗');
         console.log('  CockroachEnemy:', typeof CockroachEnemy !== 'undefined' ? '✓' : '✗');
+        console.log('  TuristaEnemy:', typeof window.TuristaEnemy !== 'undefined' ? '✓' : '✗');
+        console.log('  SegurancaEnemy:', typeof window.SegurancaEnemy !== 'undefined' ? '✓' : '✗');
+        console.log('  ElvisFanEnemy:', typeof window.ElvisFanEnemy !== 'undefined' ? '✓' : '✗');
+        console.log('  MulherFeiaEnemy:', typeof window.MulherFeiaEnemy !== 'undefined' ? '✓' : '✗');
+        console.log('  TravestiEnemy:', typeof window.TravestiEnemy !== 'undefined' ? '✓' : '✗');
         console.log('  BossEnemy:', typeof BossEnemy !== 'undefined' ? '✓' : '✗');
         console.log('  FinalBoss:', typeof FinalBoss !== 'undefined' ? '✓' : '✗');
         console.log('========================');

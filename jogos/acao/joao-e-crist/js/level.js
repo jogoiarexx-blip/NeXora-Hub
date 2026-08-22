@@ -11,7 +11,20 @@ class Level {
         this.music = config.music;
         this.obstacles = config.obstacles || [];
         this.nextLevel = config.nextLevel;
+        this.backgroundImage = config.backgroundImage || null;
+        this._backgroundImg = null;
+        if (this.backgroundImage) {
+            this._backgroundImg = new Image();
+            this._backgroundFailed = false;
+            this._backgroundImg.onload = () => { this._backgroundFailed = false; };
+            this._backgroundImg.onerror = () => {
+                this._backgroundFailed = true;
+                console.warn('[background] Falha ao carregar:', this.backgroundImage);
+            };
+            this._backgroundImg.src = this.backgroundImage;
+        }
         this.description = config.description;
+        this.width = Number.isFinite(config.width) ? config.width : 5000;
         this._visualSeed = (this.id || 1) * 7919;
     }
 
@@ -23,6 +36,31 @@ class Level {
     }
 
     drawBackground(ctx, cameraX) {
+        // Background customizado por fase (somente quando configurado).
+        // Não altera largura, física, câmera nem lógica da fase.
+        if (this._backgroundImg && this._backgroundImg.complete && this._backgroundImg.naturalWidth) {
+            const worldW = this.width || 5000;
+            const canvasW = ctx.canvas ? ctx.canvas.width : 1000;
+            const canvasH = ctx.canvas ? ctx.canvas.height : 650;
+            const imgW = this._backgroundImg.naturalWidth;
+            const imgH = this._backgroundImg.naturalHeight;
+
+            // PERFORMANCE: desenha somente o trecho visível do background.
+            // Antes o navegador escalava uma imagem de ~2000px para 5000px em TODO frame,
+            // mesmo com quase tudo fora da tela. Isso gerava travadas nas fases avançadas.
+            const safeCameraX = Math.max(0, Math.min(Number(cameraX) || 0, Math.max(0, worldW - canvasW)));
+            const sx = Math.max(0, Math.min(imgW - 1, (safeCameraX / worldW) * imgW));
+            const sw = Math.max(1, Math.min(imgW - sx, (canvasW / worldW) * imgW));
+
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;
+            // O contexto já está translate(-cameraX,0). Desenhar em safeCameraX faz
+            // o recorte cair exatamente no viewport 0..canvasW.
+            ctx.drawImage(this._backgroundImg, sx, 0, sw, imgH, safeCameraX, 0, canvasW, canvasH);
+            ctx.restore();
+            return;
+        }
+
         // Céu com gradiente
         const gradient = ctx.createLinearGradient(0, 0, 0, 650);
         gradient.addColorStop(0, this.bgColor1);
@@ -1088,6 +1126,7 @@ const LEVELS = [
         id: 2,
         name: 'A Cidade',
         description: 'Atravesse a cidade sem ser pego!',
+        backgroundImage: 'assets/backgrounds/fase2-cidade.png',
         bgColor1: '#34495e',
         bgColor2: '#5d6d7e',
         groundColor: '#2c2c2c',
@@ -1100,6 +1139,7 @@ const LEVELS = [
         id: 3,
         name: 'O Deserto',
         description: 'Sobreviva ao calor escaldante do deserto!',
+        backgroundImage: 'assets/backgrounds/fase3-deserto.png',
         bgColor1: '#f39c12',
         bgColor2: '#f8c471',
         groundColor: '#e5c29f',
@@ -1113,6 +1153,7 @@ const LEVELS = [
         id: 4,
         name: 'A Estrada',
         description: 'Vegas está próxima! Continue em frente!',
+        backgroundImage: 'assets/backgrounds/fase4-estrada-vegas.png',
         bgColor1: '#2c3e50',
         bgColor2: '#34495e',
         groundColor: '#3a3a3a',
@@ -1125,10 +1166,11 @@ const LEVELS = [
         id: 5,
         name: 'VEGAS!',
         description: 'A batalha final nas luzes de Vegas! Derrote o REI DE VEGAS!',
+        backgroundImage: 'assets/backgrounds/fase5-vegas.png',
         bgColor1: '#0a0a1a',
         bgColor2: '#1a0a2e',
         groundColor: '#2a2a2a',
-        enemyTypes: ['ciclista', 'strong', 'fast', 'tank', 'berserker', 'sniper', 'healer', 'exploder', 'cowboy', 'cockroach'],
+        enemyTypes: ['turista', 'seguranca', 'elvis_fan', 'mulher_feia', 'travesti'],
         enemyCount: 25,
         hasFinalBoss: true,
         nextLevel: 6,
@@ -1141,56 +1183,17 @@ const LEVELS = [
 
     new Level({
         id: 6,
-        name: 'AS CATACUMBAS',
-        description: 'Sob Vegas existem corredores secretos... e guardiões letais!',
-        bgColor1: '#0d0d1a',
-        bgColor2: '#050510',
-        groundColor: '#1a1a2a',
-        enemyTypes: ['elite', 'ghost'],
-        enemyCount: 0,
+        name: 'DENTRO DO CASSINO',
+        description: 'João e Crist invadem o Royal Vegas. Entre mesas, caça-níqueis e seguranças, o caminho leva até a Arena VIP!',
+        backgroundImage: 'assets/backgrounds/fase6-cassino.png',
+        bgColor1: '#090716',
+        bgColor2: '#24102f',
+        groundColor: '#2a2019',
+        enemyTypes: ['turista', 'seguranca', 'elvis_fan', 'mulher_feia', 'travesti'],
+        enemyCount: 28,
         hasBoss: true,
-        hasTechBoss: true,
-        useWaves: true,
         nextLevel: 7,
-        levelRequirement: 14,
-        difficultyMultiplier: 2.5,
-        drawBackground(ctx, cameraX) {
-            const grad = ctx.createLinearGradient(0, 0, 0, 650);
-            grad.addColorStop(0, '#050510');
-            grad.addColorStop(1, '#0a0a1a');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 5000, 650);
-            // Estalactites
-            ctx.fillStyle = '#1a1a2e';
-            for (let i = 0; i < 5000; i += 120) {
-                const h = 40 + Math.sin(i * 0.3) * 20;
-                ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i + 30, 0);
-                ctx.lineTo(i + 15, h);
-                ctx.closePath();
-                ctx.fill();
-            }
-            // Tochas
-            for (let i = 400; i < 5000; i += 500) {
-                const flicker = Math.sin(Date.now() * 0.01 + i) * 0.3 + 0.7;
-                ctx.fillStyle = `rgba(255, 140, 0, ${0.8 * flicker})`;
-                ctx.shadowBlur = 30 * flicker;
-                ctx.shadowColor = '#ff8800';
-                ctx.fillRect(i, 350, 8, 20);
-                ctx.fillStyle = `rgba(255, 200, 0, ${flicker})`;
-                ctx.beginPath();
-                ctx.arc(i + 4, 345, 8 * flicker, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-            // Chão de pedra
-            const floorGrad = ctx.createLinearGradient(0, 510, 0, 650);
-            floorGrad.addColorStop(0, '#1a1a2e');
-            floorGrad.addColorStop(1, '#0d0d1a');
-            ctx.fillStyle = floorGrad;
-            ctx.fillRect(0, 510, 5000, 140);
-        }
+        difficultyMultiplier: 2.25
     }),
 
     new Level({

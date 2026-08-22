@@ -49,7 +49,7 @@ class Enemy {
         this.variant = Math.floor(Math.random() * 3);
         this.spriteCache = null;  // Para otimização
         
-        console.log(`✅ ${this.name || this.type} criado em X:${this.x}, Y:${this.y}, Ground:${this.groundY}`);
+        if (window.DEBUG_GAME) console.log(`✅ ${this.name || this.type} criado em X:${this.x}, Y:${this.y}, Ground:${this.groundY}`);
     }
     
     initializeStats(type) {

@@ -227,6 +227,19 @@ class BerserkerEnemy extends Enemy {
             }
         }
         
+        // Timers de animação/combate. Este update substitui o update da classe base,
+        // portanto attackTimer também precisa ser atualizado aqui. Sem isso o
+        // Berserker fica preso eternamente no estado 'attack' do renderer 16-bit.
+        if (this.attackTimer > 0) {
+            this.attackTimer--;
+            if (this.attackTimer <= 0) {
+                this.attackTimer = 0;
+                this.attacking = false;
+            }
+        } else if (this.attacking && !this.isGroundPounding) {
+            this.attacking = false;
+        }
+
         // Cooldowns
         if (this.attackCooldown > 0) this.attackCooldown--;
         if (this.dashCooldown > 0) this.dashCooldown--;

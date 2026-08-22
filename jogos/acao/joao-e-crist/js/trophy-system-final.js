@@ -26,7 +26,11 @@ class TrophySystem {
             // Stats especiais
             noDamageLevels: 0,
             noDeathRun: false,
-            unlockedSkills: 0
+            unlockedSkills: 0,
+            busCompleted: 0,
+            busBestResistance: 0,
+            busNoCollision: false,
+            busBestTime: Infinity
         };
         
         this.notifications = [];
@@ -101,6 +105,10 @@ class TrophySystem {
                 reward: { xp: 100, points: 200 }
             },
             
+            {
+                id: 'bus_road_trip', name: 'PEGANDO A ESTRADA', description: 'Complete o minigame Estrada para Vegas',
+                tier: 'bronze', icon: '🚌', color: '#CD7F32', requirement: { type: 'bus_complete', value: 1 }, reward: { xp: 250, points: 500 }
+            },
             // ==================== PRATA 🥈 ====================
             {
                 id: 'veteran',
@@ -183,6 +191,10 @@ class TrophySystem {
                 reward: { xp: 800, points: 1600 }
             },
             
+            {
+                id: 'bus_good_driver', name: 'BOM MOTORISTA', description: 'Complete com pelo menos 75% da resistência',
+                tier: 'silver', icon: '🚌', color: '#C0C0C0', requirement: { type: 'bus_resistance', value: 75 }, reward: { xp: 600, points: 1200 }
+            },
             // ==================== OURO 🥇 ====================
             {
                 id: 'destroyer',
@@ -265,6 +277,14 @@ class TrophySystem {
                 reward: { xp: 4000, points: 8000 }
             },
             
+            {
+                id: 'bus_road_king', name: 'REI DA ESTRADA', description: 'Complete o percurso sem nenhuma colisão',
+                tier: 'gold', icon: '👑', color: '#FFD700', requirement: { type: 'bus_no_collision', value: true }, reward: { xp: 1500, points: 3000 }
+            },
+            {
+                id: 'bus_pedal_down', name: 'PÉ EMBAIXO', description: 'Complete Estrada para Vegas em até 72 segundos',
+                tier: 'gold', icon: '⚡', color: '#FFD700', requirement: { type: 'bus_time', value: 72 }, reward: { xp: 1800, points: 3600 }
+            },
             // ==================== PLATINA 🏆 ====================
             {
                 id: 'the_legend',
@@ -318,7 +338,7 @@ class TrophySystem {
             }
         ];
         
-        this.maxScroll = Math.max(0, this.trophies.length - 6);
+        this.maxScroll = Math.max(0, this.trophies.length - 5);
     }
     
     checkTrophies(gameStats = {}) {
@@ -365,6 +385,14 @@ class TrophySystem {
                 return stats.fastestGameTime <= requirement.value;
             case 'score':
                 return stats.score >= requirement.value;
+            case 'bus_complete':
+                return (stats.busCompleted || 0) >= requirement.value;
+            case 'bus_resistance':
+                return (stats.busBestResistance || 0) >= requirement.value;
+            case 'bus_no_collision':
+                return stats.busNoCollision === true;
+            case 'bus_time':
+                return Number.isFinite(stats.busBestTime) && stats.busBestTime <= requirement.value;
             case 'all_trophies':
                 const nonPlatinum = this.trophies.filter(t => t.tier !== 'platinum');
                 const unlockedNonPlatinum = nonPlatinum.filter(t => 
@@ -382,7 +410,7 @@ class TrophySystem {
         this.unlockedTrophies.add(trophy.id);
         
         this.addNotification(trophy);
-        this.createUnlockEffects(trophy);
+        // v0.9.3: conquista discreta — sem partículas/efeitos no gameplay
         this.giveReward(trophy.reward);
         
         if (window.soundSystem) {
@@ -395,36 +423,9 @@ class TrophySystem {
     }
     
     createUnlockEffects(trophy) {
-        if (!window.particles) return;
-        
-        // Texto flutuante
-        window.particles.push({
-            x: 500,
-            y: 200,
-            vx: 0,
-            vy: -1,
-            life: 180,
-            maxLife: 180,
-            color: trophy.color,
-            text: `${trophy.icon} ${trophy.name}`,
-            size: 36,
-            alpha: 1
-        });
-        
-        // Explosão de partículas
-        for (let i = 0; i < 40; i++) {
-            const angle = (Math.PI * 2 * i) / 40;
-            window.particles.push({
-                x: 500,
-                y: 250,
-                vx: Math.cos(angle) * 8,
-                vy: Math.sin(angle) * 8,
-                life: 60,
-                maxLife: 60,
-                color: trophy.color,
-                size: 4
-            });
-        }
+        // Mantido por compatibilidade com chamadas antigas.
+        // Troféus não geram partículas nem texto flutuante no cenário.
+        return;
     }
     
     giveReward(reward) {
@@ -443,58 +444,77 @@ class TrophySystem {
     }
     
     addNotification(trophy) {
+        // Cartão compacto; limita a fila para não cobrir a tela quando
+        // várias conquistas são liberadas ao mesmo tempo.
         this.notifications.push({
             trophy: trophy,
-            time: 300,
+            time: 150,
+            maxTime: 150,
             alpha: 1
         });
+        if (this.notifications.length > 3) {
+            this.notifications.splice(0, this.notifications.length - 3);
+        }
     }
     
     updateNotifications() {
         this.notifications = this.notifications.filter(notif => {
             notif.time--;
-            if (notif.time < 60) {
-                notif.alpha = notif.time / 60;
+            // Fade suave somente no final, sem partículas.
+            if (notif.time < 30) {
+                notif.alpha = Math.max(0, notif.time / 30);
+            } else {
+                notif.alpha = 1;
             }
             return notif.time > 0;
         });
     }
     
     drawNotifications(ctx) {
+        const cardW = 246;
+        const cardH = 46;
+        const gap = 7;
+        const x = 1000 - cardW - 12;
+        const tierLabel = { bronze: 'BRONZE', silver: 'PRATA', gold: 'OURO', platinum: 'PLATINA' };
+        
         this.notifications.forEach((notif, i) => {
-            const y = 100 + i * 80;
             const trophy = notif.trophy;
+            const y = 82 + i * (cardH + gap);
+            const age = notif.maxTime - notif.time;
+            // Entrada curta deslizando do canto, sem efeitos no cenário.
+            const slide = Math.min(1, age / 12);
+            const drawX = x + (1 - slide) * 34;
             
             ctx.save();
             ctx.globalAlpha = notif.alpha;
-            
-            // Background
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-            ctx.fillRect(700, y, 280, 70);
-            
-            // Borda com cor do troféu
-            ctx.strokeStyle = trophy.color;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(700, y, 280, 70);
-            
-            // Ícone
-            ctx.font = '32px Arial';
-            ctx.fillText(trophy.icon, 715, y + 45);
-            
-            // Texto
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 16px Righteous';
-            ctx.textAlign = 'left';
-            ctx.fillText('TROFÉU DESBLOQUEADO!', 755, y + 25);
-            
-            ctx.font = '14px Righteous';
+            ctx.fillStyle = 'rgba(8, 10, 16, 0.88)';
+            ctx.fillRect(drawX, y, cardW, cardH);
             ctx.fillStyle = trophy.color;
-            ctx.fillText(trophy.name, 755, y + 45);
+            ctx.fillRect(drawX, y, 4, cardH);
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(drawX + 0.5, y + 0.5, cardW - 1, cardH - 1);
             
-            ctx.font = '10px Righteous';
-            ctx.fillStyle = '#aaa';
-            ctx.fillText(`+${trophy.reward.xp} XP`, 755, y + 60);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.font = '20px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.fillText(trophy.icon, drawX + 12, y + 23);
             
+            ctx.font = 'bold 10px Righteous';
+            ctx.fillStyle = trophy.color;
+            ctx.fillText(`TROFÉU • ${tierLabel[trophy.tier] || trophy.tier.toUpperCase()}`, drawX + 42, y + 13);
+            
+            ctx.font = 'bold 13px Righteous';
+            ctx.fillStyle = '#fff';
+            ctx.fillText(trophy.name, drawX + 42, y + 28);
+            
+            ctx.textAlign = 'right';
+            ctx.font = '9px Righteous';
+            ctx.fillStyle = '#bfc5cf';
+            const xp = trophy.reward?.xp || 0;
+            const pts = trophy.reward?.points || 0;
+            ctx.fillText(`+${xp} XP  +${pts} pts`, drawX + cardW - 8, y + 40);
             ctx.restore();
         });
     }
@@ -523,6 +543,84 @@ class TrophySystem {
         return stats;
     }
     
+
+    getTrophyProgress(trophy) {
+        const req = trophy.requirement || {};
+        const target = req.value;
+        let current = 0;
+        let percent = 0;
+        let label = '';
+
+        switch (req.type) {
+            case 'kills': current = this.stats.enemiesKilled || 0; break;
+            case 'combo': current = this.stats.maxCombo || 0; break;
+            case 'level_complete': current = this.stats.levelsCompleted || 0; break;
+            case 'dashes': current = this.stats.dashesUsed || 0; break;
+            case 'player_level': current = this.stats.playerLevel || 1; break;
+            case 'powerups': current = this.stats.powerUpsCollected || 0; break;
+            case 'no_damage_level': current = this.stats.noDamageLevels || 0; break;
+            case 'boss_defeated': current = this.stats.bossesDefeated || 0; break;
+            case 'all_skills': current = this.stats.unlockedSkills || 0; break;
+            case 'score': current = this.stats.score || 0; break;
+            case 'bus_complete': current = this.stats.busCompleted || 0; break;
+            case 'bus_resistance': current = this.stats.busBestResistance || 0; break;
+            case 'bus_no_collision': current = this.stats.busNoCollision ? 1 : 0; percent=current*100; label=`${current}/1 percurso perfeito`; break;
+            case 'bus_time': { const best=this.stats.busBestTime; if(Number.isFinite(best)){percent=best<=target?100:Math.max(5,Math.min(99,(target/best)*100));label=`Melhor: ${this.formatTime(best)}  •  Meta: ${this.formatTime(target)}`;} else {percent=0;label=`Melhor: --:--  •  Meta: ${this.formatTime(target)}`;} break; }
+            case 'no_death_run':
+                current = this.stats.noDeathRun ? 1 : 0;
+                percent = current * 100;
+                label = `${current}/1 corrida sem morrer`;
+                break;
+            case 'speedrun': {
+                const best = this.stats.fastestLevelTime;
+                if (Number.isFinite(best)) {
+                    percent = best <= target ? 100 : Math.max(5, Math.min(99, (target / best) * 100));
+                    label = `Melhor: ${this.formatTime(best)}  •  Meta: ${this.formatTime(target)}`;
+                } else {
+                    percent = 0;
+                    label = `Melhor: --:--  •  Meta: ${this.formatTime(target)}`;
+                }
+                break;
+            }
+            case 'game_speedrun': {
+                const best = this.stats.fastestGameTime;
+                if (Number.isFinite(best)) {
+                    percent = best <= target ? 100 : Math.max(5, Math.min(99, (target / best) * 100));
+                    label = `Melhor: ${this.formatTime(best)}  •  Meta: ${this.formatTime(target)}`;
+                } else {
+                    percent = 0;
+                    label = `Melhor: --:--  •  Meta: ${this.formatTime(target)}`;
+                }
+                break;
+            }
+            case 'all_trophies': {
+                const nonPlatinum = this.trophies.filter(t => t.tier !== 'platinum');
+                current = nonPlatinum.filter(t => this.unlockedTrophies.has(t.id)).length;
+                const total = nonPlatinum.length;
+                percent = total ? (current / total) * 100 : 0;
+                label = `${current}/${total} troféus principais`;
+                break;
+            }
+        }
+
+        if (!label) {
+            const numericTarget = Number(target) || 1;
+            percent = Math.max(0, Math.min(100, (Number(current) / numericTarget) * 100));
+            label = `${Math.min(Number(current) || 0, numericTarget)}/${numericTarget}`;
+        }
+
+        if (this.unlockedTrophies.has(trophy.id)) percent = 100;
+        return { current, target, percent, label };
+    }
+
+    formatTime(seconds) {
+        if (!Number.isFinite(seconds)) return '--:--';
+        const total = Math.max(0, Math.floor(seconds));
+        const min = Math.floor(total / 60);
+        const sec = total % 60;
+        return `${min}:${String(sec).padStart(2, '0')}`;
+    }
+
     draw(ctx) {
         // Fundo escuro
         ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
@@ -576,8 +674,8 @@ class TrophySystem {
         
         // Lista de troféus
         const startY = 180;
-        const itemHeight = 75;
-        const visibleCount = 6;
+        const itemHeight = 86;
+        const visibleCount = 5;
         
         // Scroll indicators
         if (this.scrollOffset > 0) {
@@ -632,25 +730,44 @@ class TrophySystem {
             ctx.fillText(trophy.description, 130, y + 50);
             
             // Recompensa
-            ctx.font = '12px Righteous';
+            ctx.font = '11px Righteous';
             ctx.fillStyle = unlocked ? '#FFD700' : '#777';
-            ctx.fillText(`+${trophy.reward.xp} XP  |  +${trophy.reward.points} pts`, 130, y + 67);
+            ctx.fillText(`+${trophy.reward.xp} XP  |  +${trophy.reward.points} pts`, 130, y + 68);
+
+            // Progresso da conquista
+            const progress = this.getTrophyProgress(trophy);
+            const barX = 535;
+            const barY = y + 57;
+            const barW = 385;
+            const barH = 10;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.55)';
+            ctx.fillRect(barX, barY, barW, barH);
+            ctx.fillStyle = unlocked ? trophy.color : '#777';
+            ctx.fillRect(barX, barY, barW * (progress.percent / 100), barH);
+            ctx.strokeStyle = unlocked ? trophy.color : '#555';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(barX + 0.5, barY + 0.5, barW - 1, barH - 1);
+
+            ctx.textAlign = 'right';
+            ctx.font = 'bold 11px Righteous';
+            ctx.fillStyle = unlocked ? '#fff' : '#bcbcbc';
+            ctx.fillText(`${progress.label}  •  ${Math.floor(progress.percent)}%`, 920, y + 78);
             
             // Badge do tier com COR
             ctx.font = 'bold 12px Righteous';
             ctx.fillStyle = trophy.color;
-            ctx.textAlign = 'right';
-            ctx.fillText(trophy.tier.toUpperCase(), 930, y + 28);
+            ctx.fillText(trophy.tier.toUpperCase(), 930, y + 27);
             
             // Status
             if (unlocked) {
-                ctx.fillStyle = '#00ff00';
-                ctx.font = 'bold 14px Righteous';
-                ctx.fillText('✓ DESBLOQUEADO', 930, y + 50);
+                ctx.fillStyle = '#64ff7c';
+                ctx.font = 'bold 13px Righteous';
+                ctx.fillText('✓ CONCLUÍDO', 930, y + 47);
             } else {
-                ctx.fillStyle = '#ff6666';
-                ctx.font = '12px Righteous';
-                ctx.fillText('🔒 Bloqueado', 930, y + 50);
+                ctx.fillStyle = '#ff8b8b';
+                ctx.font = '11px Righteous';
+                ctx.fillText('EM PROGRESSO', 930, y + 47);
             }
         });
         
@@ -708,7 +825,11 @@ class TrophySystem {
             fastestGameTime: Infinity,
             noDamageLevels: 0,
             noDeathRun: false,
-            unlockedSkills: 0
+            unlockedSkills: 0,
+            busCompleted: 0,
+            busBestResistance: 0,
+            busNoCollision: false,
+            busBestTime: Infinity
         };
         this.saveProgress();
         console.log('🔄 Troféus resetados');
