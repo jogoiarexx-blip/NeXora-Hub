@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#08080f">
+<title>NeXora Hub 0.9</title>
+<meta name="description" content="Nexora Hub — livros, apps e jogos num só lugar.">
+<link rel="stylesheet" href="css/style.css?v=19">
+<link rel="icon" href="assets/favicon.png">
+<link rel="manifest" href="manifest.webmanifest?v=19">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<script defer src="js/data-livros.js?v=19"></script>
+<script defer src="js/data-jogos.js?v=19"></script>
+<script defer src="js/data-apps.js?v=19"></script>
+<script defer src="js/offline-assets.js?v=19"></script>
+<script defer src="js/app.js?v=19"></script>
+</head>
+<body>
+
+<header>
+  <img class="brand-logo" src="assets/logo.png" alt="Nexora Hub — livros, apps e jogos" width="1254" height="1254">
+  <button id="installApp" class="install-app" type="button" hidden>⬇ Instalar NeXora</button>
+</header>
+
+<section id="banner" aria-label="Destaque">
+  <a id="featuredLink" class="featured-banner" href="#">
+    <div class="featured-copy">
+      <span class="banner-tag">em destaque</span>
+      <h1 id="featuredTitle">Nexora Hub</h1>
+      <p id="featuredDesc">Livros, jogos e apps em um só lugar.</p>
+      <span id="featuredAction" class="featured-action">abrir agora →</span>
+    </div>
+    <img id="featuredImg" alt="" loading="eager">
+  </a>
+</section>
+
+<section id="continueSection" class="continue-section" hidden>
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow">sua leitura</span>
+      <h2>Continuar lendo</h2>
+    </div>
+    <button id="clearProgress" class="text-btn" type="button">limpar progresso</button>
+  </div>
+  <div id="continueGrid" class="continue-grid"></div>
+</section>
+
+<div class="type-tabs" id="typeTabs" aria-label="Tipos de conteúdo"></div>
+
+<div class="controls">
+  <label class="search-wrap" for="search">
+    <span aria-hidden="true">⌕</span>
+    <input id="search" type="search" autocomplete="off" placeholder="buscar por título, gênero ou descrição..." aria-label="Buscar conteúdo">
+  </label>
+  <div class="filters" id="filters"></div>
+</div>
+
+<div id="resultsMeta" class="results-meta" aria-live="polite"></div>
+<div id="games"></div>
+<p id="emptyState">nada encontrado com esse filtro.</p>
+
+<footer>
+  <img class="brand-mark" src="assets/logo.png" alt="Nexora Hub">
+  <p>feito por <span>NeXora Hub 0.9</span> &middot; livros, apps e jogos &middot; prateleira sempre em construção</p>
+</footer>
+
+<script>
+window.addEventListener('load',()=>{setTimeout(()=>{const g=document.getElementById('games');if(g&&!g.children.length){const m=document.getElementById('resultsMeta');if(m)m.textContent='Falha ao carregar o catálogo. Atualize a página.';}},2500);});
+</script>
+</body>
+</html>
